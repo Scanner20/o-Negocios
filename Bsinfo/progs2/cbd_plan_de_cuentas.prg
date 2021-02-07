@@ -1,0 +1,2 @@
+do form cbd_plan_de_cuentas
+return

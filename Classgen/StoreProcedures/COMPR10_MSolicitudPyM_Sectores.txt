@@ -1,0 +1,165 @@
+/*
+	Título		:	
+	Propósito	:	
+	Parámetros de Entrada
+	@NumeroSolicitudPyM		char(8) = NULL , 	@Item				  char(3) = NULL , 	@CodigoSector			  char(6) = NULL , 	@FHInicioProgramado		datetime = NULL , 	@FHTerminoProgramado		   datetime = NULL , 	@FHInicioReal			  datetime = NULL , 	@FHTerminoReal			 datetime = NULL , 
+
+	Valores de Retorno	:
+	Llamadas a SP		:
+	
+	Creación
+	Autor		:	ggonzale
+	Fecha		:	19/09/2000 15:58:53
+	Comentario	:	Permite dar mantenimiento a la Tabla : MSolicitudPyM_Sectores
+	
+	Modificacion
+	Autor		:
+	Fecha		:
+	Comentarios	:
+
+	Creado con	:	Generador de Store Procedures (c) 2000 T.D.V.
+*/
+
+CREATE PROCEDURE COMPR10_MSolicitudPyM_Sectores
+	@NumeroSolicitudPyM		char(8) = NULL , 	@Item				  char(3) = NULL , 	@CodigoSector			  char(6) = NULL , 	@FHInicioProgramado		datetime = NULL , 	@FHTerminoProgramado		   datetime = NULL , 	@FHInicioReal			  datetime = NULL , 	@FHTerminoReal			 datetime = NULL , 
+	@Usuario		varchar(15) = NULL ,
+	@Estacion		varchar(15) = NULL ,
+	@TipoOperacion	varchar(2)	= 'C1'
+AS
+BEGIN  -- Inicion de Bloque Principal
+
+	
+	DECLARE @Mensaje		varchar(200)
+
+	SET @Mensaje = 'Sin Errores...'
+	
+
+	IF @Usuario	= NULL		SET @Usuario	= SUSER_NAME()
+	IF @Estacion	= NULL		SET @Estacion	= HOST_NAME()
+	
+
+	BEGIN TRANSACTION Trans_MSolicitudPyM_Sectores
+
+	-- Insertar Elementos 
+	IF @TipoOperacion='I'
+	BEGIN
+		/*
+		-- Obtener un correlativo valido para la SolicitudDDP
+		EXEC ADMGEN4_Contador_Entidad @Entidad = 'MSolicitudPyM_Sectores', @Contador = @Variable OUTPUT, @Actualizar = 1
+
+		IF @@ERROR <> 0 	-- Ocurrio un error al obtener el correlativo
+		BEGIN
+			SET @Mensaje = 'Fallo el correlativo para la Tabla :  MSolicitudPyM_Sectores' 
+			GOTO ERROR	-- Hubo un error en la Inserción
+		END 
+
+		-- Obtener un Correlativo Valido para el Item
+		SELECT @Variable = COALESCE( CAST( MAX( <Campo> ) + 1 AS CHAR(3) ) , '001' ) 
+		FROM MSolicitudPyM_Sectores WHERE NumeroSolicitudPyM = @NumeroSolicitudPyM AND 			Item = @Item 
+
+		SET @NumeroSCot_Orden = RIGHT( '000' + RTRIM( @NumeroSCot_Orden ) , 3 )
+
+		*/
+
+		INSERT INTO MSolicitudPyM_Sectores
+			( NumeroSolicitudPyM , 			Item , 			CodigoSector , 			FHInicioProgramado , 			FHTerminoProgramado , 			FHInicioReal , 			FHTerminoReal , 			
+			FHCreacion , UsuarioCreacion , EstacionCreacion , 
+			FHModificacion , UsuarioModificacion , EstacionModificacion )
+		VALUES 
+			( @NumeroSolicitudPyM , 			@Item , 			@CodigoSector , 			@FHInicioProgramado , 			@FHTerminoProgramado , 			@FHInicioReal , 			@FHTerminoReal , 			
+			GETDATE() , @Usuario , @Estacion ,
+			GETDATE() , @Usuario , @Estacion )
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = 'Ocurrió un error al Insertar un elemento en la Tabla : MSolicitudPyM_Sectores'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+	-- Actualizar Elementos 
+	IF @TipoOperacion='A'
+	BEGIN
+		UPDATE MSolicitudPyM_Sectores SET 
+			CodigoSector = @CodigoSector , 			FHInicioProgramado = @FHInicioProgramado , 			FHTerminoProgramado = @FHTerminoProgramado , 			FHInicioReal = @FHInicioReal , 			FHTerminoReal = @FHTerminoReal , 
+			FHModificacion 		= GETDATE() , 
+			UsuarioModificacion	= @Usuario , 
+			EstacionModificacion= @Estacion
+		WHERE 
+			NumeroSolicitudPyM = @NumeroSolicitudPyM AND 			Item = @Item  AND
+			FlagEliminado = 0
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = 'Ocurrió un error al Actualizar la Tabla : MSolicitudPyM_Sectores'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+	-- Eliminar Elementos 
+	IF @TipoOperacion='E'
+	BEGIN
+		UPDATE MSolicitudPyM_Sectores SET 
+			FlagEliminado 		= 1 ,
+			FHModificacion 		= GETDATE() , 
+			UsuarioModificacion	= @Usuario , 
+			EstacionModificacion= @Estacion
+		WHERE 
+			NumeroSolicitudPyM = @NumeroSolicitudPyM AND 			Item = @Item 
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = 'Ocurrió un error al Eliminar un elemento en la Tabla : MSolicitudPyM_Sectores'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+	-- Consultar Elementos 
+	IF @TipoOperacion='C1'
+	BEGIN
+		SELECT 
+			NumeroSolicitudPyM , 			Item , 			CodigoSector , 			FHInicioProgramado , 			FHTerminoProgramado , 			FHInicioReal , 			FHTerminoReal 			
+		FROM 
+			MSolicitudPyM_Sectores
+		WHERE 
+			NumeroSolicitudPyM = @NumeroSolicitudPyM AND 			Item = @Item  AND
+			FlagEliminado = 0
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = 'Ocurrió un error al consultar la Tabla : MSolicitudPyM_Sectores'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+
+ERROR:
+	ROLLBACK TRANSACTION Trans_MSolicitudPyM_Sectores
+	RAISERROR(@Mensaje,18,1)
+	GOTO FIN
+
+OK:
+
+	COMMIT TRANSACTION Trans_MSolicitudPyM_Sectores
+
+FIN:
+END -- Fin de Bloque Principal
+
+-- Llamada desde el Cliente (VFP)
+/*
+THISFORM.ocnx_ODBC.cSQl = "EXEC " + THISFORM.Tabla("COMPR10_MSolicitudPyM_Sectores") + " " + ;
+	"@NumeroSolicitudPyM		 = ?m.NumeroSolicitudPyM , " + ; 	"@Item				   = ?m.Item , " + ; 	"@CodigoSector			   = ?m.CodigoSector , " + ; 	"@FHInicioProgramado		 = ?m.FHInicioProgramado , " + ; 	"@FHTerminoProgramado		= ?m.FHTerminoProgramado , " + ; 	"@FHInicioReal			   = ?m.FHInicioReal , " + ; 	"@FHTerminoReal			  = ?m.FHTerminoReal , " + ; 
+	"@Usuario			= ?m.Usuario , " + ;
+	"@Estacion			= ?m.Estacion , " + ;
+	"@TipoOperacion		= ?m.TipoOperacion "
+THISFORM.ocnx_ODBC.cCursor = "MSolicitudPyM_Sectores"
+THISFORM.ocnx_ODBC.DoSQL()
+*/

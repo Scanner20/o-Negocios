@@ -1,0 +1,386 @@
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё 07/11/96            CBDDISK1.SPR               10:57:27 Ё
+*       Ё                                                         Ё
+*       цддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+*       Ё                                                         Ё
+*       Ё VICTOR E. TORRES TEJADA                                 Ё
+*       Ё                                                         Ё
+*       Ё Copyright (c) 1996                                      Ё
+*       Ё SOFTWARE COMERCIAL    TLF:9411837 - 4841538             Ё
+*       Ё AV. BERTELLO 170-401 CDA. STE. STA.ROSA                 Ё
+*       Ё LIMA - PERU,     C.P.                                   Ё
+*       Ё Pa║s                                              Ё
+*       Ё                                                         Ё
+*       Ё Description:                                            Ё
+*       Ё Este programa lo ha generado autom═ticamente GENSCRN.    Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+
+
+#REGION 0
+REGIONAL m.currarea, m.talkstat, m.compstat
+
+IF SET("TALK") = "ON"
+	SET TALK OFF
+	m.talkstat = "ON"
+ELSE
+	m.talkstat = "OFF"
+ENDIF
+m.compstat = SET("COMPATIBLE")
+SET COMPATIBLE FOXPLUS
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё             MS-DOS Definiciones de ventana              Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+IF NOT WEXIST("actctbintf") ;
+	OR UPPER(WTITLE("ACTCTBINTF")) == "ACTCTBINTF.PJX" ;
+	OR UPPER(WTITLE("ACTCTBINTF")) == "ACTCTBINTF.SCX" ;
+	OR UPPER(WTITLE("ACTCTBINTF")) == "ACTCTBINTF.MNX" ;
+	OR UPPER(WTITLE("ACTCTBINTF")) == "ACTCTBINTF.PRG" ;
+	OR UPPER(WTITLE("ACTCTBINTF")) == "ACTCTBINTF.FRX" ;
+	OR UPPER(WTITLE("ACTCTBINTF")) == "ACTCTBINTF.QPR"
+	DEFINE WINDOW actctbintf ;
+		FROM INT((SROW()-14)/2),INT((SCOL()-77)/2) ;
+		TO INT((SROW()-14)/2)+13,INT((SCOL()-77)/2)+76 ;
+		TITLE "INTERFACE DE INFORMACION " ;
+		FLOAT ;
+		CLOSE ;
+		SHADOW ;
+		MINIMIZE ;
+		DOUBLE ;
+		COLOR SCHEME 10
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё   CBDDISK1/MS-DOS C╒digo de configuraci╒n - SECCION 2   Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+*
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё        CBDDISK1/MS-DOS Distribuci╒n de pantalla         Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+IF WVISIBLE("actctbintf")
+	ACTIVATE WINDOW actctbintf SAME
+ELSE
+	ACTIVATE WINDOW actctbintf NOSHOW
+ENDIF
+@ 4,2 SAY "Mes contable :" ;
+	SIZE 1,14, 0
+@ 4,35 SAY "Modelo de asiento :" ;
+	SIZE 1,19, 0
+@ 1,2 SAY "Nombre del archivo de interface : " ;
+	SIZE 1,34, 0
+@ 1,36 GET XsNomArc ;
+	SIZE 1,8 ;
+	DEFAULT " " ;
+	WHEN _rc10nhijt() ;
+	VALID _rc10nhinq() ;
+	MESSAGE [Archivo Texto o DBF generado por el sistema que trasmite la informaci╒n a actualizar.] ;
+	ERROR sErr
+@ 4,17 GET XnMes ;
+	SIZE 1,2 ;
+	DEFAULT " " ;
+	PICTURE "@L ##" ;
+	VALID _rc10nhj5t()
+@ 4,55 GET XsCodMod ;
+	SIZE 1,4 ;
+	DEFAULT " " ;
+	PICTURE "XXXX" ;
+	VALID _rc10nhj9w() ;
+	ERROR serr
+@ 7,15 GET XiSolo_uno ;
+	PICTURE "@*RVN \<A.- Un asiento por todos los registros del archivo;\<B.- Un asiento por cada registro del archivo" ;
+	SIZE 1,54,0 ;
+	DEFAULT 1 ;
+	VALID _rc10nhjhj()
+@ 6,2 SAY "Forma de grabaci╒n" ;
+	SIZE 1,18, 0
+@ 7,2 SAY "del asiento :" ;
+	SIZE 1,13, 0
+@ 10,25 GET m.Salir ;
+	PICTURE "@*HT \<Aceptar;\<Cancelar" ;
+	SIZE 1,10,2 ;
+	DEFAULT 1
+
+IF NOT WVISIBLE("actctbintf")
+	ACTIVATE WINDOW actctbintf
+ENDIF
+
+READ CYCLE
+
+RELEASE WINDOW actctbintf
+
+#REGION 0
+IF m.talkstat = "ON"
+	SET TALK ON
+ENDIF
+IF m.compstat = "ON"
+	SET COMPATIBLE ON
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё           CBDDISK1/MS-DOS C╒digo de limpieza            Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+UltTecla = LASTKEY()
+if m.salir = 2
+   UltTecla = K_ESC
+endif
+****************
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё CBDDISK1/MS-DOS Procedimientos y funciones de soporte   Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+FUNCTION vBorrar
+****************
+xFile = PathTras+vTabla(z)
+xFile1= LEFT(vTabla(z),8)
+DELETE FILE (xFile)
+=ADEL(vTabla,z)
+IF ALEN(vTabla) = 1
+   XsNomArc = SPACE(8)
+   CLEAR READ
+ENDIF
+DIMENSION vTabla(ALEN(vTabla)-1)
+z = 1
+_CurObj=1
+RETURN .T.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _RC10NHIJT           XsNomArc WHEN                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CBDDISK1,     Record Number:    5  Ё
+*       Ё Variable:            XsNomArc                           Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      1                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _rc10nhijt     &&  XsNomArc WHEN
+#REGION 1
+IF EMPTY(XsNomArc)
+   XsNomArc = SPACE(8)
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _RC10NHINQ           XsNomArc VALID                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CBDDISK1,     Record Number:    5  Ё
+*       Ё Variable:            XsNomArc                           Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      2                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _rc10nhinq     &&  XsNomArc VALID
+#REGION 1
+UltTecla = LASTKEY()
+IF UltTecla = K_F8
+   IF lTexto
+      xFile=SYS(2000,PathTras+"*.ITX")
+   ELSE
+      xFile=SYS(2000,PathTras+"*.IBD")
+   ENDIF
+   IF xFile==""
+      sErr = "No existen archivos generados"
+      DO F1MsgErr WITH sErr
+      sErr = [.]
+      return .f.
+   ENDIF
+   DIMENSION vTabla(1)
+   vTabla(1) = xFile
+   z = 1
+   DO WHILE .T.
+      IF lTexto
+         xFile=SYS(2000,PathTras+"*.ITX",1)
+      ELSE
+         xFile=SYS(2000,PathTras+"*.IBD",1)
+      ENDIF
+      IF xFile==""
+         EXIT
+      ENDIF
+      z = z + 1
+      DIMENSION vTabla(z)
+      vTabla(z) = xFile
+   ENDDO
+   sNomBre= [ARCH_INTF]
+   nLargo = 11
+   nAncho = 23
+   sTit   = [ARCHIVOS DE INTERFACE]
+   nColor = 2
+   nDVerti= 10
+   nDHoriz= 0
+   DO F1_CAJA WITH nLargo,nAncho,sNombre,nColor,sTit,0,10
+   ACTIVATE WINDOW (sNomBre) NOSHOW
+
+   Opc = 1
+  *@ 5,37 SAY PADC("ARCHIVOS",20)
+  *GsMSgkey =' [F10] Aceptar [Esc] Salir [TAB] Siguiente'
+  DO WHILE .T.
+      @  0,00 GET z  FROM vTabla SIZE 06,20
+      @  8,02 GET iBorrar PICT "@*H \<Borrar" DEFAULT 0 VALID vBorrar()
+      @  7,10 GET Opc PICT "@*VT \<Aceptar;\<Cancelar"
+      READ CYCLE
+      UltTecla = LASTKEY()
+      xFile = PathTras+vTabla(z)
+      xFile1= LEFT(vTabla(z),8)
+      XsNomArc = xFile1
+      IF OPC=2
+         UltTecla = K_ESC
+      ELSE
+         UltTecla  = K_Enter
+      ENDIF
+      RELEASE WINDOW (sNomBre)
+      EXIT
+   ENDDO
+ENDIF
+XsNomArc = TRIM(XsNomArc)
+@ 01,36 SAY XsNomArc  PICTURE "@!"
+IF UltTecla  = K_ESC
+   CLEAR READ
+ENDIF
+IF lTexto
+   IF !FILE(PathTRAS+XsNomArc+".ITX")
+      sErr = "Archivo "+XsNomArc+" no existe"
+      DO F1MSGERR WITH sErr
+      UltTecla = 0
+      sErr = [.]
+      RETURN .F.
+   ENDIF
+ELSE
+   IF !FILE(PathTRAS+XsNomArc+".IBD")
+      sErr = "Archivo "+XsNomArc+" no existe"
+      DO F1MsgErr WITH sErr
+      UltTecla = 0
+      sErr = [.]
+      RETURN .F.
+   ENDIF
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _RC10NHJ5T           XnMes VALID                        Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CBDDISK1,     Record Number:    6  Ё
+*       Ё Variable:            XnMes                              Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      3                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _rc10nhj5t     &&  XnMes VALID
+#REGION 1
+IF XnMes = 12
+    XdFchAst = CTOD('31/12/'+STR(_ANO,4,0))
+ELSE
+    XdFchAst = CTOD("01/"+TRANS(XnMES+1,"@L ##")+"/"+STR(_Ano,4,0))-1
+ENDIF
+@ 4,20 SAY MES(XnMes,1) SIZE 1,10
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _RC10NHJ9W           XsCodMod VALID                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CBDDISK1,     Record Number:    7  Ё
+*       Ё Variable:            XsCodMod                           Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      4                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _rc10nhj9w     &&  XsCodMod VALID
+#REGION 1
+UltTecla = LASTKEY()
+IF UltTecla = K_F8
+   xtabla=[]
+   IF !CBDselec("MDLO")
+      UltTecla = 0
+      sErr = [.]
+      RETURN .F.
+   ELSE
+      XsCodMod = CodMod
+      UltTecla = K_Enter
+   ENDIF
+ENDIF
+SEEK XsCodMod
+IF !FOUND() AND !EMPTY(XsCOdMod)
+   sErr = "Modelo no existe"
+   DO F1MsgErr WITH sErr
+   UltTecla = 0
+   sErr = [.]
+   RETURN  .F.
+ENDIF
+IF !EMPTY(XsCodMod)
+   @ 04,55 SAY XsCodMod
+   @ 05,36 SAY VMDL.NotAst SIZE 1,36
+ENDIF
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _RC10NHJHJ           XiSolo_uno VALID                   Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CBDDISK1,     Record Number:    8  Ё
+*       Ё Variable:            XiSolo_uno                         Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Radio Button                       Ё
+*       Ё Snippet Number:      5                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _rc10nhjhj     &&  XiSolo_uno VALID
+#REGION 1
+IF XiSolo_Uno = 1
+   Solo_uno = .T.
+ELSE
+   Solo_uno = .F.
+ENDIF

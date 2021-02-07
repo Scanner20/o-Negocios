@@ -1,0 +1,271 @@
+OLE IDispatch exception code 0 from ADODB.Connection: No se encontró el proveedor especificado. Es posible que no esté instalado correctamente...
+Provider=Microsoft.ACE.OLEDB.12.0
+Install from http://www.microsoft.com/downloads/details.aspx?familyid=7554F536-8C28-4598-9B72-EF94E038C891&displaylang=en
+https://www.microsoft.com/en-us/download/details.aspx?id=14839
+
+https://comunidadvfp.blogspot.com/2006/10/exportar-cursor-vfp-excel.html
+*!*.....POR ESTAS ;
+*************************************************
+*** Verifica la cantidad de hojas necesarias ***
+*** en el libro para la cantidad de datos ***
+*************************************************
+lnHojas = (RECCOUNT(cCursor)/65000)
+nDecimal = lnHojas - INT(lnHojas) 
+IF nDecimal > 0.0
+lnHojas = INT(lnHojas + 1)
+ENDIF
+
+
+EXPORT to &lcxFileName type XL5 &&fields &thisformset.cFieldlist
+
+* captions as headings
+oExcel = CreateObject("Excel.Application")
+oExcel.WorkBooks.Open(lcFileName)
+oExcel.Visible = .T.
+oSheet = oExcel.ActiveSheet
+
+lnRows = ALINES(laData, lcFields, .F., ",")
+DIMENSION laData[lnRows]
+
+lnKolommen=alen(laData,1)
+
+FOR i=1 TO lnKolommen
+  IF type(laData[i])= "C" OR type(laData[i])= "N" OR;
+     type(laData[i])= "I" OR type(laData[i])= "C" OR;
+     type(laData[i])= "D" OR type(laData[i])= "L"
+    oSheet.Cells(1,i).Font.Bold = .T.
+    oSheet.Cells(1,i).Value = thisformset.getfieldcaption(laData[i])
+    lcLetter        =IIF( i > 26 , CHR( 64 + MOD( i , 26)) , CHR ( 64 + i) )
+    lcExtraLetter    =IIF( i > 26 , CHR( 64 + INT( i / 26)) , "" )
+    lcKolom = "'" + lcExtraletter + lcLetter + ":" + lcExtraLetter + lcLetter + "'"
+    osheet.Columns(EVALUATE(lcKolom)).EntireColumn.Autofit
+  ENDIF
+ENDFOR
+
+SET SAFETY &lcOldsafety
+
+function getfieldcaption
+LPARAMETERS pcField
+LOCAL lcCaption,lcField,lcOldAlias
+lcOldAlias=alias()
+SELECT (this.basetable)
+* check field existst in basetable
+IF LEN(FIELD(pcField))<>0
+  lcField=this.basetable+"."+pcField
+  lcCaption=DBGETPROP(lcField, "Field", "Caption")
+  IF EMPTY(lcCaption)
+    lcCaption=lcField
+  ENDIF
+ELSE
+  lcCaption=""
+ENDIF
+
+IF !EMPTY(lcOldAlias)
+  SELECT &lcOldAlias 
+ENDIF
+
+RETURN lcCaption
+endfunc    
+
+OTRO EJEMPLO DE CODIGO VFO2EXCEL
+ * These represent complex SQL as a sample
+Select emp_id,First_Name,Last_Name,;
+    Title,Notes ;
+    from (_samples+'\data\employee') ;
+    into Cursor crsEmployee ;
+    readwrite
+Replace All Notes With Chrtran(Notes,Chr(13)+Chr(10),Chr(10))
+
+Select cust_id,company,contact,Title,country,postalcode ;
+    from (_samples+'\data\customer') ;
+    into Cursor crsCustomer ;
+    nofilter
+
+Select * ;
+    from (_samples+'\data\orders') ;
+    into Cursor crsOrders ;
+    nofilter
+
+Select * ;
+    from (_samples+'\data\orditems') ;
+    into Cursor crsOrderDetail ;
+    nofilter
+
+Select * ;
+    from (_samples+'\data\products') ;
+    into Cursor crsProducts ;
+    nofilter
+
+* Now we want to get these on 3 sheets
+* Sheet1: Employees only
+* Sheet2: Customers only
+* Sheet3: Orders, ordItems, Products layed out horizontally
+
+Local oExcel
+oExcel = Createobject("Excel.Application")
+With oExcel
+    .DisplayAlerts = .F.
+    .Workbooks.Add
+    .Visible = .T.
+    With .ActiveWorkBook
+        For ix = 1 To 3 && We want 3 Sheets
+            If .sheets.Count < m.ix
+                .sheets.Add(,.sheets(.sheets.Count)) && Add new sheets
+            Endif
+        Endfor
+        * Name the sheets
+        .WorkSheets(1).Name = "Employees"
+        .WorkSheets(2).Name = "Customers"
+        .WorkSheets(3).Name = "Order, OrderDetail, Products" && max sheetname is 31 chars
+
+        * Start sending data
+        * First one has headers specified
+        VFP2Excel('crsEmployee',    .WorkSheets(1).Range("A1"), ;
+            "Id,First Name,Last Name,Employee Title,Comments about employee" ) && To sheet1, start at A1
+        VFP2Excel('crsCustomer',    .WorkSheets(2).Range("A1") ) && To sheet2, start at A1
+        VFP2Excel('crsOrders',      .WorkSheets(3).Range("A1") ) && To sheet3, start at A1
+        * Need to know where to put next
+        * Leave 2 columns empty - something like 'G1'
+        lcRange = _GetChar(.WorkSheets(3).UsedRange.Columns.Count + 3) + '1'
+        * To sheet3, start at next to previous
+        VFP2Excel('crsOrderDetail', .WorkSheets(3).Range(m.lcRange) )
+
+        lcRange = _GetChar(.WorkSheets(3).UsedRange.Columns.Count + 3) + '1'
+        * To sheet3, start at next to previous
+        VFP2Excel('crsProducts',    .WorkSheets(3).Range(m.lcRange) )
+
+        #Define xlJustify                                         -4130
+        #Define xlTop                                             -4160
+
+        * I just happen to know notes in at column 5 from SQL
+        * No need to query from excel to keep code simple
+        * Lets format that column specially instead of leaving
+        * at the mercy of Excel's autofitting
+        .WorkSheets(1).UsedRange.VerticalAlignment = xlTop && set all to top
+        With .WorkSheets(1).Columns(5)
+            .ColumnWidth = 80 && 80 chars width
+            .WrapText = .T.
+            *      .HorizontalAlignment = xlJustify && doesn't work good always
+        Endwith
+
+        * Finally some cosmetic stuff
+        For ix=1 To 3
+            With .WorkSheets(m.ix)
+                .Columns.AutoFit
+                .Rows.AutoFit
+            Endwith
+        Endfor
+
+        .WorkSheets(1).Activate
+    Endwith
+Endwith
+
+
+* Author: Cetin Basoz
+* This is based on earlier VFP2Excel function codes
+* that has been published on the internet, at various sites
+* since 2001. Not to be messed with others' code who named the same but has
+* nothing to do with the approaches taken here (unless copy & pasted and claimed
+* to be their own work, < s > that happens).
+Procedure VFP2Excel(tcCursorName, toRange, tcHeaders, tnPrefferredWidthForMemo)
+    * tcCursorName
+    * toRange
+    * tcHeaders: Optional. Defaults to field headers
+    * tnPrefferredWidthForMemo: Optional. Default 80
+    * Function VFP2Excel
+    tcCursorName = Evl(m.tcCursorName,Alias())
+    tnPrefferredWidthForMemo = Evl(m.tnPrefferredWidthForMemo,80)
+    Local loConn As AdoDB.Connection, loRS As AdoDB.Recordset,;
+        lcTemp,lcTempDb, oExcel,ix, lcFieldName, lcHeaders
+
+    lnSelect = Select()
+    lcTemp   = Forcepath(Sys(2015)+'.dbf',Sys(2023))
+    lcTempDb = Forcepath(Sys(2015)+'.dbc',Sys(2023))
+
+    Create Database (m.lcTempDb)
+    Select * From (m.tcCursorName) Into Table (m.lcTemp) Database (m.lcTempDb)
+
+    Local Array aMemo[1]
+    Local nMemoCount
+    nMemoCount = 0
+    lcHeaders = ''
+    For ix = 1 To Fcount()
+        lcFieldName = Field(m.ix)
+        If Type(Field(m.ix))='M'
+            nMemoCount = m.nMemoCount + 1
+            Dimension aMemo[m.nMemoCount]
+            aMemo[m.nMemoCount] = m.ix
+            Replace All &lcFieldName With Chrtran(&lcFieldName,Chr(13)+Chr(10),Chr(10))
+        Endif
+        lcHeaders = m.lcHeaders + Iif(Empty(m.lcHeaders),'',',')+Proper(m.lcFieldName)
+    Endfor
+    tcHeaders = Evl(m.tcHeaders,m.lcHeaders)
+
+    Use In (Juststem(m.lcTemp))
+    Close Databases
+    Set Database To
+
+    loStream = Createobject('AdoDb.Stream')
+    loConn = Createobject('ADODB.Connection')
+    loRS = Createobject("ADODB.Recordset")
+    loConn.ConnectionString = "Provider=VFPOLEDB;Data Source="+m.lcTempDb
+    loConn.Open()
+    loRS = loConn.Execute("select * from "+m.lcTemp)
+    loRS.Save( loStream )
+    loRS.Close
+    loConn.Close
+    Erase (m.lcTemp)
+
+    * Use first row for headers
+    Local Array aHeader[1]
+
+    loRS.Open( loStream )
+    toRange.Offset(1,0).CopyFromRecordSet( loRS )  && Copy data starting from headerrow + 1
+
+    Set Safety Off
+    Delete Database (m.lcTempDb) Deletetables
+
+    Select (m.lnSelect)
+
+    For ix=1 To Iif( !Empty(m.tcHeaders), ;
+            ALINES(aHeader, m.tcHeaders,1,','), ;
+            loRS.Fields.Count )
+        toRange.Offset(0,m.ix-1).Value = ;
+            Iif( !Empty(m.tcHeaders), ;
+            aHeader[m.ix], ;
+            Proper(loRS.Fields(m.ix-1).Name) )
+        toRange.Offset(0,m.ix-1).Font.Bold = .T.
+    Endfor
+
+    #Define xlJustify                                         -4130
+    #Define xlTop                                             -4160
+    * This part is cosmetic
+    toRange.WorkSheet.Activate
+    With toRange.WorkSheet.UsedRange
+        .VerticalAlignment = xlTop && set all to top
+        For ix=1 To m.nMemoCount
+            With .Columns(aMemo[m.ix])
+                .ColumnWidth = m.tnPrefferredWidthForMemo && 80 chars width
+                .WrapText = .T.
+            Endwith
+        Endfor
+        .Columns.AutoFit
+        .Rows.AutoFit
+    Endwith
+Endproc
+
+* Return A, AA, BC etc noation for nth column
+Function _GetChar
+    Lparameters tnColumn && Convert tnvalue to Excel alpha notation
+    If m.tnColumn = 0
+        Return ""
+    Endif
+    If m.tnColumn <= 26
+        Return Chr(Asc("A")-1+m.tnColumn)
+    Else
+        Return  _GetChar(Int(Iif(m.tnColumn % 26 = 0,m.tnColumn - 1, m.tnColumn) / 26)) + ;
+            _GetChar((m.tnColumn-1)%26+1)
+    Endif
+Endfunc
+
+

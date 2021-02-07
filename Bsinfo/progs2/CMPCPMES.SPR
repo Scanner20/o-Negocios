@@ -1,0 +1,242 @@
+*       *********************************************************
+*       *                                                         
+*       * 29/01/98            CMPCPMES.SPR               15:08:46 
+*       *                                                         
+*       *********************************************************
+*       *                                                         
+*       * Victor E. Torres Tejada  - VETT                         
+*       *                                                         
+*       * Copyright (c) 1998 BELCSOFT-                            
+*       * Av. Manuel Corpancho 250 - 3ra. Av. Arequipa            
+*       * La Victoria, LIMA  L13                                    
+*       * PERU                                              
+*       *                                                         
+*       * Description:                                            
+*       * Este programa lo ha generado automﬂticamente GENSCRN.    
+*       *                                                         
+*       *********************************************************
+
+
+#REGION 0
+REGIONAL m.currarea, m.talkstat, m.compstat
+
+IF SET("TALK") = "ON"
+	SET TALK OFF
+	m.talkstat = "ON"
+ELSE
+	m.talkstat = "OFF"
+ENDIF
+m.compstat = SET("COMPATIBLE")
+SET COMPATIBLE FOXPLUS
+
+*       *********************************************************
+*       *                                                         
+*       *             MS-DOS Definiciones de ventana              
+*       *                                                         
+*       *********************************************************
+*
+
+IF NOT WEXIST("recalculo") ;
+	OR UPPER(WTITLE("RECALCULO")) == "RECALCULO.PJX" ;
+	OR UPPER(WTITLE("RECALCULO")) == "RECALCULO.SCX" ;
+	OR UPPER(WTITLE("RECALCULO")) == "RECALCULO.MNX" ;
+	OR UPPER(WTITLE("RECALCULO")) == "RECALCULO.PRG" ;
+	OR UPPER(WTITLE("RECALCULO")) == "RECALCULO.FRX" ;
+	OR UPPER(WTITLE("RECALCULO")) == "RECALCULO.QPR"
+	DEFINE WINDOW recalculo ;
+		FROM INT((SROW()-13)/2),INT((SCOL()-70)/2) ;
+		TO INT((SROW()-13)/2)+12,INT((SCOL()-70)/2)+69 ;
+		TITLE "CALCULO DE PRECIOS DE COMPRA MENSUAL" ;
+		FLOAT ;
+		NOCLOSE ;
+		SHADOW ;
+		NOMINIMIZE ;
+		DOUBLE ;
+		COLOR SCHEME 1
+ENDIF
+
+
+*       *********************************************************
+*       *                                                         
+*       *   CMPCPMES/MS-DOS C_digo de configuraci_n - SECCION 2   
+*       *                                                         
+*       *********************************************************
+*
+
+#REGION 1
+*** Variables necesarias ***
+m.CodMatD = SPACE(LEN(CATG.CodMat))
+m.CodMatH = SPACE(LEN(CATG.CodMat))
+m.DesmatD = SPACE(LEN(CATG.DesMat))
+m.DesmatH = SPACE(LEN(CATG.DesMat))
+
+sAyuda_O1 = [Presione F8 para consultar]
+m.Control = 1
+m.Cuales  = 1
+UltTecla  = 0
+
+*       *********************************************************
+*       *                                                         
+*       *        CMPCPMES/MS-DOS Distribuci_n de pantalla         
+*       *                                                         
+*       *********************************************************
+*
+
+#REGION 1
+IF WVISIBLE("recalculo")
+	ACTIVATE WINDOW recalculo SAME
+ELSE
+	ACTIVATE WINDOW recalculo NOSHOW
+ENDIF
+@ 3,2 SAY "Ingrese rango de materiales, un ingreso nulo implica todos" ;
+	SIZE 1,58, 0
+@ 5,6 SAY "Desde material:" ;
+	SIZE 1,15, 0
+@ 7,6 SAY "Hasta material:" ;
+	SIZE 1,15, 0
+@ 5,22 GET m.CodMatD ;
+	SIZE 1,8 ;
+	DEFAULT " " ;
+	VALID _rrv0wgoyz() ;
+	MESSAGE sAyuda_O1 ;
+	ERROR 'CÛdigo de material inv·lido'
+@ 5,33 SAY m.desmatD ;
+	SIZE 1,31
+@ 7,22 GET m.codmatH ;
+	SIZE 1,8 ;
+	DEFAULT " " ;
+	VALID _rrv0wgp04() ;
+	MESSAGE sAyuda_O1		
+@ 7,33 SAY m.desmatH ;
+	SIZE 1,31
+@ 9,21 GET m.control ;
+	PICTURE "@*HT \<Aceptar;\<Cancelar" ;
+	SIZE 1,10,5 ;
+	DEFAULT 1
+@ 1,27 SAY MES(_mes,3) ;
+	SIZE 1,10
+
+IF NOT WVISIBLE("recalculo")
+	ACTIVATE WINDOW recalculo
+ENDIF
+
+READ CYCLE ;
+	SHOW _rrv0wgp1h()
+
+RELEASE WINDOW recalculo
+
+#REGION 0
+IF m.talkstat = "ON"
+	SET TALK ON
+ENDIF
+IF m.compstat = "ON"
+	SET COMPATIBLE ON
+ENDIF
+
+
+*       *********************************************************
+*       *                                                         
+*       *           CMPCPMES/MS-DOS C_digo de limpieza            
+*       *                                                         
+*       *********************************************************
+*
+
+#REGION 1
+UltTecla = LASTKEY()
+
+IF m.Control = 2 .OR. LASTKEY()=K_ESC     && Nos vamos
+   UltTecla = K_ESC
+   Ven_Actual = woutput()
+   IF !EMPTY(Ven_Actual)
+       DEACTIVATE WINDOW (Ven_Actual)
+       RELEASE WINDOW (Ven_actual)
+   ENDIF
+   CLOSE DATA
+   RETURN
+ENDIF
+RETURN
+
+
+
+*       *********************************************************
+*       *                                                         
+*       * _RRV0WGOYZ           m.CodMatD VALID                    
+*       *                                                         
+*       * Function Origin:                                        
+*       *                                                         
+*       * From Platform:       MS-DOS                             
+*       * From Screen:         CMPCPMES,     Record Number:    5  
+*       * Variable:            m.CodMatD                          
+*       * Called By:           VALID Clause                       
+*       * Object Type:         Field                              
+*       * Snippet Number:      1                                  
+*       *                                                         
+*       *********************************************************
+*
+FUNCTION _rrv0wgoyz     &&  m.CodMatD VALID
+#REGION 1
+lValido=F1_BUSCA(m.CodmatD,"CODMAT","CATG","CATG","",.T.,"")
+IF lValido
+   m.DesmatD=iif(empty(m.codmatD),[],CATG.Desmat)
+   SHOW GET m.CodMatD
+   @ 5,33 say m.desmatD size 1,31
+ENDIF
+RETURN lValido
+
+*       *********************************************************
+*       *                                                         
+*       * _RRV0WGP04           m.codmatH VALID                    
+*       *                                                         
+*       * Function Origin:                                        
+*       *                                                         
+*       * From Platform:       MS-DOS                             
+*       * From Screen:         CMPCPMES,     Record Number:    7  
+*       * Variable:            m.codmatH                          
+*       * Called By:           VALID Clause                       
+*       * Object Type:         Field                              
+*       * Snippet Number:      2                                  
+*       *                                                         
+*       *********************************************************
+*
+FUNCTION _rrv0wgp04     &&  m.codmatH VALID
+#REGION 1
+lvalido=F1_BUSCA(m.CodMatH,"CODMAT","CATG","CATG","",.T.,"")
+IF lValido
+   m.DesmatH=iif(empty(m.codmath),[],CATG.Desmat)
+   SHOW GET m.CodMatH
+   @ 7,33 SAY m.DesMatH SIZE 1,31
+ENDIF
+
+return lvalido
+
+*       *********************************************************
+*       *                                                         
+*       * _RRV0WGP1H           Nivel de lectura SHOW              
+*       *                                                         
+*       * Function Origin:                                        
+*       *                                                         
+*       *                                                         
+*       * From Platform:       MS-DOS                             
+*       * From Screen:         CMPCPMES                           
+*       * Called By:           READ Statement                     
+*       * Snippet Number:      3                                  
+*       *                                                         
+*       *********************************************************
+*
+FUNCTION _rrv0wgp1h     && Read Level Show
+PRIVATE currwind
+STORE WOUTPUT() TO currwind
+*
+* C_digo SHOW de la pantalla: CMPCPMES
+*
+#REGION 1
+IF SYS(2016) = "RECALCULO" OR SYS(2016) = "*"
+	ACTIVATE WINDOW recalculo SAME
+	@ 5,33 SAY m.desmatD ;
+		SIZE 1,31, 0
+	@ 7,33 SAY m.desmatH ;
+		SIZE 1,31, 0
+ENDIF
+IF NOT EMPTY(currwind)
+	ACTIVATE WINDOW (currwind) SAME
+ENDIF

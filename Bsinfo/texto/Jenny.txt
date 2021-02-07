@@ -1,0 +1,19 @@
+Usar el Formulario Alm_Almkarta , para hacer un formulario
+de consulta de formulas que luego se le agregaran los botones
+de edicion.
+
+Para probar un formulario abrir el proyecto o-n2 o o-n
+ejecutar el programa inicio1 y luego seleccionar y ejecutar el formulario.
+
+El formulario de ejemplo grabarlo como CPI_Formulacion_01
+
+Las tablas de las formulas principales son:
+Cpicfpro,Cpidfpro 
+
+Estas tablas estan vacias pero se pueden llenar (append from) con los registros
+que hay en el t:\aplica\cia001\c1999 
+Tambien hay un icono en el escritorio Aplica DOS , para ver el formulario en DOS.
+
+EL tema es nada mas hacer que el nuevo formulario muestre las formulas ya ingresadas la parte de edicion se ve despues.
+
+

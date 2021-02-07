@@ -1,0 +1,22 @@
+EXTERNAL PROC cbddisk1.scx
+
+DO FORM "cbddisk1.scx" NAME _24N0ABTME LINKED 
+
+*- [CONVERTER] Begin CLEANUP and other procedures from 2.x Form
+
+FUNCTION vBorrar
+****************
+xFile = PathTras+vTabla(z)
+xFile1= LEFT(vTabla(z),8)
+DELETE FILE (xFile)
+=ADEL(vTabla,z)
+IF ALEN(vTabla) = 1
+   XsNomArc = SPACE(8)
+   CLEAR READ
+ENDIF
+DIMENSION vTabla(ALEN(vTabla)-1)
+z = 1
+_CurObj=1
+RETURN .T.
+
+*- [CONVERTER] End CLEANUP and other procedures from 2.x Form

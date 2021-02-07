@@ -1,0 +1,2 @@
+do form cbd_cierre_mensual
+return

@@ -1,0 +1,2 @@
+do form adm_cambioclave
+return

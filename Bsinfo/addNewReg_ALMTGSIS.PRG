@@ -1,0 +1,12 @@
+
+FOR K = 1 TO 23
+
+	LsCodCia='CIA'+TRANSFORM(K,"@L 999")
+	WAIT WINDOW LsCodCia NOWAIT
+	SELECT 0
+	USE LsCodCia+'!ALMTGSIS'
+	APPEND FROM Goentorno.tspathadm+'\NEWTGSIS'
+	WAIT WINDOW LsCodCia +' '+TRANSFORM(_TALLY,'9,999,999')+' registros agregados' NOWAIT
+	USE 
+	
+ENDFOR

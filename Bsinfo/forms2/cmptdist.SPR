@@ -1,0 +1,133 @@
+EXTERNAL PROC cmptdist.scx
+
+DO FORM "cmptdist.scx" NAME _1ZW0NDWED LINKED 
+
+*- [CONVERTER] Begin CLEANUP and other procedures from 2.x Form
+
+PROCEDURE Brows_DIST
+********************
+PARAMETER lMostrar,m.Area
+m.bTitulo = [WBROWSE0]
+m.bDeta   = [WBROWSE0]
+m.bTitBrow= [Tabla de distribuci¢n de compras proyectadas]
+m.VenPadre = [WBIG]
+IF lMostrar
+   m.bClave1 = PsCodMat
+   m.bClave2 = PsCodMat
+ELSE
+   m.bClave1 = PsCodMat
+   m.bClave2 = PsCodMat
+ENDIF
+sModulo = [DIST_CMP]
+m.bFiltro = [.T.]
+m.bCampos = bDef_Cmp(sModulo)
+m.bBorde  = [DOUBLE]
+m.Area_Sel= m.Area
+m.prgBusca= []
+m.prgPrep = []
+m.prgPost = []
+PRIVATE nX0,nX1,nY0,nY1
+nX0 = 04
+nY0 = 02
+nX1 = 09
+nY1 = 70
+IF lMostrar
+   lModi_Reg = .F.
+   lAdic_Reg = .F.
+   lBorr_Reg = .F.
+ELSE
+   lModi_Reg = .T.
+   lAdic_Reg = .T.
+   lBorr_Reg = .T.
+ENDIF
+
+DO F1Browse WITH m.bClave1,lModi_Reg,lAdic_Reg,lBorr_Reg,lMostrar
+RETURN
+******************
+FUNCTION ABRIRDBFS
+******************
+IF !USED([CATG])
+    SELE 0
+    USE ALMCATGE ORDER CaTG01  ALIAS CATG
+    IF !USED()
+       RETURN .F.
+    ENDIF  
+ENDIF
+***
+IF !USED([AUXI])
+    SELE 0
+    USE CBDMAUXI ORDER AUXI01  ALIAS AUXI
+    IF !USED()
+       RETURN .F.
+    ENDIF  
+ENDIF
+***
+IF !USED([DIST])
+    SELE 0
+    USE CMPTDIST ORDER DIST01 ALIAS DIST
+    IF !USED()
+       RETURN .F.
+    ENDIF  
+ENDIF
+***
+IF !USED([FPGO])
+    SELE 0
+    USE FlCjTbFp ORDER CodFp  ALIAS FPGO
+    IF !USED()
+       RETURN .F.
+    ENDIF  
+ENDIF
+***
+IF !USED([TCMB])
+    SELE 0
+    USE ADMMTCMB ORDER TCMB01  ALIAS TCMB
+    IF !USED()
+       RETURN .F.
+    ENDIF  
+ENDIF
+***
+IF !USED([PACI])
+    SELE 0
+    USE CMPPACIN ORDER PACI01  ALIAS PACI
+    IF !USED()
+       RETURN .F.
+    ENDIF  
+ENDIF
+***
+RETURN .T.
+****************
+FUNCTION vCodAux
+****************
+SCATTER MEMVAR
+lvalido=F1_BUSCA(m.CodAux,[CODAUX],[AUXI],[AUXI],GsClfPro,.F.,[])
+RETURN lValido
+****************
+FUNCTION vPorDis
+****************
+SCATTER MEMVAR
+RETURN m.PorDis>=0
+****************
+FUNCTION vFmaPgo
+****************
+SCATTER MEMVAR 
+lValido = F1_Busca(m.FmaPgo,[FMAPGO],[FPGO],[FPGO],[],.T.,[])
+RETURN lValido
+****************
+FUNCTION vEmiO_C
+****************
+SCATTER memvar
+RETURN m.EmiO_C>=0
+****************
+FUNCTION vcpProd
+****************
+SCATTER memvar
+RETURN m.Capacidad>=0
+****************
+FUNCTION Can_Prg
+****************
+RETURN ROUND(LfCanPrg*PorDis/100,2)
+
+
+
+
+*- [CONVERTER] End CLEANUP and other procedures from 2.x Form

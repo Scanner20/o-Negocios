@@ -1,0 +1,23 @@
+<?xml version = "1.0" encoding="Windows-1252" standalone="yes"?>
+<VFPData xml:space="preserve">
+	<crspathconfig>
+		<ctype>PRG     </ctype>
+		<cpath>D:\APLVFP\BSINFO\PROGS\                                                                                                 </cpath>
+	</crspathconfig>
+	<crspathconfig>
+		<ctype>VCX     </ctype>
+		<cpath>D:\APLVFP\CLASSGEN\VCXS\                                                                                                </cpath>
+	</crspathconfig>
+	<crspathconfig>
+		<ctype>SCX     </ctype>
+		<cpath>D:\APLVFP\BSINFO\FORMS\                                                                                                 </cpath>
+	</crspathconfig>
+	<crspathconfig>
+		<ctype>SCX     </ctype>
+		<cpath>D:\APLVFP\CLASSGEN\FORMS\                                                                                               </cpath>
+	</crspathconfig>
+	<crspathconfig>
+		<ctype>PRG     </ctype>
+		<cpath>D:\APLVFP\CLASSGEN\PROGS\                                                                                               </cpath>
+	</crspathconfig>
+</VFPData>

@@ -1,0 +1,30 @@
+Ubicacion de formularios:
+
+K:\proyecto
+
+Existe un proyecto Aromas_Old.pjx que carga todos los programas, formularios, reportes 
+y menus que estan en esta ruta.
+
+Formularios a Hackear:
+----------------------
+pedidos
+frmpedisitu1
+frmdesamuestra1 
+frmdesamuestra22
+frmdesarrollo
+
+
+Las tablas que abren estos formularios estan generalmente en:
+H:\clientes\diariolb\Cia001, H:\clientes\diariolb\Cia001\c2006
+H:\proyecto\aromas
+H:\Compras\Aromas
+
+Luego de hackear los formularios hay que ir revisando el impacto de las tablas y campos
+que usan con respecto al sistema nuevo, ir preparando una relacion en excel de los cambios
+por formulario que se deben de realizar con respecto a tablas y campos , asi como
+determinar; que tablas que usan estos formularios no tienen equivalente en el sistema 
+nuevo. Luego revisaremos  y modificaremos lo que sea viable, cuando este lista esta 
+relacion de posibles cambios por formulario me lo mandas a mi email para confirmar o 
+agregar y luego hacer los modificaciones definitivas. Incluye tambien las dudas.
+
+

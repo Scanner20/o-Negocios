@@ -1,0 +1,5 @@
+*- [CONVERTER] Declare variables for record pointersPUBLIC _iconvCbdcnfg0GoToPlaceHolder
+
+EXTERNAL PROC cbdcnfg0.scx
+
+DO FORM "cbdcnfg0.scx" NAME _0QX11E4ZW LINKED 

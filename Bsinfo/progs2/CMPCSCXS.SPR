@@ -1,0 +1,583 @@
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё 02/03/99            CMPCSCXS.SPR               14:28:44 Ё
+*       Ё                                                         Ё
+*       цддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+*       Ё                                                         Ё
+*       Ё Nombre del autor                                        Ё
+*       Ё                                                         Ё
+*       Ё Copyright (c) 1999 Nombre de la empresa                 Ё
+*       Ё Direcci╒n                                               Ё
+*       Ё Ciudad,     C.P.                                        Ё
+*       Ё Pa║s                                              Ё
+*       Ё                                                         Ё
+*       Ё Description:                                            Ё
+*       Ё Este programa lo ha generado autom═ticamente GENSCRN.    Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+
+DO CASE
+CASE _DOS OR _UNIX      && no UNIX records in screen
+
+	
+	#REGION 0
+	REGIONAL m.currarea, m.talkstat, m.compstat
+	
+	IF SET("TALK") = "ON"
+		SET TALK OFF
+		m.talkstat = "ON"
+	ELSE
+		m.talkstat = "OFF"
+	ENDIF
+	m.compstat = SET("COMPATIBLE")
+	SET COMPATIBLE FOXPLUS
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё             MS-DOS Definiciones de ventana              Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	IF NOT WEXIST("stkconsed") ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.PJX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.SCX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.MNX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.PRG" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.FRX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.QPR"
+		DEFINE WINDOW stkconsed ;
+			FROM INT((SROW()-18)/2),INT((SCOL()-70)/2) ;
+			TO INT((SROW()-18)/2)+17,INT((SCOL()-70)/2)+69 ;
+			TITLE "STOCK CONSOLIDADO POR SEDE" ;
+			NOFLOAT ;
+			NOCLOSE ;
+			SHADOW ;
+			NOMINIMIZE ;
+			COLOR SCHEME 1
+	ENDIF
+	
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё   CMPCSCXS/MS-DOS C╒digo de configuraci╒n - SECCION 2   Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	#REGION 1
+	set century on
+	
+	ArcTmp = []
+	DO AbrirDbfs
+	*** Variables necesarias ***
+	IF lotrosist
+	   cTOPD = [INFORME - POR:VICTOR E. TORRES T.]
+	   @0,SCOL()/2 SAY PADL(cTOPD,SCOL()/2) COLOR (C_Linea)
+	ENDIF
+	m.tipo = 1
+	m.CodMatD = SPACE(LEN(CATG.CodMat))
+	m.CodMatH = SPACE(LEN(CATG.CodMat))
+	m.DesmatD = SPACE(LEN(CATG.DesMat))
+	m.DesmatH = SPACE(LEN(CATG.DesMat))
+	nCodMon   = 1
+	m.Cuales  = 1
+	dFchDocH  = GdFecha
+	dFchDocD  = CTOD("01/"+TRAN(_MES,"@L ##")+"/"+TRAN(_Ano,"9999"))
+	*** Variables de control
+	sAyuda_O1 = [Presione F8 para consultar]
+	m.Control = 1
+	UltTecla  = 0
+	
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё        CMPCSCXS/MS-DOS Distribuci╒n de pantalla         Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	#REGION 1
+	IF WVISIBLE("stkconsed")
+		ACTIVATE WINDOW stkconsed SAME
+	ELSE
+		ACTIVATE WINDOW stkconsed NOSHOW
+	ENDIF
+	@ 2,1 SAY "Hasta el material :" ;
+		SIZE 1,19, 0
+	@ 1,1 SAY "Desde el material :" ;
+		SIZE 1,19, 0
+	@ 6,3 SAY "Catalogo:" ;
+		SIZE 1,9, 0
+	@ 9,1 SAY "ProducciСn:" ;
+		SIZE 1,11, 0
+	@ 12,4 SAY "Almacen:" ;
+		SIZE 1,8, 0
+	@ 6,39 SAY "Compras :" ;
+		SIZE 1,9, 0
+	@ 3,11 SAY "Stock al:" ;
+		SIZE 1,9, 0
+	@ 3,37 SAY "Compras al:" ;
+		SIZE 1,11, 0
+	@ 12,42 SAY "Tipo :" ;
+		SIZE 1,6, 0
+	@ 1,22 GET m.CodMatD ;
+		SIZE 1,8 ;
+		DEFAULT " " ;
+		VALID _s2y0v17o3()
+	@ 2,22 GET m.CodMatH ;
+		SIZE 1,8 ;
+		DEFAULT " " ;
+		VALID _s2y0v17oh()
+	@ 3,22 GET m.dfch1 ;
+		SIZE 1,11 ;
+		DEFAULT " " ;
+		VALID _s2y0v17ot()
+	@ 3,48 GET m.dFchCmp ;
+		SIZE 1,10 ;
+		DEFAULT {  /  /  } ;
+		PICTURE "@D"
+	@ 5,13 GET m.cuales1 ;
+		PICTURE "@^ Acti\<vos;\<Inactivos;T\<odos" ;
+		SIZE 3,13 ;
+		DEFAULT "Activos" ;
+		COLOR SCHEME 1, 2
+	@ 5,50 GET m.cuales4 ;
+		PICTURE "@^ \<Todos;\<Criticos;\<No criticos" ;
+		SIZE 3,14 ;
+		DEFAULT "Todos" ;
+		COLOR SCHEME 1, 2
+	@ 8,13 GET m.cuales2 ;
+		PICTURE "@^ Con stock mi\<nimo;\<Sin stock minimo;To\<dos" ;
+		SIZE 3,20 ;
+		DEFAULT "Con stock minimo" ;
+		COLOR SCHEME 1, 2
+	@ 11,13 GET m.cuales3 ;
+		PICTURE "@^ Stock \<mayor a 0;Stoc\<k menor igual a 0;Todo\<s" ;
+		SIZE 3,23 ;
+		DEFAULT "Stock mayor a 0" ;
+		COLOR SCHEME 1, 2
+	@ 11,50 GET m.tipo1 ;
+		PICTURE "@^ Formato1;Formato2" ;
+		SIZE 3,12 ;
+		DEFAULT "Formato1" ;
+		COLOR SCHEME 1, 2
+	@ 15,20 GET m.Control ;
+		PICTURE "@*HT \<Aceptar;\<Cancelar" ;
+		SIZE 1,10,2 ;
+		DEFAULT 1
+	
+	IF NOT WVISIBLE("stkconsed")
+		ACTIVATE WINDOW stkconsed
+	ENDIF
+	
+	READ CYCLE
+	
+	RELEASE WINDOW stkconsed
+	
+	#REGION 0
+	IF m.talkstat = "ON"
+		SET TALK ON
+	ENDIF
+	IF m.compstat = "ON"
+		SET COMPATIBLE ON
+	ENDIF
+	
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё           CMPCSCXS/MS-DOS C╒digo de limpieza            Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	#REGION 1
+	UltTecla = LASTKEY()
+	
+	IF m.Control = 2 .OR. LASTKEY()=K_ESC     && Nos vamos
+	   UltTecla = K_ESC
+	   Ven_Actual = woutput()
+	   IF !EMPTY(Ven_Actual)
+	       DEACTIVATE WINDOW (Ven_Actual)
+	       RELEASE WINDOW (Ven_actual)
+	   ENDIF
+	   CLOSE DATA
+	   RETURN
+	ENDIF
+	DO GENTEMPO1
+	DO Imprimir
+	Ven_Actual = woutput()
+	IF !EMPTY(Ven_Actual)
+	    DEACTIVATE WINDOW (Ven_Actual)
+	    RELEASE WINDOW (Ven_actual)
+	ENDIF
+	set century off
+	RETURN
+	
+
+CASE _WINDOWS OR _MAC   && no MAC records in screen
+
+	
+	#REGION 0
+	REGIONAL m.currarea, m.talkstat, m.compstat
+	
+	IF SET("TALK") = "ON"
+		SET TALK OFF
+		m.talkstat = "ON"
+	ELSE
+		m.talkstat = "OFF"
+	ENDIF
+	m.compstat = SET("COMPATIBLE")
+	SET COMPATIBLE FOXPLUS
+	
+	m.rborder = SET("READBORDER")
+	SET READBORDER OFF
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё             Windows Definiciones de ventana             Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	IF NOT WEXIST("stkconsed") ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.PJX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.SCX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.MNX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.PRG" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.FRX" ;
+		OR UPPER(WTITLE("STKCONSED")) == "STKCONSED.QPR"
+		DEFINE WINDOW stkconsed ;
+			AT  0.000, 0.000  ;
+			SIZE 16.615,70.000 ;
+			TITLE "STOCK CONSOLIDADO POR SEDE" ;
+			FONT "MS Sans Serif", 8 ;
+			STYLE "B" ;
+			NOFLOAT ;
+			NOCLOSE ;
+			SHADOW ;
+			NOMINIMIZE
+		MOVE WINDOW stkconsed CENTER
+	ENDIF
+	
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё  CMPCSCXS/Windows C╒digo de configuraci╒n - SECCION 2   Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	#REGION 1
+	ArcTmp = []
+	DO AbrirDbfs
+	*** Variables necesarias ***
+	IF lotrosist
+	   cTOPD = [INFORME - POR:VICTOR E. TORRES T.]
+	   @0,SCOL()/2 SAY PADL(cTOPD,SCOL()/2) COLOR (C_Linea)
+	ENDIF
+	m.tipo = 1
+	m.CodMatD = SPACE(LEN(CATG.CodMat))
+	m.CodMatH = SPACE(LEN(CATG.CodMat))
+	m.DesmatD = SPACE(LEN(CATG.DesMat))
+	m.DesmatH = SPACE(LEN(CATG.DesMat))
+	nCodMon   = 1
+	m.Cuales  = 1
+	dFchDocH  = GdFecha
+	dFchDocD  = CTOD("01/"+TRAN(_MES,"@L ##")+"/"+TRAN(_Ano,"9999"))
+	*** Variables de control
+	sAyuda_O1 = [Presione F8 para consultar]
+	m.Control = 1
+	UltTecla  = 0
+	
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё        CMPCSCXS/Windows Distribuci╒n de pantalla        Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	#REGION 1
+	IF WVISIBLE("stkconsed")
+		ACTIVATE WINDOW stkconsed SAME
+	ELSE
+		ACTIVATE WINDOW stkconsed NOSHOW
+	ENDIF
+	@ 2.308,2.500 SAY "Hasta el material :" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "B"
+	@ 1.154,2.000 SAY "Desde el material :" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "B"
+	@ 3.615,16.333 SAY "Al :" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "BT"
+	@ 6.308,4.000 SAY "Catalogo:" + CHR(13) + ;
+		"" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "BT"
+	@ 8.308,1.833 SAY "ProducciСn:" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "BT"
+	@ 10.308,4.333 SAY "Almacen:" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "BT"
+	@ 6.692,39.667 SAY "Compras :" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "BT"
+	@ 1.000,22.000 GET m.CodMatD ;
+		SIZE 1.154,9.600 ;
+		DEFAULT " " ;
+		FONT "MS Sans Serif", 8 ;
+		VALID _s2y0v17s5()
+	@ 2.308,22.000 GET m.CodMatH ;
+		SIZE 1.154,9.800 ;
+		DEFAULT " " ;
+		FONT "MS Sans Serif", 8 ;
+		VALID _s2y0v17si()
+	@ 3.615,22.000 GET m.dfch1 ;
+		SIZE 1.154,9.400 ;
+		DEFAULT " " ;
+		FONT "MS Sans Serif", 8 ;
+		VALID _s2y0v17su()
+	@ 6.077,14.000 GET m.cuales1 ;
+		PICTURE "@^ Acti\<vos;\<Inactivos;T\<odos" ;
+		SIZE 1.538,13.000 ;
+		DEFAULT "Activos" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "B"
+	@ 8.077,13.833 GET m.cuales2 ;
+		PICTURE "@^ Con stock mi\<nimo;\<Sin stock minimo;To\<dos" ;
+		SIZE 1.538,20.833 ;
+		DEFAULT "Con stock minimo" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "B"
+	@ 10.077,13.833 GET m.cuales3 ;
+		PICTURE "@^ Stock \<mayor a 0;Stoc\<k menor igual a 0;Todo\<s" ;
+		SIZE 1.538,23.500 ;
+		DEFAULT "Stock mayor a 0" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "B"
+	@ 6.385,50.500 GET m.cuales4 ;
+		PICTURE "@^ \<Todos;\<Criticos;\<No criticos" ;
+		SIZE 1.538,14.500 ;
+		DEFAULT "Todos" ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "B"
+	@ 14.077,20.167 GET m.Control ;
+		PICTURE "@*HT \<Aceptar;\<Cancelar" ;
+		SIZE 1.769,10.500,2.167 ;
+		DEFAULT 1 ;
+		FONT "MS Sans Serif", 8 ;
+		STYLE "B"
+	
+	IF NOT WVISIBLE("stkconsed")
+		ACTIVATE WINDOW stkconsed
+	ENDIF
+	
+	READ CYCLE
+	
+	RELEASE WINDOW stkconsed
+	
+	#REGION 0
+	
+	SET READBORDER &rborder
+	
+	IF m.talkstat = "ON"
+		SET TALK ON
+	ENDIF
+	IF m.compstat = "ON"
+		SET COMPATIBLE ON
+	ENDIF
+	
+	
+	*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+	*       Ё                                                         Ё
+	*       Ё           CMPCSCXS/Windows C╒digo de limpieza           Ё
+	*       Ё                                                         Ё
+	*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+	*
+	
+	#REGION 1
+	
+	UltTecla = LASTKEY()
+	
+	IF m.Control = 2 .OR. LASTKEY()=K_ESC     && Nos vamos
+	   UltTecla = K_ESC
+	   Ven_Actual = woutput()
+	   IF !EMPTY(Ven_Actual)
+	       DEACTIVATE WINDOW (Ven_Actual)
+	       RELEASE WINDOW (Ven_actual)
+	   ENDIF
+	   CLOSE DATA
+	   RETURN
+	ENDIF
+	DO GENTEMPO1
+	DO Imprimir
+	Ven_Actual = woutput()
+	IF !EMPTY(Ven_Actual)
+	    DEACTIVATE WINDOW (Ven_Actual)
+	    RELEASE WINDOW (Ven_actual)
+	ENDIF
+	RETURN
+	
+
+ENDCASE
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S2Y0V17O3           m.CodMatD VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CMPCSCXS,     Record Number:   11  Ё
+*       Ё Variable:            m.CodMatD                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      1                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s2y0v17o3     &&  m.CodMatD VALID
+#REGION 1
+lvalido=F1_BUSCA(m.CodMatD,"CODMAT","CATG","CATG","",.T.,"")
+IF lValido
+   m.DesmatD=iif(empty(m.codmatd),[],CATG.Desmat)
+   SHOW GET m.CodMatD
+   @ 01,34 SAY m.DesMatD SIZE 1,31
+ENDIF
+
+return lvalido
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S2Y0V17OH           m.CodMatH VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CMPCSCXS,     Record Number:   12  Ё
+*       Ё Variable:            m.CodMatH                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      2                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s2y0v17oh     &&  m.CodMatH VALID
+#REGION 1
+lvalido=F1_BUSCA(m.CodMatH,"CODMAT","CATG","CATG","",.T.,"")
+IF lValido
+   m.DesmatH=iif(empty(m.codmath),[],CATG.Desmat)
+   SHOW GET m.CodMatH
+   @ 02,34 SAY m.DesMatH SIZE 1,31
+ENDIF
+
+return lvalido
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S2Y0V17OT           m.dfch1 VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CMPCSCXS,     Record Number:   13  Ё
+*       Ё Variable:            m.dfch1                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      3                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s2y0v17ot     &&  m.dfch1 VALID
+#REGION 1
+return !empty(m.dfch1)
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S2Y0V17S5           m.CodMatD VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       Windows                            Ё
+*       Ё From Screen:         CMPCSCXS,     Record Number:   29  Ё
+*       Ё Variable:            m.CodMatD                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      4                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s2y0v17s5     &&  m.CodMatD VALID
+#REGION 1
+lvalido=F1_BUSCA(m.CodMatD,"CODMAT","CATG","CATG","",.T.,"")
+IF lValido
+   m.DesmatD=iif(empty(m.codmatd),[],CATG.Desmat)
+   SHOW GET m.CodMatD
+   @ 01,34 SAY m.DesMatD SIZE 1,31
+ENDIF
+
+return lvalido
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S2Y0V17SI           m.CodMatH VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       Windows                            Ё
+*       Ё From Screen:         CMPCSCXS,     Record Number:   30  Ё
+*       Ё Variable:            m.CodMatH                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      5                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s2y0v17si     &&  m.CodMatH VALID
+#REGION 1
+lvalido=F1_BUSCA(m.CodMatH,"CODMAT","CATG","CATG","",.T.,"")
+IF lValido
+   m.DesmatH=iif(empty(m.codmath),[],CATG.Desmat)
+   SHOW GET m.CodMatH
+   @ 02,34 SAY m.DesMatH SIZE 1,31
+ENDIF
+
+return lvalido
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S2Y0V17SU           m.dfch1 VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       Windows                            Ё
+*       Ё From Screen:         CMPCSCXS,     Record Number:   31  Ё
+*       Ё Variable:            m.dfch1                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      6                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s2y0v17su     &&  m.dfch1 VALID
+#REGION 1
+return !empty(m.dfch1)
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё CMPCSCXS/Windows Procedimientos y funciones de soporte  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1

@@ -1,0 +1,1 @@
+CREATE TABLE crmctrac (id n(1)  cha_ini datetime, bd_refer c(10),id_prospecto c(10), serv_req c(10),rubro_empr c(10),observacio c(200) , id_benefic (10), mon_v_pry n(1),venta_proy n(14,2) )

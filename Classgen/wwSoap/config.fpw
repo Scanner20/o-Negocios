@@ -1,0 +1,5 @@
+PATH = .\classes\;.\SOAPSamples;.\SOAPSamples\images;.\stocksample
+DELETED=ON
+EXACT=OFF
+STRICTDATE=0
+_VFPSTART=

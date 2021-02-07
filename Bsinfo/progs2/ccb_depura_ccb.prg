@@ -1,0 +1,496 @@
+
+#include const.h
+PUBLIC LoDatAdm as dataadmin OF "k:\aplvfp\classgen\vcxs\dosvr.vcx" 
+LoDatAdm = CREATEOBJECT('Dosvr.DataAdmin')
+STORE '' TO ArcTmp,ArcTmp1,ArcTmp2,ArcTmp3
+
+RESTORE FROM GoCfgVta.oentorno.tspathcia+'VTACONFG.MEM' ADDITIVE
+m.PorRet  = IIF(VARTYPE(CFGADMRET)<>'N',0,CFGADMRET)
+m.MinRet  = IIF(VARTYPE(CFGADMMINRET)<>'N',0,CFGADMMINRET)
+
+XdFchCorte1=CTOD('31/12/2015')
+XdFchCorte2=CTOD('31/12/2014')
+
+LsUltMsg = 'PREPARANDO BASE DE DATOS...'
+WAIT WINDOW LsUltMsg NOWAIT
+
+LoDatAdm.abrirtabla('ABRIR','CCTCLIEN','CLIE','CLIEN04','EXCL')
+LoDatAdm.abrirtabla('ABRIR','CCBRGDOC','GDOC','GDOC01','EXCL')
+LoDatAdm.abrirtabla('ABRIR','CCBMVTOS','VTOS','VTOS05','EXCL')
+LoDatAdm.abrirtabla('ABRIR','VTAVPROF','VPRO','VPRO01','EXCL')
+LoDatAdm.abrirtabla('ABRIR','VTARPROF','RPRO','RPRO01','EXCL')
+LoDatAdm.abrirtabla('ABRIR','VTARITEM','ITEM','ITEM01','EXCL')
+LoDatAdm.abrirtabla('ABRIR','VTAVPEDI','VPED','VPED01','EXCL')
+LoDatAdm.abrirtabla('ABRIR','VTARPEDI','RPED','RPED01','EXCL')
+LoDatAdm.abrirtabla('ABRIR','VTAVGUIA','GUIA','VGUI01','EXCL')
+
+*** Creamos tablas con datos hasta la fecha de corte
+*!*	IF .F.
+
+SELECT GDOC
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'GDOC_ANT' WITH CDX
+SELECT ITEM
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'ITEM_ANT' WITH CDX
+SELECT VTOS
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'VTOS_ANT' WITH CDX
+SELECT VPED
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'VPED_ANT' WITH CDX
+SELECT RPED
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'RPED_ANT' WITH CDX
+SELECT GUIA
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'GUIA_ANT' WITH CDX
+SELECT VPRO
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'VPRO_ANT' WITH CDX
+SELECT RPRO
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'RPRO_ANT' WITH CDX
+SELECT CLIE
+reindex
+COPY TO ADDBS(GoCfgVta.oentorno.tspathcia)+'CLIE_ANT' WITH CDX FOR 1<0
+
+*** Agregamos las tablas con data antigua a la base de datos ***
+SET DATABASE TO  addbs(GoCfgVta.oentorno.tspathadm)+'CIA'+GsCodCia
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'CLIE_ANT'
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'RPRO_ANT'
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'VPRO_ANT'
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'RPED_ANT'
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'VPED_ANT'
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'VTOS_ANT'
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'ITEM_ANT'
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'GDOC_ANT' 
+ADD TABLE ADDBS(GoCfgVta.oentorno.tspathcia)+'GUIA_ANT'
+
+*!*	ENDIF
+
+
+
+** Agregamos a SISTDBFS **
+SELECT DBFS
+SEEK 'CCBRGDOC'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'GDOC_ANT',ALIAS WITH 'GDOC_A' 
+ENDIF
+SEEK 'CCBMVTOS'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'VTOS_ANT',ALIAS WITH 'VTOS_A' 
+ENDIF
+SEEK 'VTARITEM'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'ITEM_ANT',ALIAS WITH 'ITEM_A' 
+ENDIF
+SEEK 'VTAVPEDI'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'VPED_ANT',ALIAS WITH 'VPED_A' 
+ENDIF
+SEEK 'VTARPEDI'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'RPED_ANT',ALIAS WITH 'RPED_A' 
+ENDIF
+SEEK 'VTAVGUIA'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'GUIA_ANT',ALIAS WITH 'GUIA_A' 
+ENDIF
+SEEK 'VTAVPROF'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'VPRO_ANT',ALIAS WITH 'VPRO_A' 
+ENDIF
+SEEK 'VTARPROF'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'RPRO_ANT',ALIAS WITH 'RPRO_A' 
+ENDIF
+SEEK 'CCTCLIEN'
+IF !FOUND()
+	SCATTER MEMVAR
+	APPEND BLANK
+	GATHER MEMVAR
+	REPLACE ARCHIVO WITH 'CLIE_ANT',ALIAS WITH 'CLIE_A' 
+ENDIF
+
+SELECT DBFS
+SEEK 'CCBRGDOC'
+LsUltMsg='Procesando '+RTRIM(DBFS.Concepto)+' '+DBFS.ALIAS+' '
+
+SET STEP ON 
+
+SELECT GDOC
+SET ORDER TO GDOC08   && DTOS(FCHDOC)+CODCLI+TPODOC+CODDOC+NRODOC
+LOCATE
+LnTotReg	=	RECCOUNT('GDOC')
+LnRegAct	=	0
+SCAN 
+
+
+	LnRegAct = LnRegAct + 1
+	IF LnTotReg>0
+		WAIT WINDOW LsUltMsg + 'Avance: ' + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+	ENDIF
+	IF FLGEST<>'A'
+		SELECT CLIE
+		SEEK GsClfCli+GDOC.CodCli
+		IF FOUND()
+			IF !EMPTY(GDOC.FchDoc)
+				REPLACE FPriCom WITH ICASE(EMPTY(FPriCom),GDOC.FchDoc,GDOC.FchDoc<TTOD(FPriCom),GDOC.FchDoc,FPriCom)
+				REPLACE FUltCom WITH GDOC.FchDoc
+			ENDIF
+		ENDIF
+	ENDIF
+	SELECT GDOC
+
+	IF DTOS(fchdoc)<=DTOS(XdFchCorte1)
+
+		
+		IF INLIST(Flgest,'C','A')
+			LsTpoDoc=GDOC.TpoDoc
+			LsCodDoc=GDOC.CodDoc
+			LsNroDoc=GDOC.NroDoc
+			
+			*** Moviemientos de Cuentas x Cobrar
+		    IF GDOC.TpoDoc=[CARGO]
+		       SELE VTOS
+		       SET ORDER TO VTOS05
+		       SEEK GDOC.CodCli+GDOC.CodDoc+GDOC.NroDoc
+		       SCAN WHILE CodCli+CodRef+NroRef=GDOC.CodCli+GDOC.CodDoc+GDOC.NroDoc
+		       		=RLOCK()
+		       		DELETE
+		       ENDSCAN
+		    ELSE
+		       SELE VTOS
+		       SET ORDER TO VTOS01
+		       SEEK GDOC.CodDoc+GDOC.NroDoc
+		       SCAN WHILE CodDoc+NroDoc=GDOC.CodDoc+GDOC.NroDoc
+		       		=RLOCK()
+		       		DELETE
+		       ENDSCAN
+		    ENDIF
+			** ITEMS DE VENTAS	
+			SELECT ITEM
+			SEEK GDOC.CodDoc+GDOC.NroDoc	
+			SCAN WHILE CodDoc+NroDoc=GDOC.CodDoc+GDOC.NroDoc
+		   		=RLOCK()
+		   		DELETE
+			ENDSCAN
+				
+			
+			SELECT GDOC
+			=RLOCK()	
+			DELETE
+		ENDIF
+	ENDIF	
+ENDSCAN
+
+
+*** PEDIDOS ***
+SELECT DBFS
+SEEK 'VTAVPEDI'
+LsUltMsg='Procesando '+RTRIM(DBFS.Concepto)+' '+DBFS.ALIAS+' '
+
+SELECT VPED
+LnTotReg	=	RECCOUNT('VPED')
+LnRegAct	=	0
+SET ORDER TO VPED04   && DTOS(FCHDOC)+CODVEN+NRODOC 
+LOCATE
+SCAN FOR DTOS(fchdoc)<=DTOS(XdFchCorte1)
+	LnRegAct = LnRegAct + 1
+	IF LnTotReg>0
+		WAIT WINDOW LsUltMsg + 'Avance: ' + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+	ENDIF
+	SELECT RPED
+	SEEK VPED.NroDoc
+	SCAN WHILE NroDoc=VPED.NroDoc
+   		=RLOCK()
+   		DELETE
+	ENDSCAN
+	SELECT VPED
+	=RLOCK()	
+	DELETE
+	
+ENDSCAN
+
+*** G/Remision ***
+SELECT DBFS
+SEEK 'VTAVGUIA'
+LsUltMsg='Procesando '+RTRIM(DBFS.Concepto)+' '+DBFS.ALIAS+' '
+
+SELECT GUIA
+LnTotReg	=	RECCOUNT('GUIA')
+LnRegAct	=	0
+LOCATE
+SCAN FOR DTOS(fchdoc)<=DTOS(XdFchCorte1)
+	LnRegAct = LnRegAct + 1
+	IF LnTotReg>0
+		WAIT WINDOW LsUltMsg + 'Avance: ' + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+	ENDIF
+	=RLOCK()	
+	DELETE
+	UNLOCK
+ENDSCAN
+
+*** PROFORMAS
+SELECT DBFS
+SEEK 'VTAVPROF'
+LsUltMsg='Procesando '+RTRIM(DBFS.Concepto)+' '+DBFS.ALIAS+' '
+
+SELE VPRO
+LnTotReg	=	RECCOUNT('VPRO')
+LnRegAct	=	0
+LOCATE
+SCAN 
+	LnRegAct = LnRegAct + 1
+	IF LnTotReg>0
+		WAIT WINDOW LsUltMsg + 'Avance: ' + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+	ENDIF
+
+	IF FLGEST<>'A'
+		SELECT CLIE
+		SEEK GsClfCli+VPRO.CodCli
+		IF FOUND()
+			IF !EMPTY(VPRO.FchDoc)
+				REPLACE FPriCom WITH ICASE(EMPTY(FPriCom),VPRO.FchDoc,VPRO.FchDoc<TTOD(FPriCom),VPRO.FchDoc,FPriCom)
+				REPLACE FUltCom WITH VPRO.FchDoc
+			ENDIF
+		ENDIF
+	ENDIF
+
+	SELECT VPRO
+
+	IF DTOS(fchdoc)<=DTOS(XdFchCorte1)
+
+		IF INLIST(Flgest,'C','A') 
+		    IF VPRO.CodDoc=[PROF]
+		       SELE VTOS
+		       SET ORDER TO VTOS05
+		       SEEK VPRO.CodCli+VPRO.CodDoc+VPRO.NroDoc
+		       SCAN WHILE CodCli+CodRef+NroRef=VPRO.CodCli+VPRO.CodDoc+VPRO.NroDoc
+		          =RLOCK()
+		          DELETE
+		          UNLOCK
+		       ENDSCAN
+		    ELSE
+		       SELE VTOS
+		       SET ORDER TO VTOS01
+		       SEEK VPRO.CodDoc+VPRO.NroDoc
+		       SCAN WHILE CodDoc+NroDoc=VPRO.CodDoc+VPRO.NroDoc
+		       		=RLOCK()
+		       		DELETE
+		       		UNLOCK
+		       ENDSCAN
+		    ENDIF
+		    SELE VPRO
+		   	=RLOCK()	
+			DELETE
+			UNLOCK
+		ENDIF
+	ENDIF	
+ENDSCAN
+
+
+*** Depuramos clientes ***
+SELECT 0
+USE CLIE_ANT ORDER CLIEN04 ALIAS CLIE_A
+
+SELECT DBFS
+SEEK 'CCTCLIEN'
+LsUltMsg='Procesando '+RTRIM(DBFS.Concepto)+' '+DBFS.ALIAS+' '
+
+SELECT CLIE
+LnTotReg	=	RECCOUNT('CLIE')
+LnRegAct	=	0
+
+LOCATE
+SCAN FOR EMPTY(FUltCom) OR DTOS(FUltCom)<=DTOS(XdFchCorte2)	
+	LnRegAct = LnRegAct + 1
+	IF LnTotReg>0
+		WAIT WINDOW LsUltMsg + 'Avance: ' + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+	ENDIF
+	=RLOCK()
+	SCATTER memvar
+	SELECT CLIE_A
+	SEEK CLIE.ClfAux+CLIE.CodAux
+	IF !FOUND()		
+		APPEND BLANK 
+		GATHER MEMVAR
+	ENDIF
+	SELECT CLIE
+	=RLOCK()
+	DELETE
+	UNLOCK
+ENDSCAN
+
+LsUltMsg = 'Cerrando base de datos...'
+WAIT WINDOW LsUltMsg Nowait
+IF USED('CLIE')
+	USE IN 'CLIE'
+ENDIF
+IF USED('GDOC')
+	USE IN 'GDOC'
+ENDIF
+IF USED('VTOS')
+	USE IN 'VTOS'
+ENDIF
+IF USED('VPRO')
+	USE IN 'VPRO'
+ENDIF
+IF USED('RPRO')
+	USE IN 'RPRO'
+ENDIF
+IF USED('ITEM')
+	USE IN 'ITEM'
+ENDIF
+IF USED('VPED')
+	USE IN 'VPED'
+ENDIF
+IF USED('RPED')
+	USE IN 'RPED'
+ENDIF
+IF USED('GUIA')
+	USE IN 'GUIA'
+ENDIF
+IF USED('CLIE_A')
+	USE IN 'CLIE_A'
+ENDIF
+
+LsUltMsg = 'PROCESO TERMINADO'
+=MESSAGEBOX(LsUltMsg ,64,'Depuración de base de datos Ventas y Cuentas x Cobrar')
+
+
+PROCEDURE Parche_CLIE_ANT
+SET STEP ON 
+XdFchCorte1=CTOD('31/12/2015')
+SELECT 0
+USE GDOC_ANT ORDER GDOC11 ALIAS GDOC_A
+
+SELECT 0
+USE CLie_ANT ORDER clien04 ALIAS CLIE_A
+
+SELECT 0
+USE CCTCLIEN ORDER CLIEN04 ALIAS CLIE
+LsUltMsg='RE- Procesando Clientes '
+
+LnTotReg	=	RECCOUNT('CLIE_A')
+LnRegAct	=	0
+
+SELECT CLIE_A
+SCAN FOR EMPTY(FUltCom)
+	IF LnTotReg>0
+		WAIT WINDOW LsUltMsg + 'Avance: ' + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+	ENDIF
+	SCATTER MEMVAR 	
+	SELECT GDOC_A
+	SEEK CLIE_A.CodAux
+	IF FOUND() AND FlgEst<>'A' AND FchDoc>XdFchCorte1
+		SELECT CLIE
+		SEEK GsClfCli+CLIE_A.CodAux
+		IF !FOUND()
+			APPEND BLANK
+			GATHER memvar
+		ENDIF
+		replace FUltCom WITH GDOC_A.FchDoc
+		IF LnTotReg>0
+			WAIT WINDOW LsUltMsg + 'Avance: '+'Cliente:'+CLIE.CodAux+CLIE.RAZSOC + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+		ENDIF
+
+	ENDIF
+	SELECT CLIE_A
+ENDSCAN
+
+**************************
+PROCEDURE Parche_CLIE_ANT2
+**************************
+
+SET STEP ON 
+XdFchCorte1=CTOD('31/12/2015')
+SELECT 0
+USE GDOC_ANT ORDER GDOC11 ALIAS GDOC_A
+SET ORDER TO GDOC11 DESC
+
+SELECT 0
+USE CLie_ANT ORDER clien04 ALIAS CLIE_A
+
+SELECT 0
+USE CCTCLIEN ORDER CLIEN04 ALIAS CLIE
+LsUltMsg='RE- Procesando Clientes '
+
+LnTotReg	=	RECCOUNT('CLIE_A')
+LnRegAct	=	0
+
+SELECT CLIE_A
+SCAN 
+	IF LnTotReg>0
+		WAIT WINDOW LsUltMsg + 'Avance: ' + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+	ENDIF
+	SCATTER MEMVAR 	
+	SELECT GDOC_A
+	SEEK CLIE_A.CodAux
+	IF FOUND() AND FlgEst<>'A' AND FchDoc>XdFchCorte1
+		SELECT CLIE
+		SEEK GsClfCli+CLIE_A.CodAux
+		IF !FOUND()
+			APPEND BLANK
+			GATHER memvar
+		ENDIF
+		replace FUltCom WITH GDOC_A.FchDoc
+		IF LnTotReg>0
+			WAIT WINDOW LsUltMsg + 'Avance: '+'Cliente:'+CLIE.CodAux+CLIE.RAZSOC + TRANSFORM( LnRegAct/LnTotReg * 100, '999.99') + ' %' nowait
+		ENDIF
+		SELECT CLIE_A
+		REPLACE CodUser WITH 'VTORRES'
+		REPLACE FchHora	WITH DATETIME()
+		=RLOCK()
+		DELETE
+	ENDIF
+	SELECT CLIE_A
+ENDSCAN
+
+PROCEDURE Open_CXC_ANT
+XdFchCorte1=CTOD('31/12/2015')
+SELECT 0
+USE GDOC_ANT ORDER GDOC11 ALIAS GDOC_A
+SET ORDER TO GDOC11 DESC
+
+SELECT 0
+USE CLie_ANT ORDER clien04 ALIAS CLIE_A
+
+SELECT 0
+USE CCTCLIEN ORDER CLIEN04 ALIAS CLIE
+LsUltMsg='RE- Procesando Clientes '
+
+SELECT CLIE_A
+SET RELATION TO CODAUX INTO GDOC_A
+BROWSE LAST NOWAIT 
+SELECT GDOC_A
+BROWSE LAST NOWAIT
+SELECT CLIE
+BROWSE LAST NOWAIT
+
+

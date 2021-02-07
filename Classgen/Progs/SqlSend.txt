@@ -1,0 +1,218 @@
+* SQLSend Class.
+* A class for sending SQL statements to a back-end server.
+* Written by: M. Lewis.
+* Visual Foxpro version 7.0.
+* Version 1.0. March 2002
+* Version 1.1. September 2002
+* Copyright Mike Lewis Consultants Ltd. All rights reserved.
+
+* This class is essentially a wrapper for VFP's SQLCONNECT(), SQLEXEC() and
+* SQLDISCONNECT() functions. To use it to send a command to the server, set
+* the properties indicated below, then call the Send method. There is no
+* need to connect or disconnet as these actions are performed automatically.
+* On exit from Send, certain other properties will contain reply information,
+* as indicated below.
+*
+* New features added in Version 1.1:
+* SQLToClip property, QueryTimeout property, InitSQL property.
+
+DEFINE CLASS SQLSend as Custom
+
+	* Public properties of the class
+	
+	* The following properties should be set by the caller before calling the 
+	* Send method:
+	ConnectName = ""		&& Name of the connection object in a DBC. You should EITHER
+							&& supply a ConnectName OR a DSN, UserID and Password. If the 
+							&& ConnectName is empty, the DSN, UserID and Password will be
+							&& used instead.
+							
+	DBCName = ""			&& Name and optional path of DBC holding the above connection 
+							&& object. Only relevant if ConnectName is not empty.
+							&& If DBCName is emtpy, connection is assumed to be in the 
+							&& current DBC. 
+
+	DSN = ""				&& DSN for connecting to server; used only of ConnectName empty.
+	UserId =""				&& User id for connecting to server; used only of ConnectName empty.
+	Password = ""			&& Password for connecting to server; used only of ConnectName empty.
+
+	SQL = ""				&& The statement(s) that is to be sent to the server
+	
+	InitSQL = ""			&& Any statement(s) to be sent to the server when the connection
+							&& is initially created. Useful for initialisation commands 
+							&& (e.g. SET LANGUAGE in SQL Server).
+
+	Warnings = 0			&& Says whether to display warning messages. 0 = use the setting
+							&& specified in the connection object (this is the default);
+							&& 1 = do not display warnings; 2 = display warnings.
+							
+	QueryTimeout = 0		&& Query timeout parameter for the curent connection. The ODBC
+							&& driver will wait this number of seconds before reporting
+							&& a timeout from the server. If 0, the setting specified in the 
+							&& connection object will be retained.
+
+	CursorName = ""			&& Name of (first) cursor to be returned from the server
+							&& (defaults to SQLRESULT)
+							
+	SessionID = 0			&& Datasession ID of the calling form if different from
+							&& the one in which the class is running
+							
+	SQLToClip = .F.			&& If .T., command will be copied to clipboard immediately
+							&& before sending. Useful for debugging, but don't use it
+							&& for live applications as it will prevent user using
+							&& the clipboard.
+
+	* The following properties will contain information on exit from the Send method.
+	SQLResult = 0			&& Result of Send. 0 = OK; 1 = Connection error; 
+							&& 2 = Error reported by server (ErrorNo contains server's 
+							&& error code); 3 = Error in initialisation command.
+							
+	ErrorNo = 0				&& Error number returned from server (0 if no error)
+	
+	ErrorMess = ""			&& Error message returned from server (blank if no error)
+	
+	* Other properties
+	ConnectHandle = 0		&& The connection handle (0 if no connection yet estabished)
+
+	PROCEDURE Send
+		* The main method of the class. Establishes a connection if not already done,
+		* then sends the statement(s) stored in the SQL property. Also handles error
+		* processing.
+		
+		LOCAL lnReply, lcOldDBC, lnOldSession
+		
+		* Initialise result code and error info
+		this.SQLResult = 0
+		this.ErrorNo = 0
+		this.ErrorMess = ""
+	
+		IF this.ConnectHandle = 0
+			* No connection yet, so open it now
+			
+			IF NOT EMPTY(this.ConnectName)
+				* logon using a DBC-based connection
+				
+				* Make sure the DBC is open and selected
+				lcOldDBC = SET("database")		&& save previous database setting
+				IF NOT EMPTY(this.DBCName)
+					IF NOT DBUSED(this.dbcName)
+						OPEN DATABASE (this.dbcName)
+					ENDIF 
+					SET DATABASE TO (this.dbcname)
+				ENDIF 
+				
+				* Make the connection
+				lnReply = SQLCONNECT(THIS.ConnectName)
+
+				IF NOT EMPTY(lcOldDBC)
+					SET DATABASE TO (lcOldDBC)		&& restore previous database setting
+				ENDIF 
+				
+			ELSE
+				* logon using a DSN, user id and password
+				lnReply = SQLCONNECT(this.dsn,this.userid,this.password)
+			ENDIF
+			
+			IF lnReply < 0
+				* Connection failed
+				this.SQLResult = 1		&& connection error
+				RETURN
+			ELSE
+				* Store connection handle
+				THIS.ConnectHandle = lnReply
+				
+				* Send initialisation command. 
+				IF NOT EMPTY(THIS.InitSQL)
+					lnReply = SQLEXEC(this.ConnectHandle,THIS.InitSQL)
+					IF lnReply < 0
+						* Error reported
+						THIS.SQLResult = 3
+						RETURN
+					ENDIF 
+				ENDIF 
+								
+			ENDIF
+		ENDIF
+	
+		* Adjust DispWarning property if necessary
+		IF this.warnings > 0
+			SQLSETPROP(this.ConnectHandle,"DispWarnings",(this.warnings=2))
+		ENDIF
+		
+		* Adjust QueryTimeout property if necessary
+		IF this.QueryTimeout > 0
+			SQLSETPROP(this.ConnectHandle,"QueryTimeout",this.QueryTimeout)
+		ENDIF
+
+		* If the method is being called from a form in a different
+		* data session, switch to that session temporarily
+		* (so that any cursor(s) created by the SQLEXEC() will be visible
+		* to the caller)
+		lnOldSession = 0
+		IF this.SessionID > 0
+			lnOldSession = SET("Datasession")
+			SET DATASESSION TO this.SessionID
+			THIS.SESSIONID = 0
+		ENDIF 
+		
+		* Place the command in the clipboard if requested to do so
+		IF this.SQLToClip
+			_CLIPTEXT = this.sql
+		ENDIF 
+
+		* Go ahead and send the command
+		IF EMPTY(this.cursorname)
+			* use default cursor for reply
+			lnReply = SQLEXEC(this.ConnectHandle,this.sql)	
+		ELSE
+			* use supplied cursor name for reply
+			lnReply = SQLEXEC(this.ConnectHandle,this.sql,this.cursorname)	
+		ENDIF 
+		
+		* Switch back to original data session
+		IF lnOldSession > 0
+			SET DATASESSION TO lnOldSession
+		ENDIF 
+		
+		IF lnReply < 0
+			* Error reported
+			
+			* Get error details
+			AERROR(laErr)
+			IF laErr(1,1) = 1526 AND laErr(1,5) > 0		&& error from server
+				THIS.ErrorNo = laErr(1,5)	&& server's error number
+				this.ErrorMess = SUBSTR(laErr(1,3),RAT("]",laErr(1,3))+1)
+											&& server's error message 
+				this.SQLResult = 2	
+			ELSE
+				* other error 
+				this.sqlresult = 1			&& some other error (probably connection error)
+			ENDIF
+			
+		ENDIF
+		
+	ENDPROC 
+			
+	
+	PROCEDURE Disconnect
+		* Terminates the connection. There is usually no need to call this
+		* method explicitly, as the connection will be terminated when the class
+		* is destroyed. However, in some circumstances it might be desirable
+		* to end the connection early.
+		
+		IF this.ConnectHandle > 0
+			* Do this only if the connection already exists
+			SQLDISCONNECT(this.ConnectHandle)
+			this.Connecthandle = 0
+		ENDIF
+		
+	ENDPROC 
+	
+	PROCEDURE destroy
+		* Terminate the connection when the class is destroyed
+		
+		this.Disconnect
+		
+	ENDPROC
+	
+ENDDEFINE 

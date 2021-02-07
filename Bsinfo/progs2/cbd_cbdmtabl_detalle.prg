@@ -1,0 +1,2 @@
+do form cbd_cbdmtabl_detalle
+return

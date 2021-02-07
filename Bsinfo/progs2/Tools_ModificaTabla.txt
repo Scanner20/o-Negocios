@@ -1,0 +1,149 @@
+** Ejemplo : Agragar campos adicionales a un cursor temporal (readwrite) 
+** Funcion : ModificaTabla 
+
+PsTablaDestino	=	'C_RMOV'
+LcArcTmp = ADDBS(goentorno.tmppath) +SYS(3)
+SELECT 0
+CREATE TABLE (LcArcTmp) FREE ( ;
+					   ELIITM C(1) NOT NULL, ;
+					   CODCTA C(8) NOT NULL, ;
+					   NROITM N(5, 0) NOT NULL, ;
+					   CODDIV C(2) NOT NULL, ;
+					   CODCCO C(8) NOT NULL, ;
+					   CTAPRE C(15) NOT NULL, ;
+					   TPOGTO C(6) NOT NULL, ;
+					   CODAUX C(11) NOT NULL, ;
+					   CLFAUX C(3) NOT NULL, ;
+                       CODDOC C(4) NOT NULL, ;
+                       NRODOC C(20) NOT NULL, ;
+                       FCHDOC D NOT NULL, ;    		
+                       FCHVTO D NOT NULL, ;       
+                       GLODOC C(50) NOT NULL, ;   
+                       TPOMOV C(1) NOT NULL, ;  
+                       IMPORT N(12, 2) NOT NULL, ;
+                       AFECTO C(1) NOT NULL, ;
+                       IMPUSA N(12, 2) NOT NULL, ;   
+                       TIPREF C(2) NOT NULL , ; 
+                       NROREF C(11) NOT NULL, ;
+                       FCHREF D NOT NULL, ;
+					   NROMES C(2) NOT NULL, ;
+                       CODOPE C(3) NOT NULL, ;
+                       NROAST C(8) NOT NULL, ;
+                       CHKITM N(5, 0) NOT NULL, ;
+                       CODREF C(11) NOT NULL, ;
+                       NRORUC C(11) NOT NULL, ;
+                       CODMON N(1, 0) NOT NULL, ;
+                       TPOCMB N(8, 4) NOT NULL, ;
+                       CODBCO C(3) NOT NULL, ;
+                       NROCTA C(20) NOT NULL, ;
+                       NROCHQ C(10) NOT NULL, ;
+                       INIAUX C(8) NOT NULL, ;
+                       TIPOC C(1) NOT NULL, ;
+                       FCHPED D NOT NULL, ;
+                       FCHAST D NOT NULL, ;
+                       TIPDOC C(2) NOT NULL, ;
+                       TPOO_C C(4) NOT NULL, ;
+                       CODFIN C(4) NOT NULL, ;
+                       FCHDIG D NOT NULL, ;
+                       HORDIG C(8) NOT NULL, ;
+                       AN1CTA C(8) NOT NULL, ;
+                       CC1CTA C(8) NOT NULL, ;
+                       CHKCTA C(10) NOT NULL, ;
+                       NRODTR V(20) NOT NULL, ;
+                       FCHDTR D NOT NULL, ;
+                       TIPORI V(2) NOT NULL, ;
+                       NUMORI V(10) NOT NULL, ;
+                       NROPRO C(8) NOT NULL, ;
+                       FCHPRO D NOT NULL, ;
+                       NRETE C(10) NOT NULL, ;
+                       FRETE D NOT NULL, ;
+                       AGENTE C(1) NOT NULL, ;
+                       SALDO N(10, 2) NOT NULL, ;
+                       LIQUI C(10) NOT NULL, ;
+                       SALDOS N(10, 2) NOT NULL, ;
+                       SALDOD N(10, 2) NOT NULL, ;
+                       CODAST N(5, 0) NOT NULL ) 
+
+USE	(LcArcTmp)  ALIAS (PsTablaDestino) EXCLUSIVE	
+INDEX ON NROMES+CODOPE+NROAST+STR(NROITM,5) TAG RMOV01
+INDEX ON NROMES+CODCTA+DTOS(FCHAST) TAG RMOV02
+INDEX ON NROMES+CODCTA+CODREF+CODOPE+NROAST TAG RMOV03 
+INDEX ON CODCTA+DTOS(FCHPED)+CODOPE TAG RMOV04    
+INDEX ON CODCTA+NRODOC+CODAUX+NROMES+DTOC(FCHDOC,1)+CODOPE+NROAST TAG RMOV05
+
+
+=modificatabla(PsTablaDestino,'Agregar','NroReg','N',10,0)
+=modificatabla(PsTablaDestino,'Agregar','NomAux','C',30,0)
+=modificatabla(PsTablaDestino,'Agregar','NomCta','C',30,0)
+=modificatabla(PsTablaDestino,'Agregar','Desdoc','C',20,0)
+=modificatabla(PsTablaDestino,'Agregar','NomClf','C',20,0)
+=modificatabla(PsTablaDestino,'Agregar','NomCTAPRE','C',30,0)
+=modificatabla(PsTablaDestino,'Agregar','PidAux','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','PidDoc','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','PidGlo','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','GenAut','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','Editando','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','tip_Afe_RC','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','tip_Afe_RV','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','tip_Afe_RT','C',1,0)
+=modificatabla(PsTablaDestino,'Agregar','LonAux','N',3,0)
+=modificatabla(PsTablaDestino,'Agregar','An2Cta','C',LEN(RMOV.CodCta),0)
+=modificatabla(PsTablaDestino,'Agregar','Cc2Cta','C',LEN(RMOV.CodCta),0)
+=modificatabla(PsTablaDestino,'Agregar','NomCodDiv','C',30,0)
+=modificatabla(PsTablaDestino,'Agregar','NomCodCco','C',30,0)
+=modificatabla(PsTablaDestino,'Agregar','NomCodRef','C',30,0)
+=modificatabla(PsTablaDestino,'Agregar','NomTpoGto','C',30,0)
+
+
+
+
+
+FUNCTION ModificaTabla
+PARAMETERS _cAliasNombre,_cAccion,_cCampo,_cTipo,_nLongitud,_nPrecision
+
+** Por mejorar para todos los casos de modificacion de estrucuturas de tablas por ahora solo Agrega campos
+** Tipo C,N ,L,D,T
+
+
+IF PCOUNT()<4
+	RETURN -1
+ENDIF
+IF EMPTY(_cAliasNombre) OR ISNULL(_cAliasNombre)
+	IF !EMPTY(ALIAS())
+		_CAliasNombre = ALIAS()
+	ELSE
+		_CAliasNombre = ''	
+	ENDIF
+ENDIF
+
+IF EMPTY(_cAliasNombre)
+	RETURN -1
+ENDIF
+_cAccion = UPPER(_cAccion)
+LOCAL LsTipoLonPrec
+DO CASE
+	CASE _cTipo='C'
+		LsTipoLonPrec=' C('+TRANSFORM(_nLongitud,"@L 99")+')'
+	CASE INLIST(_cTipo,'N','F')
+		IF _nPrecision<=0
+			LsTipoLonPrec=' N('+TRANSFORM(_nLongitud,"@L 99")+')'
+		ELSE
+			LsTipoLonPrec=' N('+TRANSFORM(_nLongitud,"@L 99")+','+TRANSFORM(_nPrecision,"@L 99")+')'		
+		ENDIF	
+	CASE _cTipo='L'
+		LsTipoLonPrec=' L '
+	CASE INLIST(_cTipo,'D','T')
+		LsTipoLonPrec=' '+_cTipo+' '
+	OTHERWISE
+	
+ENDCASE
+
+DO CASE
+	CASE	_cAccion = 'AGREGAR' 
+		ALTER TABLE (_cAliasNombre) ADD COLUMN &_cCampo &LsTipoLonPrec
+	CASE	_cAccion = 'BORRAR'
+	
+	CASE	_cAccion = 'MODIFICA'
+ENDCASE
+
+RETURN 1

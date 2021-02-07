@@ -1,0 +1,13 @@
+EXTERNAL PROC cpipgo_t.scx
+
+DO FORM "cpipgo_t.scx" NAME _1YV0N7XMY LINKED 
+
+*- [CONVERTER] Begin CLEANUP and other procedures from 2.x Form
+
+PROCEDURE pDetalle
+******************
+_CurObj = OBJNUM(m.CtrlBrw)
+RETURN
+
+
+*- [CONVERTER] End CLEANUP and other procedures from 2.x Form

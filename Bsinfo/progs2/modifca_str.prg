@@ -1,0 +1,64 @@
+** MODIFICAR ESTRUCTURAS 
+
+** BASE DE DATOS : CIA001
+*SET DATABASE TO  K:\APLVFP\BSINFO\DATA\CIA001 
+*cDatabase='K:\APLVFP\BSINFO\DATA\P0012003' 
+cDatabase='H:\APL\DATA\P0012003' 
+cDatabase='H:\APL\DATA\cia001' 
+cDataBase='K:\APLVFP\BSINFO\DATA\CIA001'  
+cDataBase='K:\APLVFP\BSINFO\DATA\P0012003'  
+
+IF !DBUSED(cDatabase)
+	OPEN DATABASE (cDatabase) EXCLUSIVE
+ENDIF
+
+SET DATABASE TO  (cDataBase)
+cPathDbf = cDataBase
+DO CASE 
+	CASE SET("Database")='P0' 
+		LsCodCia=SUBSTR(SET("Database"),2,3)
+		cPathDbf = LEFT(cDataBase,LEN(cDataBase)-LEN(SET("Database")))+'CIA'+LsCodCia+'\C'+RIGHT(SET("Database"),4)
+	CASE SET("Database")='ADMIN'
+		cPathDbf = LEFT(cDataBase,LEN(cDataBase)-LEN(SET("Database")))
+ENDCASE 
+SET DEFAULT TO (cPathDbf)
+LcArcTmp = SYS(2023)+'\'+SYS(2015)  
+=VtaCompe()
+=VtaPrCpt()
+=VtaAdJud()
+
+FUNCTION VtaCompe 
+CREATE TABLE VtaCompe (Codigo C(11),Nombre C(13),SigCia C(20))
+** INDEX ON CODIGO TAG COMP01
+
+FUNCTION VtaPrcpt 
+CREATE TABLE VtaPrCpt (Codigo C(11),FchDoc D,CodMat C(13),Cantidad N(14,4),Precio_Cif N(14,4),Fact_Fijo N(14,4))
+**INDEX ON  CODIGO+CODMAT TAG PRCP01
+**INDEX ON  CODMAT+CODIGO TAG PRCP02
+
+
+FUNCTION VtaAdJud
+CREATE TABLE VtaAdJud (Proceso C(6),FchDoc D,CodMat C(13),Precio_ref N(14,4),Codigo C(11),Precio_Cmp N(14,4),CodCli C(11))
+**INDEX ON DTOS(FCHDOC)+CODIGO TAG ADJU01
+**INDEX ON CODIGO+CODMAT TAG ADJU02	
+
+
+FUNCTION alter_Almctran
+LcTabla = SUBSTR(PROGRAM(),AT('_',PROGRAM())+1)
+SELECT 0
+USE (lcTabla) EXCLUSIVE 
+IF VARTYPE(CodDire)='U'
+	ALTER TABLE (LcTabla) ADD COLUMN CODDIRE C(3) 
+ELSE
+	ALTER TABLE (LcTabla) ALTER COLUMN CODDIRE C(3) 
+ENDIF
+USE IN (LcTabla)
+RETURN
+
+
+
+
+
+
+
+

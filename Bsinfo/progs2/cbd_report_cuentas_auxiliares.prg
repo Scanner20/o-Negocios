@@ -1,0 +1,2 @@
+do FORM cbd_report_cuentas_auxiliares.scx
+return

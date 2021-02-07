@@ -1,0 +1,6 @@
+*- [CONVERTER] _rval will hold return valueLOCAL _rval
+
+EXTERNAL PROC cmpcscxs.scx
+
+DO FORM "cmpcscxs.scx" NAME _1XA0I3L5Q LINKED  TO m._rval
+RETURN m._rval

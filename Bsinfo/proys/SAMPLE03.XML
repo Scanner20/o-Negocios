@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>610</Author>
+  <LastAuthor>610</LastAuthor>
+  <Created>2015-02-22T22:59:08Z</Created>
+  <LastSaved>2015-02-22T22:59:08Z</LastSaved>
+  <Version>12.00</Version>
+ </DocumentProperties>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <WindowHeight>8130</WindowHeight>
+  <WindowWidth>15135</WindowWidth>
+  <WindowTopX>120</WindowTopX>
+  <WindowTopY>45</WindowTopY>
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Borders/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  
+  <Style ss:ID="h00001">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#FFFFFF"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#0000FF" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="h00002">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#FFFFFF"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FF8080" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="h00003">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#FFFFFF"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FF00FF" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="h00004">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#FFFFFF"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FF0000" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="h00005">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#FFFFFF"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#808000" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="h00006">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#FFFFFF"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#8000FF" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="h00007">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#FFFFFF"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#008000" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00001">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="True/False"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00002">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00003">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFFFFF" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00004">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="1" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFFF80" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="True/False"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00005">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="1" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFFF80" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00006">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="8" ss:Color="#000000"
+    ss:Bold="1" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFFF80" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#C0C0C0"/>
+   </Borders>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Cars to Sell">
+  <Table ss:ExpandedColumnCount="7" ss:ExpandedRowCount="17" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultRowHeight="19">
+   
+   <Column ss:AutoFitWidth="0" ss:Width="41"/>
+   <Column ss:AutoFitWidth="0" ss:Width="104"/>
+   <Column ss:AutoFitWidth="0" ss:Width="214"/>
+   <Column ss:AutoFitWidth="0" ss:Width="144"/>
+   <Column ss:AutoFitWidth="0" ss:Width="85"/>
+   <Column ss:AutoFitWidth="0" ss:Width="84"/>
+   <Column ss:AutoFitWidth="0" ss:Width="104"/>
+
+
+   <Row ss:AutoFitHeight="0" ss:Height="23">
+     <Cell ss:StyleID="h00001"><Data ss:Type="String"></Data></Cell>
+     <Cell ss:StyleID="h00002"><Data ss:Type="String">Stock Code</Data></Cell>
+     <Cell ss:StyleID="h00003"><Data ss:Type="String">Model</Data></Cell>
+     <Cell ss:StyleID="h00004"><Data ss:Type="String">Brand</Data></Cell>
+     <Cell ss:StyleID="h00005"><Data ss:Type="String">Price $</Data></Cell>
+     <Cell ss:StyleID="h00006"><Data ss:Type="String">Tax $</Data></Cell>
+     <Cell ss:StyleID="h00007"><Data ss:Type="String">Price + Tax $</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92RU</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Fit</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">HONDA</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">14000.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">1820.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">15820.000000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">1.000000</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">4AE1D92RV</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">Palio</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">FIAT</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">9999.99</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">1300.000000</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">11299.990000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92RW</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Jeta</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">WOLKSWAGEM</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">17900.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">2327.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">20227.000000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">1.000000</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">4AE1D92RX</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">Passat</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">WOLKSWAGEM</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">17900.00</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">2327.000000</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">20227.000000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">1.000000</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">4AE1D92RY</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">Grand Caravan</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">DODGE</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">24499.00</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">3184.870000</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">27683.870000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92RZ</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Yaris</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">TOYOTA</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">12000.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">1560.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">13560.000000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92S0</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Rio</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">NISSAN</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">13900.80</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">1807.100000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">15707.900000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92S1</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Escort</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">FORD</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">11250.44</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">1462.560000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">12713.000000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92S4</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Civic</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">HONDA</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">19990.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">2598.700000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">22588.700000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92S5</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">City</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">HONDA</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">14998.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">1949.740000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">16947.740000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">1.000000</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">4AE1D92S6</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">Sienna</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">TOYOTA</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">34990.89</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">4548.820000</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">39539.710000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">1.000000</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">4AE1D92S8</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">Camry</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">TOYOTA</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">15790.00</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">2052.700000</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">17842.700000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92S9</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Golf</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">WOLKSWAGEM</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">21500.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">2795.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">24295.000000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92SA</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">XC90</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">VOLVO</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">5000.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">650.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">5650.000000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="Number">0.000000</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">4AE1D92SB</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">Cinquecento</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="String">FIAT</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">19950.00</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">2593.500000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">22543.500000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">1.000000</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">4AE1D92SC</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">Edge</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">FORD</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">18530.89</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">2409.020000</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">20939.910000</Data></Cell>
+   </Row>
+
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <PageSetup>
+    <Header x:Margin="0.31496062000000002"/>
+    <Footer x:Margin="0.31496062000000002"/>
+    <PageMargins x:Bottom="0.78740157499999996" x:Left="0.511811024"
+     x:Right="0.511811024" x:Top="0.78740157499999996"/>
+   </PageSetup>
+   <Unsynced/>
+   <Print>
+    <ValidPrinterInfo/>
+    <PaperSizeIndex>9</PaperSizeIndex>
+    <HorizontalResolution>300</HorizontalResolution>
+    <VerticalResolution>300</VerticalResolution>
+   </Print>
+   <Selected/>
+      <FreezePanes/>
+   <FrozenNoSplit/>
+   <SplitHorizontal>1</SplitHorizontal>
+   <TopRowBottomPane>1</TopRowBottomPane>
+   <SplitVertical>3</SplitVertical>
+   <LeftColumnRightPane>3</LeftColumnRightPane>
+   <ActivePane>0</ActivePane>
+   <Panes>
+    <Pane>
+     <Number>3</Number>
+    </Pane>
+    <Pane>
+     <Number>1</Number>
+    </Pane>
+    <Pane>
+     <Number>2</Number>
+    </Pane>
+    <Pane>
+     <Number>0</Number>
+    </Pane>
+   </Panes>			
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+  <AutoFilter x:Range="R1C1:R17C7"
+ xmlns="urn:schemas-microsoft-com:office:excel">
+</AutoFilter> 	
+ </Worksheet>
+</Workbook>		

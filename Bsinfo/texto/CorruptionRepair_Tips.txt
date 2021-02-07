@@ -1,0 +1,45 @@
+Hi, 
+OK my 2 cents worth and Pete's plan to reduce corrupted DBC's, CDX's and tables. Some of this already mentioned.
+1. Eric mentioned Stonefield Tools, take a good look at this for auto-correction within your application.
+2. UPS for sure on critical systems.
+3. Utilize FLUSH command after all tableupdate() commands, which believe it or not eliminated the majority of
+my previous corruption problems.
+4. Use a good network analyzer (network fluke meter) to verify network connections on ethernet drops for
+machines suspected of causing a corruption... and how do you know what machine caused a corruption.
+See item 5. below.
+5. Ensure that on critical systems you have error trapping to log user ID, machine name and datetime to log files
+when critical errors occur. This means good error trapping code within your application.
+6. Have as well a centrailzed table that track when users log in, and log off. In this way in the event of a corruption
+crash you know what machines were in the sytem and now can go back to item 5. and view the error log files
+on the machines in question.
+7. Have enough on the ball to setup a VFP polling program that with domain admin permissions allow you from
+one centalized workstation poll all the error log files and append them into one centraized table for quick and
+easy analysis. This can be done with an admin. account on a network using a UNC path like:
+//MachineIPAddress/c$/folder/ErrorLog.dbf 
+8. On small isolated systems that are off site why even add the DBC, or CDX files? On small systems use
+free tables and .IDX index files that are rebuilt when the exe loads... I mean smaller type applications here.
+9. Do you not ensure that on all your production systems you have a complete copy of the 3 main DBC files?
+Keep a copy called BKUP.DBC, BKUP.DCT, and BKUP.DCX in your data folder. At least if a problem is detected
+you can get everyone out of the system and have an admin utility in all your applications that copies the good
+backup copy over the production copies to very quickly restore service.
+10. Make sure you have as well a rebuild index admin. utility that in fact deletes all CDX's and in code you
+recreate them using Index On [FieldName] TAG [TagName]. Do not go with the simple REINDEX command for
+this purpose.
+11. What about your server's data volumes? You got a decent defrag schedule setup? You can look to
+products like DiskKeeper for maintenance like this a schedule at 1:00am in the morning.
+12. You got a decent network monitoring system in place??? Most do not...too bad. Check out something
+like ServersAlive for $250.00 that monitors all your servers and can monitor data transmissions to all your
+server and you can set alert alarm to WinPOP you a messeage, email you an alert, when things go off normal.
+13. What about as I mentioned in another thread consider MySQL as a backend if VFP is giving you grief. I do
+suspect if you got hardware issues a lot of dadbases will act up.
+14. As I advised my buddy Travis running very large batch processes within critical data within transactions,
+prime for potential problems in the event of network connectivity loss. Take those critical files and make snap
+shots of them via Copy to MySnapShot.txt TYP SDF. Although this may add some overhead and time you will
+be surprised how quick VFP takes a very large table and produces a mirror image of it in SDF format. So now
+at least in the worst case you can zap those critical files and append the data back in prior to running the batch
+process.
+
+There are sooo many things you can do to make life easier, just use some creative thinking and consider
+some of the advise in previous threads and I have added some of the things I do at my company.
+
+Pete from the Great White North. (Only in Canada, ay.) Over and Out ... pete.sass@foxite.com

@@ -1,0 +1,6 @@
+*- [CONVERTER] _rval almacenará el valor devueltoLOCAL _rval
+
+EXTERNAL PROC almptsal.scx
+
+DO FORM "almptsal.scx" NAME _16411MRK4 LINKED  TO m._rval
+RETURN m._rval

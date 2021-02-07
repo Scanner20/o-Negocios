@@ -1,0 +1,22 @@
+West Wind Soap Manager
+----------------------
+© West Wind Technologies
+http://www.west-wind.com/
+
+License
+-------
+wwSoap is freeware, but copyrighted to West Wind Techologies. 
+You may freely distribute wwSoap and all support components in 
+compiled form with your applications. 
+
+However, you may not use any of the support classes independently 
+of wwSOAP. If you would like to use the HTTP and utility features 
+in non-wwSOAP application you can check out our West Wind 
+Client Tools shareware library or our full West Wind Web 
+Connection server product. These products include full 
+versions which are fully documented and supported by 
+West Wind Technologies.
+
+For more info please check out:
+
+http://www.west-wind.com/wwclienttools.asp

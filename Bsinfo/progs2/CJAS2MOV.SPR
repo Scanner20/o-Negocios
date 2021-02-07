@@ -1,0 +1,97 @@
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё 25/09/98            CJAS2MOV.SPR               15:26:03 Ё
+*       Ё                                                         Ё
+*       цддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+*       Ё                                                         Ё
+*       Ё Nombre del autor                                        Ё
+*       Ё                                                         Ё
+*       Ё Copyright (c) 1998 Nombre de la empresa                 Ё
+*       Ё Direcci╒n                                               Ё
+*       Ё Ciudad,     C.P.                                        Ё
+*       Ё Pa║s                                              Ё
+*       Ё                                                         Ё
+*       Ё Description:                                            Ё
+*       Ё Este programa lo ha generado autom═ticamente GENSCRN.    Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+
+
+#REGION 0
+REGIONAL m.currarea, m.talkstat, m.compstat
+
+IF SET("TALK") = "ON"
+	SET TALK OFF
+	m.talkstat = "ON"
+ELSE
+	m.talkstat = "OFF"
+ENDIF
+m.compstat = SET("COMPATIBLE")
+SET COMPATIBLE FOXPLUS
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё             MS-DOS Definiciones de ventana              Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+IF NOT WEXIST("w_data_adi") ;
+	OR UPPER(WTITLE("W_DATA_ADI")) == "W_DATA_ADI.PJX" ;
+	OR UPPER(WTITLE("W_DATA_ADI")) == "W_DATA_ADI.SCX" ;
+	OR UPPER(WTITLE("W_DATA_ADI")) == "W_DATA_ADI.MNX" ;
+	OR UPPER(WTITLE("W_DATA_ADI")) == "W_DATA_ADI.PRG" ;
+	OR UPPER(WTITLE("W_DATA_ADI")) == "W_DATA_ADI.FRX" ;
+	OR UPPER(WTITLE("W_DATA_ADI")) == "W_DATA_ADI.QPR"
+	DEFINE WINDOW w_data_adi ;
+		FROM INT((SROW()-9)/2),INT((SCOL()-45)/2) ;
+		TO INT((SROW()-9)/2)+8,INT((SCOL()-45)/2)+44 ;
+		TITLE "DATOS ADICIONALES" ;
+		FLOAT ;
+		NOCLOSE ;
+		SHADOW ;
+		MINIMIZE ;
+		DOUBLE ;
+		COLOR SCHEME 1
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё        CJAS2MOV/MS-DOS Distribuci╒n de pantalla         Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+IF WVISIBLE("w_data_adi")
+	ACTIVATE WINDOW w_data_adi SAME
+ELSE
+	ACTIVATE WINDOW w_data_adi NOSHOW
+ENDIF
+@ 1,1 SAY "MONEDA DE LA CARTA :" ;
+	SIZE 1,20, 0
+@ 5,15 GET m.Control ;
+	PICTURE "@*HT \<Continuar" ;
+	SIZE 1,11,1 ;
+	DEFAULT 1
+@ 1,22 GET XnMn_Cart ;
+	PICTURE "@*RVN \<SOLES;\<DOLARES" ;
+	SIZE 1,11,0 ;
+	DEFAULT 1
+
+IF NOT WVISIBLE("w_data_adi")
+	ACTIVATE WINDOW w_data_adi
+ENDIF
+
+READ CYCLE
+
+RELEASE WINDOW w_data_adi
+
+#REGION 0
+IF m.talkstat = "ON"
+	SET TALK ON
+ENDIF
+IF m.compstat = "ON"
+	SET COMPATIBLE ON
+ENDIF

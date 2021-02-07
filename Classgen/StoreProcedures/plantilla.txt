@@ -1,0 +1,165 @@
+/*
+	Título		:	
+	Propósito	:	
+	Parámetros de Entrada
+	<<Parametros_Store_Procedure>>
+
+	Valores de Retorno	:
+	Llamadas a SP		:
+	
+	Creación
+	Autor		:	<<Login>>
+	Fecha		:	<<Fecha_Creacion>>
+	Comentario	:	Permite dar mantenimiento a la Tabla : <<Nombre_Tabla>>
+	
+	Modificacion
+	Autor		:
+	Fecha		:
+	Comentarios	:
+
+	Creado con	:	Generador de Store Procedures (c) 2000 T.D.V.
+*/
+
+CREATE PROCEDURE <<Nombre_Store_Procedure>>
+	<<Parametros_Store_Procedure>>
+	@Usuario		varchar(15) = NULL ,
+	@Estacion		varchar(15) = NULL ,
+	@TipoOperacion	varchar(2)	= 'C1'
+AS
+BEGIN  -- Inicion de Bloque Principal
+
+	<<Declaraciones_Variables>>
+	DECLARE @Mensaje		varchar(200)
+
+	SET @Mensaje = 'Sin Errores...'
+	<<Inicializar_Variables>>
+
+	IF @Usuario	= NULL		SET @Usuario	= SUSER_NAME()
+	IF @Estacion	= NULL		SET @Estacion	= HOST_NAME()
+	<<Validar_Variables>>
+
+	BEGIN TRANSACTION <<Nombre_Transaccion>>
+
+	-- Insertar Elementos 
+	IF @TipoOperacion='I'
+	BEGIN
+		/*
+		-- Obtener un correlativo valido para la SolicitudDDP
+		EXEC ADMGEN4_Contador_Entidad @Entidad = '<<Nombre_Tabla>>', @Contador = @Variable OUTPUT, @Actualizar = 1
+
+		IF @@ERROR <> 0 	-- Ocurrio un error al obtener el correlativo
+		BEGIN
+			SET @Mensaje = 'Fallo el correlativo para la Tabla :  <<Nombre_Tabla>>' 
+			GOTO ERROR	-- Hubo un error en la Inserción
+		END 
+
+		-- Obtener un Correlativo Valido para el Item
+		SELECT @Variable = COALESCE( CAST( MAX( <Campo> ) + 1 AS CHAR(3) ) , '001' ) 
+		FROM <<Nombre_Tabla>> WHERE <<Clausula_Where>>
+
+		SET @NumeroSCot_Orden = RIGHT( '000' + RTRIM( @NumeroSCot_Orden ) , 3 )
+
+		*/
+
+		INSERT INTO <<Nombre_Tabla>>
+			( <<Insert_Parte_1>>
+			FHCreacion , UsuarioCreacion , EstacionCreacion , 
+			FHModificacion , UsuarioModificacion , EstacionModificacion )
+		VALUES 
+			( <<Insert_Parte_2>>
+			GETDATE() , @Usuario , @Estacion ,
+			GETDATE() , @Usuario , @Estacion )
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = '<<Mensaje_Error_Insercion>>'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+	-- Actualizar Elementos 
+	IF @TipoOperacion='A'
+	BEGIN
+		UPDATE <<Nombre_Tabla>> SET 
+			<<Update_Parte_1>>
+			FHModificacion 		= GETDATE() , 
+			UsuarioModificacion	= @Usuario , 
+			EstacionModificacion= @Estacion
+		WHERE 
+			<<Clausula_Where>> AND
+			FlagEliminado = 0
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = '<<Mensaje_Error_Actualizacion>>'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+	-- Eliminar Elementos 
+	IF @TipoOperacion='E'
+	BEGIN
+		UPDATE <<Nombre_Tabla>> SET 
+			FlagEliminado 		= 1 ,
+			FHModificacion 		= GETDATE() , 
+			UsuarioModificacion	= @Usuario , 
+			EstacionModificacion= @Estacion
+		WHERE 
+			<<Clausula_Where>>
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = '<<Mensaje_Error_Deleteo>>'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+	-- Consultar Elementos 
+	IF @TipoOperacion='C1'
+	BEGIN
+		SELECT 
+			<<Campos_Select>>
+		FROM 
+			<<Nombre_Tabla>>
+		WHERE 
+			<<Clausula_Where>> AND
+			FlagEliminado = 0
+
+		IF @@ERROR <> 0 	-- Ocurrio un error
+		BEGIN
+			SET @Mensaje = '<<Mensaje_Error_Consulta>>'
+			GOTO ERROR
+		END
+
+		GOTO OK
+	END
+
+
+ERROR:
+	ROLLBACK TRANSACTION <<Nombre_Transaccion>>
+	RAISERROR(@Mensaje,18,1)
+	GOTO FIN
+
+OK:
+
+	COMMIT TRANSACTION <<Nombre_Transaccion>>
+
+FIN:
+END -- Fin de Bloque Principal
+
+-- Llamada desde el Cliente (VFP)
+/*
+THISFORM.ocnx_ODBC.cSQl = "EXEC " + THISFORM.Tabla("<<Nombre_Store_Procedure>>") + " " + ;
+	"<<Parametros_Store_Procedure_Asignados>>
+	"@Usuario			= ?m.Usuario , " + ;
+	"@Estacion			= ?m.Estacion , " + ;
+	"@TipoOperacion		= ?m.TipoOperacion "
+THISFORM.ocnx_ODBC.cCursor = "<<Nombre_Tabla>>"
+THISFORM.ocnx_ODBC.DoSQL()
+*/

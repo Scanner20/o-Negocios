@@ -1,0 +1,2 @@
+do form funcbd_cat_activo_fijo
+return

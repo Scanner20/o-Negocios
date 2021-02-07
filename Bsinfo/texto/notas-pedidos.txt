@@ -1,0 +1,21 @@
+agregue la tabla APLICACION.DBF AL DIRECTORIO H:\Demo\o-Negocios\Aromas\DATA\CIA001 Y H:\o-Negocios\Aromas\DATA\CIA001
+agregue la tabla pedidos.dbf al directorio H:\Demo\o-Negocios\Aromas\DATA\CIA001
+agregue la tabla DETA_pedidos.dbf al directorio H:\Demo\o-Negocios\Aromas\DATA\CIA001
+AGREGUE LA TABLA SITUACION AL DIRECTORIO  H:\Demo\o-Negocios\Aromas\DATA\CIA001
+aguegue la tabla desarrollo AL DIRECTORIO  H:\Demo\o-Negocios\Aromas\DATA\CIA001
+aguegue la tabla desamuestra AL DIRECTORIO  H:\Demo\o-Negocios\Aromas\DATA\CIA001
+aguegue la tabla medios AL DIRECTORIO  H:\Demo\o-Negocios\Aromas\DATA\CIA001
+agregue la tabla desaprovee al directorio H:\Demo\o-Negocios\Aromas\DATA\CIA001
+agreguela tabla desaprodet A H:\Demo\o-Negocios\Aromas\DATA\CIA001
+AGREGUE LA TABLA DESAPROANALI  H:\Demo\o-Negocios\Aromas\DATA\CIA001
+AGREGUE LA TABLA DESAformula  H:\Demo\o-Negocios\Aromas\DATA\CIA001
+
+Tabla sysdbfs : agregar los campos para las tablas tipodoc,pedidos,deta_pedidos,aplicacion,SITUACION,desarrollo,desamuestra,medios,DESAPROVEE,DESAPRODET,DESAPROANALI,DESAFORMULA
+
+
+En los reportes
+No encontre la variable nrutf(debe ser global en el sistema anterior)
+Cambie campo des_ana por obse1
+cmbie campo res_ana por conclu1
+preguntar q tipo es el campo dosifica en la tabla pedidos y segun eso corregir en el frmpedisitu1
+

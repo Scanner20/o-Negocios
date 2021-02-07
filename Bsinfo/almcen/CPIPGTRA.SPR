@@ -1,0 +1,713 @@
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё 27/10/99            CPIPGTRA.SPR               16:21:19 Ё
+*       Ё                                                         Ё
+*       цддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+*       Ё                                                         Ё
+*       Ё Nombre del autor                                        Ё
+*       Ё                                                         Ё
+*       Ё Copyright (c) 1999 Nombre de la empresa                 Ё
+*       Ё Direcci╒n                                               Ё
+*       Ё Ciudad,     C.P.                                        Ё
+*       Ё Pa║s                                              Ё
+*       Ё                                                         Ё
+*       Ё Description:                                            Ё
+*       Ё Este programa lo ha generado autom═ticamente GENSCRN.    Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+
+
+#REGION 0
+REGIONAL m.currarea, m.talkstat, m.compstat
+
+IF SET("TALK") = "ON"
+	SET TALK OFF
+	m.talkstat = "ON"
+ELSE
+	m.talkstat = "OFF"
+ENDIF
+m.compstat = SET("COMPATIBLE")
+SET COMPATIBLE FOXPLUS
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё             MS-DOS Definiciones de ventana              Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё   CPIPGTRA/MS-DOS C╒digo de configuraci╒n - SECCION 2   Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+IF m.Primera
+   @ 02,00 CLEAR TO 22,79
+   m.Primera = .F.
+   DO BROWS_OT WITH .T.,[DO_T]
+ENDIF
+m.DesPro = IIF(SEEK(m.sCodPrd,"CATG"),CATG.DesMat,[])
+m.sUndStk = CATG.UndStk
+=SEEK(m.sCodPrd,"CFPRO")
+*m.fCanObj = CFPRO.CanObj
+m.Salir=1
+UltTecla = 0
+DO CASE
+	CASE CO_T.FlgEst=[A]
+	   @ 2,67 SAY [ANULADO] COLOR SCHEME 7
+	CASE EMPTY(CO_T.FchFin)
+       @ 2,67 SAY [PROCESO] COLOR SCHEME 7
+	CASE !EMPTY(CO_T.FchFin)
+       @ 2,67 SAY [CERRADO] COLOR SCHEME 7
+	OTHER
+       @ 2,67 SAY [       ] COLOR SCHEME 7
+ENDCASE
+m.FacAnt = 0
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё        CPIPGTRA/MS-DOS Distribuci╒n de pantalla         Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+@ 1,0 TO 22,79 DOUBLE
+@ 6,1 TO 6,78
+@ 9,52 SAY " " ;
+	SIZE 1,1, 0
+@ 2,12 GET m.sCodPrd ;
+	SIZE 1,8 ;
+	DEFAULT " " ;
+	VALID _s9l0z2039() ;
+	MESSAGE [Producto por el que se genera la orden de trabajo. F8 buscar]
+@ 2,24 SAY m.DesPro ;
+	SIZE 1,34
+@ 3,12 GET sNroO_T ;
+	SIZE 1,8 ;
+	DEFAULT " " ;
+	WHEN _s9l0z203t() ;
+	VALID _s9l0z204i() ;
+	MESSAGE [Nёmero autogenerado de orden de trabajo(BATCH). F8 buscar] 
+@ 3,39 GET m.TipBat ;
+	PICTURE "@*RHN B\<N;R\<G" ;
+	SIZE 1,6,0 ;
+	DEFAULT 1 ;
+	WHEN _s9l0z204v() ;
+	MESSAGE IIF(m.tipbat=1,[Batch normal],[Regularizaciones])
+@ 3,67 GET dFchDoc ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	VALID _s9l0z2055() ;
+	MESSAGE [Fecha de inicio de la orden de trabajo] ;
+	ERROR sErr
+@ 4,12 GET ffactor ;
+	SIZE 1,7 ;
+	DEFAULT " " ;
+	PICTURE "999.999" ;
+	WHEN _s9l0z205j() ;
+	VALID _s9l0z2060() ;
+	MESSAGE [Nёmero que indica el equivalente de la formulaci╒n a utilizar]
+@ 4,39 GET fcanobj ;
+	SIZE 1,15 ;
+	DEFAULT 0 ;
+	PICTURE "999,999,999.999" ;
+	MESSAGE [Cantidad objetivo de unidades a producir.]
+@ 4,55 SAY m.sUndStk ;
+	SIZE 1,3
+@ 5,12 GET sRespon ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	VALID _s9l0z206n() ;
+	MESSAGE [Persona encargada de realizar la orden de trabajo]
+@ 5,39 GET sArea ;
+	SIZE 1,15 ;
+	DEFAULT " " ;
+	VALID _s9l0z206w()
+@ 8,76 GET m.CtrlBrw ;
+	PICTURE "@*HN \<T" ;
+	SIZE 1,3,1 ;
+	DEFAULT 1 ;
+	VALID _s9l0z2075() ;
+	MESSAGE [Ingresar materiales directos y/o indirectos que componen el producto.]
+@ 4,67 GET fCanFin ;
+	SIZE 1,11 ;
+	DEFAULT " " ;
+	PICTURE "9999,999.99" ;
+	WHEN _s9l0z207g() ;
+	VALID _s9l0z207o() ;
+	MESSAGE [Cantidad final producida]
+@ 5,67 GET dFchFin ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	VALID _s9l0z2081() ;
+	MESSAGE [Fecha en que se termina la orden de trabajo]
+@ 14,76 GET m.salir ;
+	PICTURE "@*VT \<O;\<S" ;
+	SIZE 1,3,2 ;
+	DEFAULT 1 ;
+	MESSAGE [OK-> Salir grabando,Salir-> no graba modificaciones]
+@ 2,2 SAY "PRODUCTO.:" ;
+	SIZE 1,10, 0
+@ 4,2 SAY "BATCHES..:" ;
+	SIZE 1,10, 0
+@ 3,24 SAY "TIPO DE BATCH.:" ;
+	SIZE 1,15, 0
+@ 5,24 SAY "AREA/DPTO.....:" ;
+	SIZE 1,15, 0
+@ 4,24 SAY "OBJETIVO......:" ;
+	SIZE 1,15, 0
+@ 5,2 SAY "VoBo.....:" ;
+	SIZE 1,10, 0
+@ 2,60 SAY "ESTADO:" ;
+	SIZE 1,7, 0
+@ 3,60 SAY "INICIO:" ;
+	SIZE 1,7, 0
+@ 4,60 SAY "REAL..:" ;
+	SIZE 1,7, 0
+@ 5,60 SAY "CIERRE:" ;
+	SIZE 1,7, 0
+@ 7,77 SAY "I" ;
+	SIZE 1,1, 0
+@ 9,77 SAY "E" ;
+	SIZE 1,1, 0
+@ 10,77 SAY "M" ;
+	SIZE 1,1, 0
+@ 11,77 SAY "S" ;
+	SIZE 1,1, 0
+@ 18,77 SAY "A" ;
+	SIZE 1,1, 0
+@ 19,77 SAY "L" ;
+	SIZE 1,1, 0
+@ 20,77 SAY "I" ;
+	SIZE 1,1, 0
+@ 21,77 SAY "R" ;
+	SIZE 1,1, 0
+@ 15,77 SAY "K" ;
+	SIZE 1,1, 0
+@ 3,2 SAY "N╖ TRANSF:" ;
+	SIZE 1,10, 0
+@ 1,20 SAY "T  R  A  N  S  F  O  R  M  A  C  I  O  N" ;
+	SIZE 1,40, 0
+
+
+
+READ CYCLE ;
+	ACTIVATE _s9l0z2090() ;
+	DEACTIVATE _s9l0z2091() ;
+	SHOW _s9l0z2092()
+
+
+#REGION 0
+IF m.talkstat = "ON"
+	SET TALK ON
+ENDIF
+IF m.compstat = "ON"
+	SET COMPATIBLE ON
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё           CPIPGTRA/MS-DOS C╒digo de limpieza            Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+UltTecla = LASTKEY()
+UltTecla = IIF(UltTecla#0,UltTecla,LASTKEY())
+IF m.Salir = 2
+    UltTecla = K_ESC
+ENDIF
+******************
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё CPIPGTRA/MS-DOS Procedimientos y funciones de soporte   Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+PROCEDURE pDetalle
+******************
+_CurObj = OBJNUM(m.CtrlBrw)
+RETURN
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2039           m.sCodPrd VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:    5  Ё
+*       Ё Variable:            m.sCodPrd                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      1                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z2039     &&  m.sCodPrd VALID
+#REGION 1
+lvalido=f1_busca(m.sCodprd,"CODMAT","FORM","FORM","",.f.,"")
+=SEEK(GaClfDiv(2)+LEFT(m.sCodPrd,GaLenCod(2)),[DIVF])
+lvalido = lvalido
+if lvalido
+   m.DesPro=IIF(SEEK(m.sCodPrd,"CATG"),CATG.DesMat,[])
+   sUndStk=CATG.UndStk
+   =SEEK(m.sCodPrd,[CFPRO])
+   IF EMPTY(fCanObj)
+      FCanObj = CFPRO.CanObj
+   ENDIF
+   SHOW GET sCodPrd ENABLE
+   @ 2,24 say m.DesPro size 1,33
+   show get fCanObj
+   @ 4,55 say sUndStk size 1,3
+ENDIF
+RETURN lValido
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z203T           sNroO_T WHEN                       Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:    7  Ё
+*       Ё Variable:            sNroO_T                            Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      2                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z203t     &&  sNroO_T WHEN
+#REGION 1
+SELE DIVF
+*SEEK GaClfDiv(1)+LEFT(sCodPrd,GaLenCod(1))
+SEEK GaClfDiv(2)+LEFT(sCodPrd,GaLenCod(2))
+SELE CDOC
+SET ORDER TO CDOC03
+xsllave = [070]+[P]+LEFT(DIVF.CodFam,GaLenCod(2))
+IF CREAR
+   SEEK [070]+[P]+LEFT(DIVF.CodFam,GaLenCod(2))
+   if found() and cdoc.tippro <> m.tpo_pro
+      DO f1msgerr WITH [ERROR:Orden de Trabajo No Corresponde...]
+      UlTtecla = K_ESC
+      m.Salir = 2
+      CLEAR READ
+      RETURN .F.
+   endif
+ELSE
+   SEEK [070]+[P]
+ENDIF
+IF .NOT. FOUND()
+   DO f1msgerr WITH [Correlativo no existe.]
+   UlTtecla = K_ESC
+   m.Salir = 2
+   CLEAR READ
+   RETURN .F.
+ENDIF
+SELE CO_T
+IF cVctrl#[C]
+   sNroO_T = NroDoc
+ELSE
+   XsNroMes=TRAN(_MES,"@L ##")
+   Campo1   = [NDOC]+XsNroMes
+   LnNroO_T = CDOC.&Campo1.
+   LnNroO_T = VAL(XsNroMes+RIGHT(TRANSF(LnNroO_T,"@L ###"),3))
+   LsNroO_T = ALLTRIM(STR(LnNroO_T))
+   sNroO_T  = LEFT(CDOC.Siglas,3)+PADL(LsNroO_T,LEN(CO_T.NroDoc)-3,'0')
+   m.NroO_T = sNroO_T
+ENDIF
+SEEK sNroO_T
+do brows_ot with .T.,[DO_T]
+SELE CO_T
+IF cVctrl=[C]
+   CREAR = .T.
+   *DO Carga_Form
+   CLEAR READ
+ENDIF
+RETURN .T.
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z204I           sNroO_T VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:    7  Ё
+*       Ё Variable:            sNroO_T                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      3                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z204i     &&  sNroO_T VALID
+#REGION 1
+lvalido = F1_Busca(sNroO_T,[NRODOC],[CO_T],[CO_T],[],.F.,[])
+IF lValido
+   CLEAR READ
+ENDIF
+RETURN lValido
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z204V           m.TipBat WHEN                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:    8  Ё
+*       Ё Variable:            m.TipBat                           Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Radio Button                       Ё
+*       Ё Snippet Number:      4                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z204v     &&  m.TipBat WHEN
+#REGION 1
+if m.tpo_pro <> [O_T]
+   m.tipbat = 1
+   return .f.
+endif
+return .t.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2055           dFchDoc VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:    9  Ё
+*       Ё Variable:            dFchDoc                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      5                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z2055     &&  dFchDoc VALID
+#REGION 1
+sErr = []
+IF MONTH(dFchDoc)#VAL(XsNroMes)
+   sErr = [Mes Incorrecto, estamos en ]+MES(_Mes,1)
+   RETURN .F.
+ENDIF
+IF YEAR(dFchDoc)#VAL(TRAN(_ANO,"9999"))
+   sErr = [Ao incorrecto, estamos en ]+TRAN(_ANO,"9999")
+   RETURN .F.
+ENDIF
+RETURN .T.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z205J           ffactor WHEN                       Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   10  Ё
+*       Ё Variable:            ffactor                            Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      6                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z205j     &&  ffactor WHEN
+#REGION 1
+IF m.TipBat=2
+   fFactor=1
+   IF EMPTY(fCanObj)
+		fCanObj=1
+   ENDIF
+   IF EMPTY(fCanFin)
+		fCanFin = fCanObj
+   ENDIF
+   SHOW GET fCanObj
+   SHOW GET FCanFin
+   SHOW GET fFactor
+ELSE
+	m.FacAnt = ffactor
+ENDIF
+RETURN .T.
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2060           ffactor VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   10  Ё
+*       Ё Variable:            ffactor                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      7                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z2060     &&  ffactor VALID
+#REGION 1
+IF fFactor<=0
+   sErr =[Factor debe ser mayor que cero]
+   RETURN .F.
+ENDIF
+=SEEK(sCodPRd,[CFPRO])
+IF EMPTY(fCanObj)
+   FCanObj=CFPRO.CanObj
+   fCanObj=FCanObj*fFacTor
+ENDIF
+IF EMPTY(DFchFin)
+   fCanFin=fCanObj
+ENDIF
+IF m.TipBat = 2
+   IF EMPTY(fCanObj)
+		fCanObj = 1
+   ENDIF
+   IF EMPTY(fCanFin)
+		fCanFin = fCanObj
+   ENDIF
+ENDIF
+SHOW GET fCanObj
+SHOW GET fCanFin
+IF m.FacAnt<>fFactor
+   DO CARGA_FORM WITH Crear
+ENDIF
+RETURN .t.
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z206N           sRespon VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   13  Ё
+*       Ё Variable:            sRespon                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      8                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z206n     &&  sRespon VALID
+#REGION 1
+nDigitos =iif(SEEK([00]+[OP],[TABL]),TABL.Digitos,LEN(sCdArea))
+lvalido = f1_Busca(sRespon,[NOMBRE],[NOMB],[TABL],[OP],.T.,[])
+IF lValido
+   sCdArea=LEFT(TABL.Codigo,nDigitos)
+ENDIF
+return lValido
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z206W           sArea VALID                        Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   14  Ё
+*       Ё Variable:            sArea                              Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      9                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z206w     &&  sArea VALID
+#REGION 1
+lvalido = f1_busca(sArea,[NOMBRE],[NOMB],[TABL],[AR],.T.,[])
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2075           m.CtrlBrw VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   15  Ё
+*       Ё Variable:            m.CtrlBrw                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Push Button                        Ё
+*       Ё Snippet Number:      10                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z2075     &&  m.CtrlBrw VALID
+#REGION 1
+DO brows_OT WITH .F.,[TEMPO]
+SELE CO_T
+RETURN .T.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z207G           fCanFin WHEN                       Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   16  Ё
+*       Ё Variable:            fCanFin                            Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      11                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z207g     &&  fCanFin WHEN
+#REGION 1
+IF EMPTY(INT(fCanFin)) AND m.TipBat=2
+	fCanFin = fCanObj
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z207O           fCanFin VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   16  Ё
+*       Ё Variable:            fCanFin                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      12                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z207o     &&  fCanFin VALID
+#REGION 1
+lvalido=fCanFin>=0
+IF lValido
+  *DO IngPtxAlm
+ENDIF
+RETURN lvalido
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2081           dFchFin VALID                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA,     Record Number:   17  Ё
+*       Ё Variable:            dFchFin                            Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      13                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+FUNCTION _s9l0z2081     &&  dFchFin VALID
+#REGION 1
+IF !EMPTY(dFchFin)
+   lValido=dFchFin>=dFchDoc
+ELSE
+   RETURN .T.
+ENDIF
+IF lvalido
+   DO IngPTxAlm
+ENDIF
+RETURN lValido
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2090           Nivel de lectura ACTIVATE          Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA                           Ё
+*       Ё Called By:           READ Statement                     Ё
+*       Ё Snippet Number:      14                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z2090     && Read Level Activate
+*
+* C╒digo ACTIVATE de la pantalla: CPIPGTRA
+*
+#REGION 1
+do pActivate
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2091           Nivel de lectura DEACTIVATE        Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA                           Ё
+*       Ё Called By:           READ Statement                     Ё
+*       Ё Snippet Number:      15                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z2091     && Read Level Deactivate
+*
+* C╒digo DEACTIVATE de la pantalla: CPIPGTRA
+*
+#REGION 1
+IF WVISIBLE(m.btitulo)		
+   HIDE WINDOW ALL
+   _CurObj = OBJNUM(m.CtrlBrw)
+ENDIF
+RETURN .F.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9L0Z2092           Nivel de lectura SHOW              Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         CPIPGTRA                           Ё
+*       Ё Called By:           READ Statement                     Ё
+*       Ё Snippet Number:      16                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9l0z2092     && Read Level Show
+PRIVATE currwind
+STORE WOUTPUT() TO currwind
+*
+* C╒digo SHOW de la pantalla: CPIPGTRA
+*
+#REGION 1
+IF SYS(2016) = "" OR SYS(2016) = "*"
+	ACTIVATE SCREEN
+	@ 2,24 SAY m.DesPro ;
+		SIZE 1,34, 0
+	@ 4,55 SAY m.sUndStk ;
+		SIZE 1,3, 0
+ENDIF
+IF NOT EMPTY(currwind)
+	ACTIVATE WINDOW (currwind) SAME
+ENDIF

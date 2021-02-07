@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>610</Author>
+  <LastAuthor>610</LastAuthor>
+  <Created>2015-03-02T14:20:59Z</Created>
+  <LastSaved>2015-03-02T14:20:59Z</LastSaved>
+  <Version>12.00</Version>
+ </DocumentProperties>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <WindowHeight>8130</WindowHeight>
+  <WindowWidth>15135</WindowWidth>
+  <WindowTopX>120</WindowTopX>
+  <WindowTopY>45</WindowTopY>
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Borders/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  
+  <Style ss:ID="h00001">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial Black" x:Family="Swiss" ss:Size="9" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#F0F0F0" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="h00002">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Verdana" x:Family="Swiss" ss:Size="14" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="1" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#F0F0F0" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#646464"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00001">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFF0F0" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00002">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FDE9D9" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00003">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FCD5B4" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00004">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#000000"
+    ss:Bold="0" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#F79646" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00000"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00005">
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#FF0000"
+    ss:Bold="1" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FFF0F0" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00006">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#FF0000"
+    ss:Bold="1" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FDE9D9" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00007">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#FF0000"
+    ss:Bold="1" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#FCD5B4" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="c00008">
+   <Alignment ss:Horizontal="Right" ss:Vertical="Center"/>
+   <Font ss:FontName="Arial" x:Family="Swiss" ss:Size="9" ss:Color="#FF0000"
+    ss:Bold="1" ss:Italic="0" ss:StrikeThrough="0"/>
+   <Interior ss:Color="#F79646" ss:Pattern="Solid"/>
+   <NumberFormat ss:Format="#,##0.00000"/>
+   <Borders>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#FFFFFF"/>
+   </Borders>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Price List">
+  <Table ss:ExpandedColumnCount="5" ss:ExpandedRowCount="12" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultRowHeight="15">
+   
+   <Column ss:AutoFitWidth="0" ss:Width="50"/>
+   <Column ss:AutoFitWidth="0" ss:Width="196"/>
+   <Column ss:AutoFitWidth="0" ss:Width="97"/>
+   <Column ss:AutoFitWidth="0" ss:Width="94"/>
+   <Column ss:AutoFitWidth="0" ss:Width="85"/>
+
+
+   <Row ss:AutoFitHeight="0" ss:Height="46">
+     <Cell ss:StyleID="h00001"><Data ss:Type="String">Code</Data></Cell>
+     <Cell ss:StyleID="h00001"><Data ss:Type="String">Description</Data><Comment ss:Author="Rodrigo_Bruscain"><ss:Data xmlns="http://www.w3.org/TR/REC-html40"><Font html:Face="Tahoma" x:Family="Swiss" html:Color="#000000">If you want to see the technical description, consult the Stock Option.</Font></ss:Data></Comment></Cell>
+     <Cell ss:StyleID="h00002"><Data ss:Type="String">Quantity</Data></Cell>
+     <Cell ss:StyleID="h00002"><Data ss:Type="String">Price $</Data></Cell>
+     <Cell ss:StyleID="h00002"><Data ss:Type="String">Total $</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">00001</Data></Cell>
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">BLUE-RAY DISC</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="Number">56.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">8.70</Data></Cell>
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">487.12300</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">00015</Data></Cell>
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">DVD-RW+ DOUBLE LAYER</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="Number">49.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">70.00</Data></Cell>
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">1568.12340</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">00023</Data></Cell>
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">PENDRIVE 128GB</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="Number">73.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">9.55</Data></Cell>
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">693.50000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">00028</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">HP DESKJET 2001S</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">12.000000</Data></Cell>
+     <Cell ss:StyleID="c00007"><Data ss:Type="Number">72.00</Data></Cell>
+     <Cell ss:StyleID="c00008"><Data ss:Type="Number">864.00000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">00032</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">FAX MODEM V.90 56.000 BPS</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">8.000000</Data></Cell>
+     <Cell ss:StyleID="c00007"><Data ss:Type="Number">70.00</Data></Cell>
+     <Cell ss:StyleID="c00008"><Data ss:Type="Number">560.00000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">00045</Data></Cell>
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">BOX CD-R SONY 650 MB</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="Number">23.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">10.00</Data></Cell>
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">230.00000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">00053</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">MAGAZINE ON THE NET</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">12.000000</Data></Cell>
+     <Cell ss:StyleID="c00007"><Data ss:Type="Number">9.99</Data></Cell>
+     <Cell ss:StyleID="c00008"><Data ss:Type="Number">118.80000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">00057</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">MAGAZINE PC EXPERT</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">6.000000</Data></Cell>
+     <Cell ss:StyleID="c00007"><Data ss:Type="Number">14.90</Data></Cell>
+     <Cell ss:StyleID="c00008"><Data ss:Type="Number">89.40000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">00063</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">CD-ROM WINDOWS 8</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">14.000000</Data></Cell>
+     <Cell ss:StyleID="c00007"><Data ss:Type="Number">30.00</Data></Cell>
+     <Cell ss:StyleID="c00008"><Data ss:Type="Number">420.00000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">00070</Data></Cell>
+     <Cell ss:StyleID="c00001"><Data ss:Type="String">LDC 21'</Data></Cell>
+     <Cell ss:StyleID="c00002"><Data ss:Type="Number">22.000000</Data></Cell>
+     <Cell ss:StyleID="c00003"><Data ss:Type="Number">13.60</Data></Cell>
+     <Cell ss:StyleID="c00004"><Data ss:Type="Number">299.20000</Data></Cell>
+   </Row>
+
+   <Row ss:AutoFitHeight="0">
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">00048</Data></Cell>
+     <Cell ss:StyleID="c00005"><Data ss:Type="String">PS3 GAMES</Data></Cell>
+     <Cell ss:StyleID="c00006"><Data ss:Type="Number">10.000000</Data></Cell>
+     <Cell ss:StyleID="c00007"><Data ss:Type="Number">99.90</Data></Cell>
+     <Cell ss:StyleID="c00008"><Data ss:Type="Number">999.90000</Data></Cell>
+   </Row>
+
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <PageSetup>
+    <Header x:Margin="0.31496062000000002"/>
+    <Footer x:Margin="0.31496062000000002"/>
+    <PageMargins x:Bottom="0.78740157499999996" x:Left="0.511811024"
+     x:Right="0.511811024" x:Top="0.78740157499999996"/>
+   </PageSetup>
+   <Unsynced/>
+   <Print>
+    <ValidPrinterInfo/>
+    <PaperSizeIndex>9</PaperSizeIndex>
+    <HorizontalResolution>300</HorizontalResolution>
+    <VerticalResolution>300</VerticalResolution>
+   </Print>
+   <Selected/>
+      <FreezePanes/>
+   <FrozenNoSplit/>
+   <SplitHorizontal>1</SplitHorizontal>
+   <TopRowBottomPane>1</TopRowBottomPane>
+   <ActivePane>2</ActivePane>
+   <Panes>
+    <Pane>
+     <Number>3</Number>
+    </Pane>
+    <Pane>
+     <Number>2</Number>
+    </Pane>
+   </Panes>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+  <AutoFilter x:Range="R1C1:R12C5"
+ xmlns="urn:schemas-microsoft-com:office:excel">
+</AutoFilter> 	
+ </Worksheet>
+</Workbook>		

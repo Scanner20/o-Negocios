@@ -1,0 +1,34 @@
+EXTERNAL PROC cpiistdr.scx
+
+DO FORM "cpiistdr.scx" NAME _1Y90KZJC1 LINKED 
+
+*- [CONVERTER] Begin CLEANUP and other procedures from 2.x Form
+
+FUNCTION wTabla
+***************
+IF EMPTY(m.CodFamD)
+   LsTabla = [CATG]
+ELSE 
+   LsTabla = [CATGF]   
+ENDIF
+RETURN .T.
+****************
+FUNCTION vCodmat
+****************
+parameter xx
+IF EMPTY(m.CodFamD)
+   Lvalido=F1_Busca(xx,"CODMAT",[CATG],"CATG",TRIM(m.CodFamD),.T.,[bDescri])
+   IF lVAlido
+      
+   ENDIF
+ELSE
+   nLen1 = LEN(CodMat) - GaLenCod(2)
+   xx = SPACE(nLen1)
+   LValido=F1_Busca(xx,[RIGHT(CodMat,nLen1)],[CATGF],[CATG],m.CodFamD,.t.,[bDescri])
+   IF lValido
+    xx = m.CodFamD+xx
+   ENDIF 
+ENDIF
+RETURN lValido
+
+*- [CONVERTER] End CLEANUP and other procedures from 2.x Form

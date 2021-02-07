@@ -1,0 +1,928 @@
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё 26/10/99            ALMPMS1A.SPR               12:48:56 Ё
+*       Ё                                                         Ё
+*       цддддддддддддддддддддддддддддддддддддддддддддддддддддддддд╢
+*       Ё                                                         Ё
+*       Ё Nombre del autor                                        Ё
+*       Ё                                                         Ё
+*       Ё Copyright (c) 1999 Nombre de la empresa                 Ё
+*       Ё Direcci╒n                                               Ё
+*       Ё Ciudad,     C.P.                                        Ё
+*       Ё Pa║s                                              Ё
+*       Ё                                                         Ё
+*       Ё Description:                                            Ё
+*       Ё Este programa lo ha generado autom═ticamente GENSCRN.    Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+
+
+#REGION 0
+REGIONAL m.currarea, m.talkstat, m.compstat
+
+IF SET("TALK") = "ON"
+	SET TALK OFF
+	m.talkstat = "ON"
+ELSE
+	m.talkstat = "OFF"
+ENDIF
+m.compstat = SET("COMPATIBLE")
+SET COMPATIBLE FOXPLUS
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё             MS-DOS Definiciones de ventana              Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё   ALMPMS1A/MS-DOS C╒digo de configuraci╒n - SECCION 2   Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+IF m.Primera
+   @ 02,01 CLEAR TO 22,78
+   m.Primera = .F.
+ENDIF
+nX0=11
+nY0=1
+nX1=18
+nY1=78
+m.Keyf2 = ON("KEY","F2")
+=bDef_Brw()
+m.Salir=1
+UltTecla = 0
+=SEEK(m.cTipMov+m.sCodMov,"CFTR")
+m.sDesMov = CFTR.DesMov
+IF m.lPidPro
+   m.sClfAux = GsClfPro
+ENDIF
+IF m.lPidCli
+   m.sClfAux = GsClfCli
+ENDIF
+=SEEK(m.sClfAux+m.sCodAux,"AUXI")
+m.NomAux = AUXI.NomAux
+IF (!m.lPidCli AND !m.lPidPro) OR EMPTY(m.sCodAux)
+   m.NomAux = []
+ENDIF
+m.NomAux2 = []
+IF XsTpoRef=[G/R]
+   =SEEK(GsClfPro+m.sCodCli,"AUXI")
+   m.NomAux2 = AUXI.NomAux
+ELSE
+   @21,27 SAY SPACE(38)
+ENDIF
+=SEEK([CV]+m.sCodVen,"TABL")
+m.NomVen = TABL.NomBre
+=SEEK(m.sCodPrd,[CATG])
+m.DesPrd = CATG.Desmat
+IF CTRA.FLGEST=[A]
+   @ 9,42 SAY [A N U L A D O] COLOR -
+ELSE
+   @ 9,42 SAY [             ]
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё        ALMPMS1A/MS-DOS Distribuci╒n de pantalla         Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+@ 4,1 TO 4,78
+@ 2,0 TO 22,79
+@ 8,1 TO 8,78
+@ 10,1 TO 10,78
+@ 8,27 SAY "а" ;
+	SIZE 1,1, 0
+@ 5,27 TO 7,27
+@ 7,60 SAY "Factor    :" ;
+	SIZE 1,11, 0
+@ 2,54 SAY "б" ;
+	SIZE 1,1, 0
+@ 2,67 SAY "б" ;
+	SIZE 1,1, 0
+@ 8,0 SAY "ц" ;
+	SIZE 1,1, 0
+@ 4,0 SAY "ц" ;
+	SIZE 1,1, 0
+@ 4,54 SAY "а" ;
+	SIZE 1,1, 0
+@ 4,67 SAY "а" ;
+	SIZE 1,1, 0
+@ 4,79 SAY "╢" ;
+	SIZE 1,1, 0
+@ 8,79 SAY "╢" ;
+	SIZE 1,1, 0
+@ 4,27 SAY "б" ;
+	SIZE 1,1, 0
+@ 2,70 SAY " Fecha " ;
+	SIZE 1,7, 0
+@ 3,54 SAY "Ё" ;
+	SIZE 1,1, 0
+@ 3,67 SAY "Ё" ;
+	SIZE 1,1, 0
+@ 2,57 SAY " Nёmero " ;
+	SIZE 1,8, 0
+@ 10,0 SAY "ц" ;
+	SIZE 1,1, 0
+@ 10,79 SAY "╢" ;
+	SIZE 1,1, 0
+@ 2,2 SAY " Motivo " ;
+	SIZE 1,8, 0
+@ 9,1 SAY "NOTA:" ;
+	SIZE 1,5, 0
+@ 19,0 SAY "ц" ;
+	SIZE 1,1, 0
+@ 19,79 SAY "╢" ;
+	SIZE 1,1, 0
+@ 19,1 TO 19,78
+@ 3,1 GET m.sCODMOV ;
+	SIZE 1,3 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv3u() ;
+	VALID _s9k0rgv41() ;
+	MESSAGE 'Motivo por el que se hace el movimiento de ingreso. F8 Consulta'
+@ 3,6 GET m.sdesmov ;
+	SIZE 1,46 ;
+	DEFAULT " " ;
+	DISABLE
+@ 3,56 GET m.snrodoc ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv4h() ;
+	VALID _s9k0rgv4p() ;
+	ERROR "Nёmero de documento inv═lido"
+@ 3,68 GET m.dfchdoc ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv52() ;
+	VALID _s9k0rgv59() ;
+	ERROR sErr
+@ 5,1 SAY m.glorf1 ;
+	SIZE 1,15
+@ 5,16 GET m.snrorf1 ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv5m()
+@ 6,1 SAY m.glorf2 ;
+	SIZE 1,15
+@ 6,16 GET m.snrorf2 ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv5w()
+@ 7,1 SAY m.glorf3 ;
+	SIZE 1,15
+@ 7,16 GET m.sNroRf3 ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv66()
+@ 5,28 SAY m.gloAux ;
+	SIZE 1,11
+@ 5,40 GET m.scodaux ;
+	SIZE 1,6 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv6f() ;
+	VALID _s9k0rgv6n()
+@ 5,47 SAY m.nomaux ;
+	SIZE 1,32
+@ 6,30 SAY IIF(m.lModCsm or m.lAfeTra,[Producto:],[]) ;
+	SIZE 1,9
+@ 6,40 GET m.sCodPrd ;
+	SIZE 1,8 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv72() ;
+	VALID _s9k0rgv78() ;
+	MESSAGE 'Producto a producir, F8 Consulta.' ;
+	ERROR sErr
+@ 6,49 SAY m.desprd ;
+	SIZE 1,30
+@ 7,31 SAY iif(m.lpidOdt,[# BATCH:],[]) ;
+	SIZE 1,8
+@ 7,40 GET m.snroodt ;
+	SIZE 1,10 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv7u() ;
+	VALID _s9k0rgv83() ;
+	ERROR sErr
+@ 7,71 GET m.Fbatch ;
+	SIZE 1,8 ;
+	DEFAULT " " ;
+	PICTURE "999.9999" ;
+	WHEN _s9k0rgv8b() ;
+	VALID _s9k0rgv8j()
+@ 9,6 GET m.sObserv ;
+	SIZE 1,32 ;
+	DEFAULT " "
+@ 9,57 GET m.CtrlBrw ;
+	PICTURE "@*IHN " ;
+	SIZE 1,8,1 ;
+	DEFAULT 0 ;
+	VALID _s9k0rgv8s() ;
+	MESSAGE [Materiales y/o insumos :codigo ,descripci╒n,cantidad,unidades]
+@ 20,68 TO 21,68
+@ 22,68 SAY "а" ;
+	SIZE 1,1, 0
+@ 19,68 SAY "б" ;
+	SIZE 1,1, 0
+@ 9,67 GET m.dattra ;
+	PICTURE "@*HN \<Transporte" ;
+	SIZE 1,12,1 ;
+	DEFAULT 1 ;
+	WHEN _s9k0rgv94() ;
+	VALID _s9k0rgv9b()
+@ 19,2 GET m.motivo ;
+	PICTURE "@^ \<1.Compra/Venta;\<2.Transformaci╒n;\<3.Consignaci╒n;\<4.Transf. entre sedes;\<5.Transf. por emisor itiner.;\<6.Otros" ;
+	SIZE 3,24 ;
+	DEFAULT "1.Compra/Venta" ;
+	WHEN _s9k0rgv9l()
+@ 21,27 GET m.sCodCli ;
+	SIZE 1,6 ;
+	DEFAULT " " ;
+	WHEN _s9k0rgv9u() ;
+	VALID _s9k0rgva1()
+@ 21,34 SAY IIF(XsTpoRef=[G/R],m.NomAux2,[]) ;
+	SIZE 1,33
+@ 20,70 GET m.Salir ;
+	PICTURE "@*VT \!\<Grabar;\<Salir" ;
+	SIZE 1,8,0 ;
+	DEFAULT 1
+@ 9,58 SAY "F2 Items" ;
+	SIZE 1,8, 0
+@ 20,27 SAY "Destinatario :" ;
+	SIZE 1,14, 0
+
+
+
+READ CYCLE ;
+	ACTIVATE _s9k0rgvai() ;
+	DEACTIVATE _s9k0rgvaj() ;
+	SHOW _s9k0rgvak()
+
+
+#REGION 0
+IF m.talkstat = "ON"
+	SET TALK ON
+ENDIF
+IF m.compstat = "ON"
+	SET COMPATIBLE ON
+ENDIF
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё           ALMPMS1A/MS-DOS C╒digo de limpieza            Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+UltTecla = LASTKEY()
+IF m.Salir = 2
+    UltTecla = K_ESC
+ENDIF
+ON KEY LABEL F2 &KEYF2
+
+******************
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё ALMPMS1A/MS-DOS Procedimientos y funciones de soporte   Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+
+#REGION 1
+PROCEDURE EditDeta
+******************
+m.CurObjAct=_CurObj
+IF m.lModCsm
+   lCodPrdOk=SEEK(m.sCodPrd,[CATG]) AND LEN(trim(m.sCodPrd))=LEN(DTRA.CodPrd) AND SEEK(GsClfDiv+LEFT(m.sCodPrd,GsLenDiv),[DIVF])
+   IF !lCodPrdOk
+      =f1_alert([Error: en codigo de producto terminado/intermedio],[MENSAJE])
+      _CurObj=ObjNum(m.sCodPrd)
+      RETURN
+   ENDIF
+   lNroO_tOk=!EMPTY(m.sNroOdt)
+   IF !lNroO_tOk
+      =f1_alert([Error: en Nro. de Bacth],[MENSAJE])
+      _CurObj=ObjNum(m.sNroOdt)
+      RETURN
+   ENDIF
+ENDIF
+
+_CurObj = ObjNum(m.CtrlBrw)
+keyboard chr(K_enter)
+RETURN
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV3U           m.sCODMOV WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   29  Ё
+*       Ё Variable:            m.sCODMOV                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      1                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv3u     &&  m.sCODMOV WHEN
+#REGION 1
+DO PREFRESCO
+RETURN m.ESTOY=[EDITCLAVE]
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV41           m.sCODMOV VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   29  Ё
+*       Ё Variable:            m.sCODMOV                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      2                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv41     &&  m.sCODMOV VALID
+#REGION 1
+lValido= f1_busca(m.scodmov,"CODMOV","CFTR","CFTR",m.cTipMov,.F.,"")
+IF lValido
+   m.sDesmov = CFTR.DesMov
+   sCllave = GsSubAlm+m.cTipMov+m.sCodMov
+  * SHOW OBJECT 1
+  * SHOW OBJECT 2
+   DO CapVarCfg
+   CLEAR READ
+ENDIF
+DO PREFRESCO
+RETURN lValido
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV4H           m.snrodoc WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   31  Ё
+*       Ё Variable:            m.snrodoc                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      3                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv4h     &&  m.snrodoc WHEN
+#REGION 1
+=bDef_Brw()
+SELE CTRA
+RETURN .T.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV4P           m.snrodoc VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   31  Ё
+*       Ё Variable:            m.snrodoc                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      4                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv4p     &&  m.snrodoc VALID
+#REGION 1
+lValido= F1_BUSCA(m.sNroDoc,"NRODOC","CTRA","CTRA",_Llave,.F.,"")
+sErr = [N╖ de documento inv═lido]
+IF CTRA.FLGEST=[A]
+   lValido = .f.
+   sErr = [Registro anulado]
+ENDIF
+lValido = _ChkNro()
+IF lValido
+   bClave1=GsSubAlm+m.cTipMov+m.sCodMov+m.sNroDoc
+   CLEAR READ
+ENDIF
+RETURN lValido
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV52           m.dfchdoc WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   32  Ё
+*       Ё Variable:            m.dfchdoc                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      5                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv52     &&  m.dfchdoc WHEN
+#REGION 1
+do pRefresco
+return .t.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV59           m.dfchdoc VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   32  Ё
+*       Ё Variable:            m.dfchdoc                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      6                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv59     &&  m.dfchdoc VALID
+#REGION 1
+sErr = []
+IF MONTH(m.dFchDoc)#VAL(XsNroMes)
+   sErr = [Mes Incorrecto, estamos en ]+MES(_Mes,1)
+   RETURN .F.
+ENDIF
+IF YEAR(m.dFchDoc)#VAL(TRAN(_ANO,"9999"))
+   sErr = [A╓o incorrecto, estamos en ]+TRAN(_ANO,"9999")
+   RETURN .F.
+ENDIF
+RETURN !CieAHoyDia(m.dFchDoc)
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV5M           m.snrorf1 WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   34  Ё
+*       Ё Variable:            m.snrorf1                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      7                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv5m     &&  m.snrorf1 WHEN
+#REGION 1
+return m.lPidRf1
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV5W           m.snrorf2 WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   36  Ё
+*       Ё Variable:            m.snrorf2                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      8                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv5w     &&  m.snrorf2 WHEN
+#REGION 1
+return m.lpidrf2
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV66           m.sNroRf3 WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   38  Ё
+*       Ё Variable:            m.sNroRf3                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      9                                  Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv66     &&  m.sNroRf3 WHEN
+#REGION 1
+RETURN m.lpidrf3
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV6F           m.scodaux WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   40  Ё
+*       Ё Variable:            m.scodaux                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      10                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv6f     &&  m.scodaux WHEN
+#REGION 1
+RETURN m.lPidCli OR m.lPidPro
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV6N           m.scodaux VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   40  Ё
+*       Ё Variable:            m.scodaux                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      11                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv6n     &&  m.scodaux VALID
+#REGION 1
+IF m.lPidCli
+   m.sClfAux = GsClfCli
+ENDIF
+IF m.lPidPro
+   m.sClfAux = GsClfPro
+ENDIF
+lok=F1_Busca(m.sCodAux,"CODAUX","AUXI","AUXI",m.sClfAux,.F.,"")
+
+IF lOk
+   m.NomAux = AUXI.NomAux
+  *nPosObj = OBJNUM(m.NomAux)
+  *SHOW OBJECT nPosObj
+   @ 5,47 say M.noMaUX SIZE 1,30
+ENDIF
+RETURN lok
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV72           m.sCodPrd WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   43  Ё
+*       Ё Variable:            m.sCodPrd                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      12                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv72     &&  m.sCodPrd WHEN
+#REGION 1
+return m.lModCsm or m.lAfeTra
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV78           m.sCodPrd VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   43  Ё
+*       Ё Variable:            m.sCodPrd                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      13                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv78     &&  m.sCodPrd VALID
+#REGION 1
+SELE DTRA
+SET RELATION TO
+SELE CTRA
+serr=[]
+lvalido=f1_busca(m.scodprd,"CODMAT","CATG","CATG",[],.F.,[])
+=SEEK(GsClfDiv+LEFT(m.sCodPrd,GsLenDiv),[DIVF])
+*
+do case
+   case m.lmodcsm
+	    IF DIVF.TipFam=1
+   		   sErr = [No es producto terminado o Intermedio.]
+           lValido = .F.
+        ENDIF
+   case m.lafetra
+	    IF DIVF.clfdiv=[02] and inlist(catg.tipmat,[11],[20])
+	    else
+   		   sErr = [Producto No Corresponde.]
+           lValido = .F.
+        ENDIF
+endcase
+*
+lValido=lValido AND LEN(trim(m.sCodPRd))=LEN(DTRA.CodPrd)
+IF lValido
+   m.DesPrd = CATG.Desmat
+   @6,49 say m.Desprd size 1,30
+   SELE DTRA
+   SET RELA TO CODMAT INTO CATG
+   SELE CTRA
+ENDIF
+RETURN lValido
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV7U           m.snroodt WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   46  Ё
+*       Ё Variable:            m.snroodt                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      14                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv7u     &&  m.snroodt WHEN
+#REGION 1
+return m.lpidodt
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV83           m.snroodt VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   46  Ё
+*       Ё Variable:            m.snroodt                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      15                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv83     &&  m.snroodt VALID
+#REGION 1
+sErr=[Registrar nro. de la orden de trabajo]
+RETURN !EMPTY(sNroOdt)
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV8B           m.Fbatch WHEN                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   47  Ё
+*       Ё Variable:            m.Fbatch                           Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      16                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv8b     &&  m.Fbatch WHEN
+#REGION 1
+return m.lModCsm or m.lAfeTra
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV8J           m.Fbatch VALID                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   47  Ё
+*       Ё Variable:            m.Fbatch                           Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      17                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv8j     &&  m.Fbatch VALID
+#REGION 1
+RETURN m.FBATCH>0
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV8S           m.CtrlBrw VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   49  Ё
+*       Ё Variable:            m.CtrlBrw                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Snippet Number:      18                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv8s     &&  m.CtrlBrw VALID
+#REGION 1
+do bDeta_brw with ""
+return .T.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV94           m.dattra WHEN                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   53  Ё
+*       Ё Variable:            m.dattra                           Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Push Button                        Ё
+*       Ё Snippet Number:      19                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv94     &&  m.dattra WHEN
+#REGION 1
+return XsTporef=[G/R]
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV9B           m.dattra VALID                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   53  Ё
+*       Ё Variable:            m.dattra                           Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Push Button                        Ё
+*       Ё Snippet Number:      20                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv9b     &&  m.dattra VALID
+#REGION 1
+do almsdtra.spr
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV9L           m.motivo WHEN                      Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   54  Ё
+*       Ё Variable:            m.motivo                           Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Popup                              Ё
+*       Ё Snippet Number:      21                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv9l     &&  m.motivo WHEN
+#REGION 1
+RETURN XsTpoRef=[G/R]
+
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGV9U           m.sCodCli WHEN                     Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   55  Ё
+*       Ё Variable:            m.sCodCli                          Ё
+*       Ё Called By:           WHEN Clause                        Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      22                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgv9u     &&  m.sCodCli WHEN
+#REGION 1
+RETURN XsTpoRef=[G/R]
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGVA1           m.sCodCli VALID                    Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A,     Record Number:   55  Ё
+*       Ё Variable:            m.sCodCli                          Ё
+*       Ё Called By:           VALID Clause                       Ё
+*       Ё Object Type:         Field                              Ё
+*       Ё Snippet Number:      23                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgva1     &&  m.sCodCli VALID
+#REGION 1
+lok=F1_Busca(m.sCodCli,"CODAUX","AUXI","AUXI",GsClfPro,.f.,"")
+
+IF lOk
+   m.NomAux2 = AUXI.NomAux
+   @ 21,34 say M.noMaUX2 SIZE 1,30
+ENDIF
+RETURN lok
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGVAI           Nivel de lectura ACTIVATE          Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A                           Ё
+*       Ё Called By:           READ Statement                     Ё
+*       Ё Snippet Number:      24                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgvai     && Read Level Activate
+*
+* C╒digo ACTIVATE de la pantalla: ALMPMS1A
+*
+#REGION 1
+DO pActivate
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGVAJ           Nivel de lectura DEACTIVATE        Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A                           Ё
+*       Ё Called By:           READ Statement                     Ё
+*       Ё Snippet Number:      25                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgvaj     && Read Level Deactivate
+*
+* C╒digo DEACTIVATE de la pantalla: ALMPMS1A
+*
+#REGION 1
+IF WVISIBLE(m.btitulo)		
+   HIDE WINDOW ALL
+   _CurObj = OBJNUM(m.CtrlBrw)
+ENDIF
+RETURN .F.
+
+*       зддддддддддддддддддддддддддддддддддддддддддддддддддддддддд©
+*       Ё                                                         Ё
+*       Ё _S9K0RGVAK           Nivel de lectura SHOW              Ё
+*       Ё                                                         Ё
+*       Ё Function Origin:                                        Ё
+*       Ё                                                         Ё
+*       Ё                                                         Ё
+*       Ё From Platform:       MS-DOS                             Ё
+*       Ё From Screen:         ALMPMS1A                           Ё
+*       Ё Called By:           READ Statement                     Ё
+*       Ё Snippet Number:      26                                 Ё
+*       Ё                                                         Ё
+*       юддддддддддддддддддддддддддддддддддддддддддддддддддддддддды
+*
+FUNCTION _s9k0rgvak     && Read Level Show
+PRIVATE currwind
+STORE WOUTPUT() TO currwind
+*
+* C╒digo SHOW de la pantalla: ALMPMS1A
+*
+#REGION 1
+IF SYS(2016) = "" OR SYS(2016) = "*"
+	ACTIVATE SCREEN
+	@ 5,47 SAY m.nomaux ;
+		SIZE 1,32, 0
+	@ 6,30 SAY IIF(m.lModCsm or m.lAfeTra,[Producto:],[]) ;
+		SIZE 1,9, 0
+	@ 7,31 SAY iif(m.lpidOdt,[# BATCH:],[]) ;
+		SIZE 1,8, 0
+ENDIF
+IF NOT EMPTY(currwind)
+	ACTIVATE WINDOW (currwind) SAME
+ENDIF

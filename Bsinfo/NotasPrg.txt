@@ -1,0 +1,6 @@
+Class 
+Base_Grid
+1.
+Capturar las variables:
+tcWhere + " " + THIS.cWhereSQL + " " + THIS.cHavingSql 
+2. 

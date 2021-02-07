@@ -1,0 +1,23 @@
+
+K:\APLICA\COMPRA
+
+Volumen de compra por insumo   			CMPTVPED  2
+Precios de Compra segun Ing. almacen    CMPCMBPC  1 
+Distribución de compras					CMPTDIST  4
+Ultimas compras por O/C                 CMPIULTC  5
+Relación de Precios x Insumo            CMPPREIN  3                           
+
+
+Reportes de consistenacia
+	1.Distribución de produccion mensual	cpiirppt.spr			
+	2.Estandares de Rendimiento 			CPIISTDR 1 		(1)*	L
+	3.Resumen de produccion					CPIIRPRO
+	4.Programación valorizada				CPIIPRGM
+	5.Avance de producción.					CPIIAVPR
+Consumos de insumos para produccion
+	1.Consumos de materiales directos por division		CPIICMDF WITH 1   (2)	L
+	2.Consumos de materiales directos por familia		CPIICMDF WITH 2	  (3)	L
+	3.Consumos de materiales directos por producto		CPIICMDF WITH 3   (4)	L
+	4.Consumos de insumo Mensual						CPIICMXM		  (5)	L	
+	5.variacion de precio unitario de insumos			CPIIVPUI		  (6)   L
+Libreria: cpiplib
