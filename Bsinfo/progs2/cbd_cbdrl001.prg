@@ -1,8 +1,10 @@
-********************************************************************************
-* Programa      : CBDRL001.PRG                                                 *
-* Objeto        : DIARIO GENERAL POR OPERACION                                 *
-* Actualizaci¢n :   /  /                                                       *
-********************************************************************************
+******************************************************************************+++++++++++++++++++**
+* Programa      : CBDRL001.PRG                                                                    *
+* Objeto        : DIARIO GENERAL POR OPERACION  							                      *
+* Creación      : 15 Setiembre 2002  VETT		                                                  *
+* Actualización : Generar Diario Simplificado y mostrar en browse (grid)  29/11/2017 08:54 - VETT *
+* Actualización : Agregando browse (grid) Libro Diario General  2021/02/07 17:30:26 - VETT        *
+***************************************************************************************************
 *** Abrimos Bases ****
 **DIMENSION DISTRIB(100,2)
 #include const.h 
