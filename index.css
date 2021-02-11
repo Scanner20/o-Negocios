@@ -1,0 +1,91 @@
+* {
+  font-family: "Roboto Mono", Arial, sans-serif;
+  color: rgb(189, 136, 235)
+
+}
+html {
+    font-size: 10px; /* px means "pixels": the base font size is now 10 pixels high  */
+    font-family: "Roboto mono"; /* this should be the rest of the output you got from Google fonts */
+    background-color: #000000;
+    color: rgb(139, 83, 46);
+} 
+ 
+h1 {
+  color: SeaGreen;
+}
+ 
+ 
+p, 
+li {
+  font-family: "Roboto Mono";  
+  font-size: 18px;
+  color: rgb(139, 83, 46);
+}
+ 
+ 
+a {
+  text-decoration: none;
+  color: rgb(139, 83, 46);
+  color: rgb(139, 83, 46);
+
+}
+
+
+/* 0
+"EditorCommentColor"="RGB(43,196,138), NoAuto, NoAuto"
+"EditorKeywordColor"="RGB(75,216,243), NoAuto, NoAuto"
+"EditorConstantColor"="RGB(255,255,255), NoAuto, NoAuto"
+"EditorNormalColor"="RGB(255,255,255), NoAuto, NoAuto"
+"EditorOperatorColor"="RGB(255,0,255), NoAuto, NoAuto"
+"EditorStringColor"="RGB(208,209,212), NoAuto, NoAuto"
+"EditorVariableColor"="RGB(244,210,50), NoAuto, NoAuto"
+*/
+
+/* 1
+"EditorCommentColor"="RGB(129,247,216), NoAuto, NoAuto"
+"EditorKeywordColor"="RGB(75,216,243), NoAuto, NoAuto"
+"EditorConstantColor"="RGB(249,145,87), NoAuto, NoAuto"
+"EditorNormalColor"="RGB(255,255,255), NoAuto, NoAuto"
+"EditorOperatorColor"="RGB(255,0,255), NoAuto, NoAuto"
+"EditorStringColor"="RGB(247,129,159), NoAuto, NoAuto"
+"EditorVariableColor"="RGB(243,247,129), NoAuto, NoAuto"
+*/
+
+ /* 2
+"EditorCommentColor"= "RGB(129,247,216), NoAuto, NoAuto"
+"EditorKeywordColor"="RGB(75,216,243), NoAuto, NoAuto"
+"EditorConstantColor"="RGB(249,145,870), NoAuto, NoAuto"
+"EditorNormalColor"="RGB(255,255,255), NoAuto, NoAuto"
+"EditorOperatorColor"="RGB(156,220,254), NoAuto, NoAuto"
+"EditorStringColor"="RGB(247,129,159), NoAuto, NoAuto"
+"EditorVariableColor"="RGB(243,247,129), NoAuto, NoAuto"
+*/
+
+ /* 3
+"EditorCommentColor"= "rgb(129,247,216), NoAuto, NoAuto"
+"EditorKeywordColor"="rgb(189,136,235), NoAuto, NoAuto"
+"EditorConstantColor"="rgb(243,247,129), NoAuto, NoAuto"
+"EditorNormalColor"="rgb(255,255,255), NoAuto, NoAuto"
+"EditorOperatorColor"="rgb(156,220,254), NoAuto, NoAuto"
+"EditorStringColor"="rgb(247,129,159), NoAuto, NoAuto"
+"EditorVariableColor"="rgb(249,145,87), NoAuto, NoAuto"
+*/
+
+
+h2 {
+    text-decoration: none;
+    /*Comment*/
+    color: rgb(129,247,216);  
+    /*Keyword*/
+    color: rgb(189, 136, 235);
+    /*Constant*/
+    color: rgb(243,247,129);
+    /*Normal*/
+    color: rgb(255,255,255);
+    /*Operator*/
+    color: rgb(156,220,254);
+    /*String*/
+    color: rgb(247,129,159);
+    /*Variable*/
+    color: rgb(249,145,87);
+  } 
