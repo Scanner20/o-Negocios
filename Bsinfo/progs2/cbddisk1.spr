@@ -1,22 +1,22 @@
-*       ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
-*       ³                                                         ³
-*       ³ 07/11/96            CBDDISK1.SPR               10:57:27 ³
-*       ³                                                         ³
-*       ÃÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ´
-*       ³                                                         ³
-*       ³ VICTOR E. TORRES TEJADA                                 ³
-*       ³                                                         ³
-*       ³ Copyright (c) 1996                                      ³
-*       ³ SOFTWARE COMERCIAL    TLF:9411837 - 4841538             ³
-*       ³ AV. BERTELLO 170-401 CDA. STE. STA.ROSA                 ³
-*       ³ LIMA - PERU,     C.P.                                   ³
-*       ³ Pa¡s                                              ³
-*       ³                                                         ³
-*       ³ Description:                                            ³
-*       ³ Este programa lo ha generado autom ticamente GENSCRN.    ³
-*       ³                                                         ³
-*       ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-
+*       ***********************************************************
+*       *                                                         *
+*       * 07/11/96            CBDDISK1.SPR               10:57:27 *
+*       *                                                         *
+*       ***********************************************************
+*       *                                                         *
+*       * VICTOR E. TORRES TEJADA                                 *
+*       *                                                         *
+*       * Copyright (c) 1996                                      *
+*       * SOFTWARE COMERCIAL    TLF:9411837 - 4841538             *
+*       * AV. BERTELLO 170-401 CDA. STE. STA.ROSA                 *
+*       * LIMA - PERU,     C.P.                                   *
+*       * Pa¡s                                              	  *
+*       *                                                         *
+*       * Description:                                            *
+*       * Este programa lo ha generado autom ticamente GENSCRN.   *
+*       *                                                         *
+*       ***********************************************************
+** VETT:Aquellas epocas que usaba el genscreen de Foxpro 2.6, y que lo instalaba con diskettes 2021/02/12 17:50:33 ** 
 
 #REGION 0
 REGIONAL m.currarea, m.talkstat, m.compstat
