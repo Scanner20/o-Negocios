@@ -1,3 +1,5 @@
+** VETT:Este programa lo hice en 1993 y lo utilicé en 1995 en Tele2000 y despues en 2009 en TopSport 2021/02/12 15:11:56 ** 
+
 PUBLIC LoContab as Contabilidad OF "k:\aplvfp\classgen\vcxs\dosvr.vcx" 
 LoContab = CREATEOBJECT('Dosvr.Contabilidad')
 
