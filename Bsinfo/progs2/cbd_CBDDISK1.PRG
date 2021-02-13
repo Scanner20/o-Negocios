@@ -1,4 +1,15 @@
+<<<<<<< HEAD
 ** VETT:Este programa lo hice en 1993 y lo utilicé en 1995 en Tele2000 y despues en 2009 en TopSport 2021/02/12 15:11:56 ** 
+=======
+******************************************************************************+++++++++++++++++++**
+* Programa      : CBD_CBDDISK1.PRG                                                                *
+* Objeto        : Generar asiento automatico en base a modelo                                     *
+* Creación      : 16 mayo 1994  VETT		                                                      *
+* Actualización : 																				  *
+* Actualización :                                                                                 *
+***************************************************************************************************
+** VETT:Este programa lo cree en 1994 y lo utilice en Tele2000 en 1995 y TopSport en 2009 2021/02/12 15:58:34 ** 
+>>>>>>> dev1
 
 PUBLIC LoContab as Contabilidad OF "k:\aplvfp\classgen\vcxs\dosvr.vcx" 
 LoContab = CREATEOBJECT('Dosvr.Contabilidad')
