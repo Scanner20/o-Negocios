@@ -12,7 +12,7 @@ rem "C:\Program Files\WinRAR\rar" u -dh -y -r -agYYYYMMDDHHMM D:\bk_Safe\bkTOP_ 
 REM "C:\Program Files\WinRAR\rar" u -dh -y -r -agYYYYMMDDHHMM D:\bk_Safe\bkINTEGRAL_ D:\o-negocios\Integral -ta20121208
 rem "C:\Program Files\WinRAR\rar" u -dh -y -r -agYYYYMMDDHHMM D:\bk_Safe\bkCONEXSUR_ D:\o-negocios\ConexSur 
 
-"c:\Program Files\WinRAR\rar" u -ep2 -dh -y -r -agYYYYMMDDHHMM D:\bk_Safe\bkAplHP-610_ K:\aplvfp -ta2020  -x@K:\aplvfp\Exclude.lst -pjata16052009
+"c:\Program Files\WinRAR\rar" u -ep2 -dh -y -r -agYYYYMMDDHHMM D:\bk_Safe\bkAplHP-610_ K:\aplvfp -ta2021  -x@K:\aplvfp\Exclude.lst -pjata16052009
 "c:\Program Files\WinRAR\rar" u -ep2 -dh -y -r -agYYYYMMDDHHMM D:\bk_Safe\bkAplVfpL34 k:\aplvfp -pjata16052009 -x@k:\aplvfp\Exclude.lst  
 rem "C:\Program Files\WinRAR\rar" u -dh -y -r -agYYYYMMDDHHMM D:\bk_Safe\bkTYJ_ D:\o-negocios\Tyj -ta2015
 

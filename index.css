@@ -11,7 +11,8 @@ html {
 } 
  
 h1 {
-  color: SeaGreen;
+  color: SeaGreen
+  
 }
  
  
@@ -26,7 +27,10 @@ li {
 a {
   text-decoration: none;
   color: rgb(139, 83, 46);
-  color: rgb(139, 83, 46);
+  color: rgb(145, 171, 1);
+  color: rgb(255,169,122);
+  color: rgb(230,159,115);
+  color: rgb(38, 45, 49);
 
 }
 

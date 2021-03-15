@@ -1,4 +1,9 @@
 DEACTIVATE WINDOW  Desktop2
+*!*	SET RESOURCE OFF
+*!*	x=SYS(2005)
+*!*	COPY FILE (x) TO "c:\temp\bkresource\"+JUSTSTEM(x)+".DBF"
+*!*	COPY FILE STRTRAN(x,".DBF",".FPT") TO "c:\temp\bkresource\"+JUSTSTEM(x)+".FPT"
+*!*	SET RESOURCE ON
 
 IF !USED('GDOC')
 	SELECT 0
@@ -58,14 +63,14 @@ SELECT VMOV2
 SET ORDER TO VMOV01
 
 
-SELECT * FROM GDOC WHERE DTOS(fchdoc)>='202010' AND flgest='A' AND INLIST(coddoc,'FACT','BOLE','N/D','N/C')  INTO CURSOR ANULADOS
+SELECT * FROM GDOC WHERE DTOS(fchdoc)>='2021' AND flgest='A' AND INLIST(coddoc,'FACT','BOLE','N/D','N/C')  INTO CURSOR ANULADOS
 
-BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoRef:5,CodRef:5,NroRef:11,codope:4,nromes,nroast,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Lucida Console',8 NOWAIT LAST 
+BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoCmb:5,CodRef:5,NroRef:11,codope:4,nromes,nroast,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Roboto Mono',8 NOWAIT  LAST 
 
 SELECT GDOC
 SET ORDER TO  GDOC12   && DTOS(FCHDOC)+USERCREA+NRODOC
 GO BOTT
-BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoRef:5,CodRef:5,NroRef:11,codope:4,nromes,nroast,glosa1:20,glosa2:20,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Lucida Console',8 NOWAIT LAST 
+BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoCmb:5,TpoRef:5,CodRef:5,NroRef:11,codope:4,nromes,nroast,glosa1:20,glosa2:20,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Roboto Mono',8 NOWAIT  LAST 
 IF !USED('GDOC2')
 	SELECT 0
 	USE o:\o-negocios\IDC\Data\cia001\ccbrgdoc.dbf ALIAS GDOC2 AGAIN
@@ -112,13 +117,13 @@ SELECT RMOV2
 SET RELATION TO NROMES+CODOPE+NROAST INTO VMOV2 ADDITIVE
 
 SELECT GDOC2
-BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoRef:5,CodRef:5,NroRef:11,glosa1:20,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Lucida Console',8 NOWAIT LAST 
+BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoCmb:5,CodRef:5,NroRef:11,glosa1:20,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Roboto Mono',8 NOWAIT  LAST 
 
 
 SELECT GDOC3
 SET RELATION TO NROMES+CODOPE+NROAST INTO RMOV2 ADDITIVE
 
-BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoRef:5,CodRef:5,NroRef:11,glosa1:20,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Lucida Console',8 NOWAIT LAST 
+BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoCmb:5,CodRef:5,NroRef:11,glosa1:20,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Roboto Mono',8 NOWAIT  LAST 
 
 SELECT RDOC
 BROWSE LAST
