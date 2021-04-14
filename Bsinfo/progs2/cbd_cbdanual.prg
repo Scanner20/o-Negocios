@@ -269,7 +269,15 @@ USE &cArcNEW ORDER OPER01 ALIAS OPER
 			ENDFOR
 		ENDIF
 		MESSAGEBOX( Msg )
+	CATCH TO lEx WHEN lEx.ErrorNo = 1925 && Error no identificado
+		SET STEP ON 
+	CATCH TO lEx WHEN lEx.ErrorNo = 10 && Error no identificado
+		SET STEP ON 		
 	CATCH TO lEx
+		SET STEP ON 
+		lEx.Message = lEx.Message+ " Tabla:" + cTable + " "
+		
+			
 		THROW
 *!*			MESSAGEBOX( ;
 *!*			[Error: ] + TRANSFORM(lEx.ErrorNo ) + CHR(13) ;

@@ -674,13 +674,15 @@ DO WHILE .T.
 
          ** INI ----------------VETT 2008-05-28 -------------------------**
 *!*	         IF XiCodMon=2 AND LEFT(DTOS(GDOC.FchDoc),6)<LEFT(DTOS(XdFchDoc),6)
-         IF XiCodMon=2 AND GDOC.FchDoc<XdFchDoc AND XsCodDoc<>"RETC"
-
+			** VETT:Tipo de cambio de documento origen  no afecta retenciones RETC 2021/02/03 21:49:06 ** 
+         	** IF XiCodMon=2 AND GDOC.FchDoc<XdFchDoc AND XsCodDoc<>"RETC"
+			** VETT:Eliminar el filtro de moneda, todas las N/C son emtidas con el T/C del documento de origen si es de una fecha menor 2021/04/13 15:43:33 ** 
+			IF GDOC.FchDoc<XdFchDoc AND XsCodDoc<>"RETC"
 				XfTpoCmb= GDOC.TpoCmb
 				@  6,75 GET XfTpoCmb PICT "9,999.9999"
 				CLEAR GETS												         	
 				XlActTpoCmb = .t.
-         ENDIF
+         	ENDIF
 		 ** FIN ----------------VETT 2008-05-28 -------------------------**
          IF GDOC->CodMon # XiCodMon
             IF GDOC->CodMon = 1

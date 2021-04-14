@@ -179,8 +179,8 @@ _SCREEN.VISIBLE	= .T.
 *!*	_SCREEN.ADDOBJECT('PAPEL_TAPIZ','FUN_MAINMENU')
 *!*	_SCREEN.PAPEL_TAPIZ.VISIBLE	= .T.
 
-_screen.Width  =SYSMETRIC(1)
-_screen.Height =SYSMETRIC(2)
+_screen.Width  =SYSMETRIC(1) - 50
+_screen.Height =SYSMETRIC(2) -100
 
 _screen.Top = 50
 _screen.Left= 0
