@@ -21,3 +21,6 @@ wwClient/
 *.err
 *.bak
 *.bat
+_*.DBF
+_*.CDX
+_*.FPT
