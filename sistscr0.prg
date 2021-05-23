@@ -8,6 +8,17 @@
 *!*		_SCREEN.BACKCOLOR=RGB(140,177,234)	&& Logo Uni
 *!*		_SCREEN.BACKCOLOR=RGB(130,170,232)	&& Logo Uni
 *!*	ENDIF
+
+** VETT: Parche necesario, hasta ahora no descubro por que no reconoce las unidades de red previamente 
+** configuradas antes de entrar a VFP 2021/05/14 07:59:01 ** 
+DO CASE
+	CASE INLIST(SYS(0),"SERVIDOR3-IDC-O") 
+		Run /N NET USE K: "\\servidor3-idc-o-negocios\dev"
+		Run /N NET USE O: "\\servidor3-idc-o-negocios\o-n"
+
+ENDCASE
+** VETT:Fin del parche 2021/05/14 07:59:01 ** 
+
 DO CASE 
 	CASE JUSTSTEM(SYS(2023))=='TEMP2'
 		_screen.Icon= SYS(5)+'\APLVFP\GRAFGEN\ICONOS\MOTIF\ALIEN Motif.ico'

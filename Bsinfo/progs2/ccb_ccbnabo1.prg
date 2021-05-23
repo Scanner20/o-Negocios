@@ -15,6 +15,7 @@ DO def_teclas IN fxgen_2
 
 SET DISPLAY TO VGA25
 PUBLIC LoDatAdm as dataadmin OF "k:\aplvfp\classgen\vcxs\dosvr.vcx" 
+#include const.h 	
 
 LoDatAdm=CREATEOBJECT('Dosvr.DataAdmin')
 LoDatAdm.abrirtabla('ABRIR','CBDMCTAS','CTAS','CTAS01','')
@@ -1102,6 +1103,7 @@ RETURN
 *************** RUTINAS DE ACTUALIZACION DE CONTABILIDAD *********************
 ******************************************************************************
 PROCEDURE xACT_CTB
+nErrCode = S_OK
 PRIVATE DirCtb,UltTecla && _MES,_ANO,
 PRIVATE XiNroItm,XcEliItm,XsCodCta,XsCodRef,XsClfAux,XsCodAux,XcTpoMov
 PRIVATE XsNroRuc,XfImpNac,XfImpUsa,XsGloDoc,XsCodDoc,XsNroDoc,XsNroRef,XsTipRef,XdFchDtr,XsNroDtr
@@ -1174,7 +1176,7 @@ IF m.Err>=0
 ELSE
 	REPLACE GDOC.FlgCtb WITH .F.
 	GoSvrCbd.MensajeErr(m.Err)
-	RETURN
+	RETURN AST_CABECERA_NO_GRABO
 ENDIF
 LiRecActGDOC_Act = RECNO('GDOC')
 * * * * * * * * * * * * * * * * * *
@@ -1519,8 +1521,8 @@ IF cVCtrl <> 'C'
 	DO Imprvouc IN Cbd_DiarioGeneral
 ENDIF	
 DO ctb_cier
-
-RETURN
+nErrCode = S_OK
+RETURN nErrCode
 ************************************************************************ FIN *
 * Objeto : Anulacion del asiento contable
 ******************************************************************************

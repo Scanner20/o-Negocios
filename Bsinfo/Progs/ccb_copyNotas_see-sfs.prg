@@ -30,3 +30,26 @@ COPY FILE LsFileFrom+".DET" 	TO LsFileTO+".DET"
 COPY FILE LsFileFrom+".TRI"	 	TO LsFileTO+".TRI"
 COPY FILE LsFileFrom+".LEY"  	TO LsFileTO+".LEY"
 COPY FILE LsFileFrom+".ACA"	TO LsFileTO+".ACA"
+
+
+*******************
+FUNCTION Envia_Nota
+*******************
+PARAMETERS PcAliasCAB. PcAlasDET
+IF HasAccess('EnvioSunat')
+	IF INLIST(THISFORM.ObjRefTran.XsCodDoc,'FACT','BOLE','N/C','N/D')
+		LsTpoDoc=IFF(INLIST(THISFORM.ObjRefTran.XsCodDoc,'FACT','BOLE','N/D'),'CARGO','ABONO')
+	
+		IF SEEK(LsTpoDoc+THISFORM.ObjRefTran.XsCodDoc+thisform.objreftran.XsNroDoc,'GDOC') AND !INLIST(GDOC.FlgEst,'A')
+
+			SELECT  (thisform.cCursor_C)
+			SCATTER NAME oData1
+			*** Convertimos a objeto el cursor con el detalle del documento ***
+			oData2 = thisform.odata.genobjdatos(thisform.ccursor_d)    
+			Thisform.Objreftran.envio_see_sfs_v1
+
+		ENDIF
+	ENDIF
+ELSE
+	=MESSAGEBOX('No tiene permiso para realizar este procedimiento',48,'¡ ATENCION ! / ¡ WARNING !')	
+ENDIF
