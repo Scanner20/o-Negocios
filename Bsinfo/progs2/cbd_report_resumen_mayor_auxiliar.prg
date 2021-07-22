@@ -33,6 +33,9 @@ XlSinCCo = .F.
 XnMes	=	_Mes
 XnMes2	=	_Mes
 
+XnCodDiv = 1+GnDivis
+Store [] TO XsCodDiv
+
 DO FORM cbd_report_resumen_mayor_auxiliar
 RETURN
 
@@ -103,17 +106,29 @@ DO WHILE CodCta<=XsCtaHas .AND. ! EOF() .AND. ! Cancelar
                NomCta2 = NomCta
             ENDIF
             IF AftMov = "S"
-               DO LinImp
+            	IF !GoCfgCbd.TIPO_CONSO=2 OR XsCodDiv='**' && No utiliza divisionaria
+				ELSE
+					IF CodCta_B=XsCodDiv
+					ELSE
+						SELECT CTAS
+						SKIP
+						LOOP	
+					ENDIF
+				ENDIF
+                DO LinImp
             ENDIF
             SELECT CTAS
             SKIP
             Cancelar = Cancelar .OR. (INKEY() = K_Esc)
+            IF CodCta>XsCtaHas
+				EXIT
+			ENDIF
         ENDDO
 		IF NumItm1 > 0 .AND. ! Cancelar
 			m.Quiebre = 'E'
 			m.CodCta = CodCta2
 			m.NomCta = "* TOTAL CUENTA * "+TRIM(CodCta2)+ ' ' +NomCta2
-			FOR I=2 TO 5
+			FOR I=1 TO 5
 				Col = (i-1)*13 + 69
 				IF Z(I) >= 0
 					LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
@@ -126,12 +141,16 @@ DO WHILE CodCta<=XsCtaHas .AND. ! EOF() .AND. ! Cancelar
 			ENDFOR
 			=GrbTmp(m.QuieBre,m.CodCta)
 		ENDIF
+		Cancelar = Cancelar .OR. (INKEY() = K_Esc)
+        IF CodCta>XsCtaHas
+			EXIT
+		ENDIF
 	ENDDO
 	IF ! CANCELAR
 		m.Quiebre = 'F'
 		m.CodCta	= 'TOTAL'
 		m.NomCta	= "** TOTAL   GENERAL **"
-		FOR I=2 TO 5
+		FOR I=1 TO 5
 			Col = (i-1)*13 + 69
 			IF W(I) >= 0
 				LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
@@ -139,24 +158,27 @@ DO WHILE CodCta<=XsCtaHas .AND. ! EOF() .AND. ! Cancelar
 
 			ELSE
 				LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
-				&LsCampo = -W(I)
-
+				&LsCampo = W(I)
 			ENDIF
+			R(I) = R(I) + W(I)
 		ENDFOR
-		=GrbTmp(m.QuieBre,m.CodCta)
+		** VETT: 2021/06/04 00:52:57 ** =GrbTmp(m.QuieBre,m.CodCta)
 	ENDIF
 ENDDO
-IF ! CANCELAR .AND. R<>W
+IF ! CANCELAR && .AND. R<>W 
 	m.Quiebre = 'F'
 	m.CodCta	= 'TOTAL'
 	m.NomCta	= "** TOTAL   GENERAL **"
 	FOR I=1 TO 5
 		IF R(I) >= 0
-			@ NumLin,Col SAY R(i) PICT "@Z 999,999,999.99"
+			LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
+			&LsCampo = R(I)
 		ELSE
-			@ NumLin,Col SAY -R(i) PICT "@Z 999,999,999.99-"
+			LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
+			&LsCampo = R(I)
 		ENDIF
 	ENDFOR
+	=GrbTmp(m.QuieBre,m.CodCta)
 ENDIF
 RETURN
 ****************
@@ -174,66 +196,93 @@ STORE 0 TO Y
 DO WHILE CODCTA = CTAS->CODCTA .AND. ! EOF() .AND. ! Cancelar
 	STORE 0 TO X
 	LsCodRef = CodRef
-   *** Saldo al mes Anterior ***
-   DO WHILE CODCTA = CTAS->CODCTA .AND. ! EOF() .AND. CodRef = LsCodRef
-      IF NroMes <  STR(_MES,2,0)
-         IF XiCodMon = 1
-            X(1) = X(1) + DbeNac - HbeNac
-         ELSE
-            X(1) = X(1) + DbeUsa - HbeUsa
-         ENDIF
-      ELSE
-         IF XiCodMon = 1
-            X(2) = X(2) + DbeNac
-            X(3) = X(3) + HbeNac
-         ELSE
-            X(2) = X(2) + DbeUsa
-            X(3) = X(3) + HbeUsa
-         ENDIF
-      ENDIF
-      SKIP
-   ENDDO
-   LfSaldo = X(1)+X(2)-X(3)
-   IF LfSaldo > 0
-      X(4) =  LfSaldo
-   ELSE
-      X(5) = -LfSaldo
-   ENDIF
-   ok = .F.
-   FOR I=1 TO 5
-       Y(I) = Y(I) + X(I)
-       IF X(i) <> 0
-          oK = .T.
-       ENDIF
-   ENDFOR
-   IF oK
-      RAYA = .F.
+	*** Saldo al mes Anterior ***
+	DO WHILE CODCTA = CTAS->CODCTA .AND. ! EOF() .AND. CodRef = LsCodRef
+   		IF !GoCfgCbd.TIPO_CONSO=2 OR XsCodDiv='**' && No utiliza divisionaria
+   			IF NroMes <  STR(_MES,2,0)
+		         IF XiCodMon = 1
+		            X(1) = X(1) + DbeNac - HbeNac
+		         ELSE
+		            X(1) = X(1) + DbeUsa - HbeUsa
+		         ENDIF
+			ELSE
+		         IF XiCodMon = 1
+		            X(2) = X(2) + DbeNac
+		            X(3) = X(3) + HbeNac
+		         ELSE
+		            X(2) = X(2) + DbeUsa
+		            X(3) = X(3) + HbeUsa
+		         ENDIF
+			ENDIF
+		ELSE
+			LsDbeNacDiv	=	'DbeNac'+TRANSFORM(XnCodDiv,'@L 99')
+			LsHbeNacDiv	=	'HbeNac'+TRANSFORM(XnCodDiv,'@L 99')
+			LsDbeExtDiv	=	'DbeExt'+TRANSFORM(XnCodDiv,'@L 99')
+			LsHbeExtDiv	=	'HbeExt'+TRANSFORM(XnCodDiv,'@L 99')
+		
+			IF NroMes <  STR(_MES,2,0)
+				IF XiCodMon = 1
+					X(1) = X(1) + &LsDbeNacDiv. - &LsHbeNacDiv.
+				ELSE
+					X(1) = X(1) + &LsDbeExtDiv. - &LsHbeExtDiv.
+				ENDIF
+			ELSE
+				IF XiCodMon = 1
+				    X(2) = X(2) + &LsDbeNacDiv.
+				    X(3) = X(3) + &LsHbeNacDiv.
+				ELSE
+				    X(2) = X(2) + &LsDbeExtDiv.
+				    X(3) = X(3) + &LsHbeExtDiv.
+				ENDIF
+			ENDIF		      
+		ENDIF
+      	SKIP
+	ENDDO
+
+	LfSaldo = X(1)+X(2)-X(3)
+	IF LfSaldo > 0
+    	X(4) =  LfSaldo
+	ELSE
+    	X(5) = -LfSaldo
+	ENDIF
+	ok = .F.
+	FOR I=1 TO 5
+		Y(I) = Y(I) + X(I)
+		** VETT:Grabar siempre que algun importe sea diferente de 0 2021/06/18 00:39:30 ** 
+		IF X(I) <> 0	&& X(i) <> 0
+	    	oK = .T.
+		ENDIF
+	ENDFOR
+   
+	IF oK && AND .F.  && Esta parte de CodRef no va por ahora  VETT: 2021/06/03 22:04:34 ** 
+		RAYA = .F.
   **    @ NumLin,000 SAY CTAS->CodCta
   **    @ NumLin,006 SAY LsCodRef
-      IF ! (EMPTY(LsCodRef) .OR. LsCodRef = REPLICATE("0",LEN(LsCodRef)))
-         **@ NumLin,013 SAY AUXI->NomAux PICT "@S39"
-      ELSE
-         **@ NumLin,013 SAY CTAS->NomCta PICT "@S39"
-      ENDIF
-      FOR I=1 TO 5
-		IF X(I) >= 0
-				LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
-				&LsCampo = X(I)
-		ELSE
-				LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
-				&LsCampo = X(I)
-		ENDIF
-      ENDFOR
-	   	 NumItm1 = NumItm1 + 1
+		IF ! (EMPTY(LsCodRef) .OR. LsCodRef = REPLICATE("0",LEN(LsCodRef)))
+         	 **@ NumLin,013 SAY AUXI->NomAux PICT "@S39"
+      	ELSE
+        	 **@ NumLin,013 SAY CTAS->NomCta PICT "@S39"
+      	ENDIF
+			
+		FOR I=1 TO 5
+			IF X(I) >= 0
+					LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
+					&LsCampo = X(I)
+			ELSE
+					LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
+					&LsCampo = X(I)
+			ENDIF
+		ENDFOR
+	   	NumItm1 = NumItm1 + 1
       	m.Quiebre	= 'A'
       	m.CodCta 	= Ctas.CodCta
 		m.CodRef	= LsCodRef
-		m.NomCta	= "TOTAL AUXILIAR  "+CTAS->CodCta	
-		m.NomAux	= AUXi.NOMAux
+		m.NomCta	= CTAS.NomCta &&  "TOTAL AUXILIAR  "+CTAS->CodCta	
+		m.NomAux	= "" && AUXi.NOMAux
 		=GrbTmp(m.QuieBre,m.CodCta)
-   ENDIF
-   SELECT ACCT
-   Cancelar = Cancelar .OR. (INKEY() = K_Esc)
+	ENDIF
+	SELECT ACCT
+	Cancelar = Cancelar .OR. (INKEY() = K_Esc)
 ENDDO
 ***DO ResetPag
 IF ! RAYA
@@ -249,7 +298,7 @@ FOR I=1 TO 5
 
     ELSE
 		LsCampo = 'm.T'+TRANSFORM(I,'@L 99')
-		&LsCampo = -Y(I)
+		&LsCampo = Y(I)
     ENDIF
     Z(I) = Z(I) + Y(I)
 ENDFOR
@@ -258,7 +307,7 @@ m.CodCta 	= Ctas.CodCta
 m.CodRef	= ''
 m.NomCta	= CTAS.NomCta
 m.NomAux	= ''
-=GrbTmp(m.QuieBre,m.CodCta)
+*!*	=GrbTmp(m.QuieBre,m.CodCta)
 RAYA = .T.
 RETURN
 ****************

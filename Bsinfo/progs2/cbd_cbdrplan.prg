@@ -13,6 +13,11 @@ XiESTADO = 1
 XsCta1=SPACE(10)
 XsCta2=SPACE(10)
 LNMES=1
+** VETT:Agreagar filtro de divisionaria y nivel de cuenta 2021/06/03 14:29:47 ** 
+XnNivCta = 1
+XnCodDiv = 1+GnDivis
+Store [] TO XsCodDiv
+Xstiprep = .f.
 
 DO FORM cbd_cbdrplan
 RETURN
@@ -26,7 +31,7 @@ IF UltTecla = k_esc
 ENDIF
 
 IF XiEstado=1
-	Ancho = 99
+	Ancho = 117
 ELSE
 	Ancho = 79
 ENDIF
@@ -49,12 +54,13 @@ IF XiEstado=1
 	SubTitulo = ""
 	En1 = " "
 	En2 = "		HORA : "+TIME()+SPACE(244)
-	En3 = "============== ============================== ==================== === ====== === ==== ==== ======="
-	En4 = "    CUENTA             DESCRIPCION               RESULTADO         NIV AF.MOV CMB AUXI DOCU DOC.REF"
-	En5 = "============== ============================== ==================== === ====== === ==== ==== ======="
-		  *0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
-		  *0   12345678   123456789012345678901234567890 12345678901234567890 123 123456 123 1234 1234 12345678   
-		  *    4          15                             46                   67  71     78  82   87   92
+	En3 = "============== ============================== ==================== ===== ====== === ==== ==== ==== ==== ======= ======"
+	En4 = "                                                 AFECTA EL               AFECTO GEN PIDE PIDE PIDE DIF           TIPO "
+	En5 = "    CUENTA             DESCRIPCION               RESULTADO         NIVEL  MOV   AUT AUXI DOC  REF  CMB  MONEDA  CAMBIO"
+	En6 = "============== ============================== ==================== ===== ====== === ==== ==== ==== ==== ======= ======"
+		  *0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567
+		  *12345678901234 123456789012345678901234567890 12345678901234567890 123   123456 123 1234 1234 1234 1234 123456  123456
+		  *    4          15                             46                   67    73     80  84   89   94   99   104     112 
 ELSE
 	Titulo  = "CUENTAS AUTOMATICAS "
 	SubTitulo = ""
@@ -68,9 +74,10 @@ ELSE
 			 *============= ============================== ============== ===================="
 			 *01234567890123456789012345678901234567890123456789012345678901234567890123456789
 			 *0   12345678  123456789012345678901234567890    12345678 X      12345678 X               61
+	En6 = ""
 ENDIF
 
-En6 = ""
+
 En7 = ""
 En8 = ""
 En9 = ""
@@ -111,6 +118,7 @@ IF !FOUND()
 	RETURN
 ENDIF
 *
+	
 STORE RECNO() TO REGINI
 PRINTJOB
 	GO REGINI
@@ -118,6 +126,28 @@ PRINTJOB
 	NumPag  = 0
 	cancela=.f.
 	DO WHILE ! EOF() .AND. XsCTA2>=CODCTA .AND.!CANCELA
+
+		IF xstiprep = .f.
+		   IF NivCta > XnNivCta
+	    	  SKIP
+	    	  LOOP
+	   	   ENDIF
+   		ELSE
+		   IF NivCta > XnNivCta or aftmov<>"S"
+		      SKIP
+		      LOOP
+		   ENDIF
+		ENDIF
+		
+		IF !GoCfgCbd.TIPO_CONSO=2 OR XsCodDiv='**' && No utiliza divisionaria
+		ELSE
+		IF CodCta_B=XsCodDiv
+			ELSE
+				SELECT CTAS
+				SKIP
+				LOOP	
+			ENDIF
+		ENDIF
 		DO ResetPag
 		NumLin = PROW() + 1
 		IF XiEstado=1
@@ -139,6 +169,7 @@ RETURN
 *****************
 PROCEDURE LinImp1
 *****************
+
 Separa = 0
 @ NumLin,4   SAY CODCTA
 @ NumLin,15  SAY LEFT(NOMCTA,30)
@@ -156,25 +187,31 @@ IF CODCTA>='60'
 ELSE
 	DO CASE
 		CASE TPOCTA=1
-			@ NumLin,46  SAY "ACTIVO CTE"
+			@ NumLin,46  SAY "ACTIVO CORRIENTE"
 		CASE TPOCTA=2
-			@ NumLin,46  SAY "ACTIVO NO CTE"
+			@ NumLin,46  SAY "ACTIVO NO CORRIENTE"
 		CASE TPOCTA=3
-			@ NumLin,46  SAY "PASIVO CTE"
+			@ NumLin,46  SAY "PASIVO CORRIENTE"
 		CASE TPOCTA=4
-			@ NumLin,46  SAY "PASIVO NO CTE"
+			@ NumLin,46  SAY "PASIVO NO CORRIENTE"
 		CASE TPOCTA=5
 			@ NumLin,46  SAY "PATRIMONIO"
 		OTHER
 			@ NumLin,46  SAY "SEGUN SALDO"
 	ENDCASE
 ENDIF
+*    4          15                             46                   67    73     80  84   89   94   99   104     112 
 @ NumLin,67  SAY NIVCTA
-@ NumLin,71  SAY AFTMOV
-@ NumLin,78  SAY AFTDCB
-@ NumLin,82  SAY PIDAUX
-@ NumLin,87  SAY PIDDOC
-@ NumLin,92  SAY PidGlo
+@ NumLin,73  SAY AFTMOV
+@ NumLin,80  SAY GENAUT
+@ NumLin,84  SAY PIDAUX
+@ NumLin,89  SAY PIDDOC
+@ NumLin,94  SAY PIDGLO
+@ NumLin,99  SAY AFTDCB
+@ NumLin,104 SAY ICASE(CodMon=1,"SOLES",CodMon=2,"DOLARES",CodMon=3,"AMBAS")
+@ NumLin,112 SAY ICASE(TpoCmb=1,"COMPRA",TpoCmb=2,"VENTA",TpoCmb=3,"SALDO")
+
+
 RETURN
 
 *****************

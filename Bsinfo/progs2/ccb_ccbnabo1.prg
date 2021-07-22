@@ -812,6 +812,8 @@ IF XfImpTot > 0   && << OJO << Caso error u omisi¢n (burrada)
    DO xACT_CTB
    SELECT GDOC
    GO iNumReg
+   
+   
 ENDIF
 
 RETURN
@@ -1138,7 +1140,7 @@ SELE OPER
 SEEK XsCodOpe
 IF !REC_LOCK(5)
    GsMsgErr = [NO se pudo generar el asiento contable]
-   DO lib_merr WITH 99
+   DO lib_merr WITH 99	
    RETURN
 ENDIF
 SELECT GDOC

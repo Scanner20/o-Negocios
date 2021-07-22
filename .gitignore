@@ -24,3 +24,8 @@ wwClient/
 _*.DBF
 _*.CDX
 _*.FPT
+Ayudas/Thumbs.db
+Grafgen/Thumbs.db
+Grafgen/JPEG/Thumbs.db
+Grafgen/gif/Thumbs.db
+Grafgen/png/Thumbs.db

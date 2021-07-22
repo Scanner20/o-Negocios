@@ -15,7 +15,7 @@ DO CASE
 	CASE INLIST(SYS(0),"SERVIDOR3-IDC-O") 
 		Run /N NET USE K: "\\servidor3-idc-o-negocios\dev"
 		Run /N NET USE O: "\\servidor3-idc-o-negocios\o-n"
-
+		Run /N NET USE P: "\\servidor3-idc-o-negocios\o-n2"
 ENDCASE
 ** VETT:Fin del parche 2021/05/14 07:59:01 ** 
 
