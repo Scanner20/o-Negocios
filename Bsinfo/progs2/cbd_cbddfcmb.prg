@@ -388,6 +388,11 @@ ELSE
    fTpoCmb = XfTC_Vta
 ENDIF
 IF CTAS->CodMon = 2   .AND. INLIST(XsCodCta,"10")
+
+	IF INLIST(CodCta,'10410701','10410601','10100200')
+*!*			SET STEP ON 
+	ENDIF
+	
    GoSvrCbd.CBDAcumd(XsCodCta , 0 , _Mes)
 	IF XsCodDiv=[**]  && Consolidado
 		SdoNac  =  XvCalc(6 )

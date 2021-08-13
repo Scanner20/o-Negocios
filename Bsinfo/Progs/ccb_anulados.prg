@@ -1,3 +1,4 @@
+PARAMETERS PsUnidad
 DEACTIVATE WINDOW  Desktop2
 *!*	SET RESOURCE OFF
 *!*	x=SYS(2005)
@@ -5,55 +6,59 @@ DEACTIVATE WINDOW  Desktop2
 *!*	COPY FILE STRTRAN(x,".DBF",".FPT") TO "c:\temp\bkresource\"+JUSTSTEM(x)+".FPT"
 *!*	SET RESOURCE ON
 
+IF VARTYPE(PsUnidad)<>'C'
+	PsUnidad= "O:"
+ENDIF
+
 IF !USED('GDOC')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\ccbrgdoc.dbf ALIAS GDOC again
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\ccbrgdoc.dbf ALIAS GDOC again
 ENDIF
 IF !USED('item')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\vtaritem.dbf ALIAS item
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\vtaritem.dbf ALIAS item
 ENDIF
 IF !USED('CLIE')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\CCTCLIEN.dbf ALIAS CLIE
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\CCTCLIEN.dbf ALIAS CLIE
 
 ENDIF
 IF !USED('DIRE')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\CCTCDIRE.dbf ALIAS DIRE
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\CCTCDIRE.dbf ALIAS DIRE
 
 ENDIF
 IF !USED('TCMB')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\Admmtcmb.dbf ALIAS TCMB 
+	USE &PsUnidad.\o-negocios\IDC\Data\Admmtcmb.dbf ALIAS TCMB 
 ENDIF
 IF !USED('GDOC3')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\ccbrgdoc.dbf ALIAS GDOC3 again
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\ccbrgdoc.dbf ALIAS GDOC3 again
 ENDIF
 IF !USED('RDOC')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\ccbrrdoc.dbf ALIAS RDOC again
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\ccbrrdoc.dbf ALIAS RDOC again
 ENDIF
 
 IF !USED('RMOV')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\c2021\cbdrmovm.dbf ALIAS RMOV again
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\c2021\cbdrmovm.dbf ALIAS RMOV again
 ENDIF
 ** VETT:Agregamos relación con cabecera de asientos 2021/01/11 10:28:58 ** 
 IF !USED('VMOV')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\c2021\cbdvmovm.dbf ALIAS VMOV again
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\c2021\cbdvmovm.dbf ALIAS VMOV again
 ENDIF
 
 IF !USED('RMOV2')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\c2021\cbdrmovm.dbf ALIAS RMOV2 again
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\c2021\cbdrmovm.dbf ALIAS RMOV2 again
 ENDIF
 ** VETT:Agregamos relación con cabecera de asientos 2021/01/11 10:28:58 ** 
 IF !USED('VMOV2')
 	SELECT 0
-	USE O:\o-negocios\IDC\Data\cia001\c2021\cbdvmovm.dbf ALIAS VMOV2 again
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\c2021\cbdvmovm.dbf ALIAS VMOV2 again
 ENDIF
 
 SELECT VMOV
@@ -62,15 +67,22 @@ SET ORDER TO VMOV01
 SELECT VMOV2
 SET ORDER TO VMOV01
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> b4c0a5b604031fc19513a55c1e8c6eeb371f8d97
 DO Consulta_anulados
 
 SELECT GDOC
+
+_vfp.Caption =DBF()
+
 SET ORDER TO  GDOC12   && DTOS(FCHDOC)+USERCREA+NRODOC
 GO BOTT
 BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoCmb:5,TpoRef:5,CodRef:5,NroRef:11,codope:4,nromes,nroast,glosa1:20,glosa2:20,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Roboto Mono',8 NOWAIT  LAST 
 IF !USED('GDOC2')
 	SELECT 0
-	USE o:\o-negocios\IDC\Data\cia001\ccbrgdoc.dbf ALIAS GDOC2 AGAIN
+	USE &PsUnidad.\o-negocios\IDC\Data\cia001\ccbrgdoc.dbf ALIAS GDOC2 AGAIN
 ENDIF
 SELECT GDOC2
 SET ORDER TO GDOC01   && TPODOC+CODDOC+NRODOC
