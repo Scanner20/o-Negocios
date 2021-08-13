@@ -62,10 +62,7 @@ SET ORDER TO VMOV01
 SELECT VMOV2
 SET ORDER TO VMOV01
 
-
-SELECT * FROM GDOC WHERE DTOS(fchdoc)>='2021' AND flgest='A' AND INLIST(coddoc,'FACT','BOLE','N/D','N/C')  INTO CURSOR ANULADOS
-
-BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoCmb:5,CodRef:5,NroRef:11,codope:4,nromes,nroast,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Roboto Mono',8 NOWAIT  LAST 
+DO Consulta_anulados
 
 SELECT GDOC
 SET ORDER TO  GDOC12   && DTOS(FCHDOC)+USERCREA+NRODOC
@@ -138,3 +135,13 @@ BROWSE last
 SELECT Anulados
 GO bott
 BROWSE LAST NOWAIT
+
+*****************************************
+PROCEDURE Consulta_anulados
+*****************************************
+LnCurAct=SELECT()
+SELECT * FROM GDOC WHERE DTOS(fchdoc)>='2021' AND flgest='A' AND INLIST(coddoc,'FACT','BOLE','N/D','N/C')  INTO CURSOR ANULADOS
+
+BROWSE FIELDS TpoDoc,CodDoc,NroDoc:11,Fchdoc,CodCli,NomCli:20,ImpBto:11,impIgv:11,ImpTot:11,SdoDoc:11,FlgEst,CodMon:2,TpoCmb:5,CodRef:5,NroRef:11,codope:4,nromes,nroast,fchcrea,usercrea,fchmodi,usermodi,fchelim,userelim FONT 'Roboto Mono',8 NOWAIT  LAST 
+SELECT (LnCurAct)
+RETURN 

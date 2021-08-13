@@ -2602,14 +2602,15 @@ RETURN
 **********************************************************************
 PROCEDURE MovF3
 *******************
-
-IF verifyvar('AUXIL','C','CAMPO','VMOV')
-	IF NOT EMPTY(VMOV.Auxil)
-		TsCodDiv1  = VMOV.Auxil
-		XsCodDiv	= VMOV.Auxil
-		XsCjaDiv	= VMOV.Auxil
+** VETT:AUXIL a CodDiv , para respetar el codigo de divisonaria 2021/04/16 12:30:20 ** 
+IF verifyvar('CODDIV','C','CAMPO','VMOV')
+	IF NOT EMPTY(VMOV.CodDiv)
+		TsCodDiv1  = VMOV.CodDiv
+		XsCodDiv	= VMOV.COdDiv
+		XsCjaDiv	= VMOV.CodDiv
 	ENDIF
 ENDIF
+** VETT: 2021/04/16 12:30:32 ** 
 
 T_DbeNac =0
 T_HbeNac =0
@@ -2741,6 +2742,7 @@ XfDif_MN = Dif_MN
 * AJUSTA DESCUADRE POR DIFERENCIAS DE CAMBIO ENTRE  [ 0.01 , 0.05 ]
 lDesBal1 =  ABS(T_DbeUsa-T_HbeUsa)>=0.01 .AND. ABS(T_DbeUsa-T_HbeUsa)<=XfDif_ME
 lDesBal2 =  ABS(T_DbeNac-T_HbeNac)>=0.01 .AND. ABS(T_DbeNac-T_HbeNac)<=XfDif_MN
+
 **XcEliItm    = "ø"   && Marca de grabaci¢n autom tica
 YcEliItm = ":" 
 XXTpoCmb    = XfTpoCmb
