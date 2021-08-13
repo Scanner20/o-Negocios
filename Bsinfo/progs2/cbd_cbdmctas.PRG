@@ -605,3 +605,16 @@ sNomREP = "cbdmctas"
 DO ADMPRINT WITH "REPORTS"
 RESTORE SCREEN FROM TMP
 RETURN
+
+******************
+FUNCTION Junk_code
+******************
+SELECT DISTINCT ctas2.codcta FROM ctas2 LEFT OUTER JOIN ctas2021 ON ctas2.codcta = ctas2021.codcta WHERE ctas2021.CodCta IS NULL
+SELECT DISTINCT ctas2.* FROM ctas2 LEFT OUTER JOIN ctas2021 ON ctas2.codcta = ctas2021.codcta WHERE ctas2021.CodCta IS NULL
+SELECT DISTINCT ctas2.* FROM ctas2 LEFT JOIN ctas2021 ON ctas2.codcta = ctas2021.codcta WHERE ctas2021.CodCta IS NULL
+SELECT ctas2.* FROM ctas2 LEFT JOIN ctas2021 ON ctas2.codcta = ctas2021.codcta WHERE ctas2021.CodCta IS NULL
+selec ctas2021.codcta,ctas2.* from ctas2021 right join ctas2 on ctas2.codcta=ctas2021.codcta where ctas2.codcta is null
+selec ctas2021.codcta,ctas2.* from ctas2021 right join ctas2 on ctas2.codcta=ctas2021.codcta where ctas2021.codcta is null
+SELECT ctas2.* FROM ctas2 LEFT JOIN ctas2021 ON ctas2.codcta = ctas2021.codcta WHERE ctas2021.CodCta IS NULL
+SELECT ctas2.* FROM ctas2 LEFT JOIN ctas2021 ON ctas2.codcta = ctas2021.codcta WHERE ctas2021.CodCta IS NULL INTO CURSOR  CUENTAS1
+INSERT INTO ctas2021 SELECT ctas2.* FROM ctas2 LEFT JOIN ctas2021 ON ctas2.codcta = ctas2021.codcta WHERE ctas2021.CodCta IS NULL
