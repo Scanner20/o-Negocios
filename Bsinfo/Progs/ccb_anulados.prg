@@ -67,10 +67,10 @@ SET ORDER TO VMOV01
 SELECT VMOV2
 SET ORDER TO VMOV01
 
-<<<<<<< HEAD
-=======
+*!*	<<<<<<< HEAD
+*!*	=======
 
->>>>>>> b4c0a5b604031fc19513a55c1e8c6eeb371f8d97
+*!*	>>>>>>> b4c0a5b604031fc19513a55c1e8c6eeb371f8d97
 DO Consulta_anulados
 
 SELECT GDOC

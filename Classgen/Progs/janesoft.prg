@@ -3372,14 +3372,16 @@ IF _DOs OR _UNIX
 	ENDIF
 ELSE
 	IF m.Control = 2
-		IF PROGRAM(2)='F1_EDIT' OR PROGRAM(1)='F1_EDIT'
-			ulttecla = 0
-		ELSE
-		    ulttecla = 27
-			KEYBOARD '{ESC}'    
-		ENDIF
-	   DEACTIVATE WINDOW impresion
-	   RELEASE WINDOW impresion
+** VETT:revisión, no recuerdo por que verificaba por el F1_EDIT como programa previo 2021/10/12 19:54:42 ** 	
+*!*			IF PROGRAM(2)='F1_EDIT' OR PROGRAM(1)='F1_EDIT'
+*!*				ulttecla = 0
+*!*			ELSE
+		ulttecla = 27
+*!*				KEYBOARD '{ESC}'    
+*!*			ENDIF
+*!*		   DEACTIVATE WINDOW impresion
+*!*		   RELEASE WINDOW impresion
+** VETT:FIN revisión 2021/10/12 19:54:42 **
        RETURN
 	ENDIF	
 ENDIF
@@ -3488,29 +3490,34 @@ ENDCASE
 *@ 02,17 TO 05,43      COLOR SCHEME 11
 *@ 03,18 SAY "       Imprimiendo       " COLOR -
 *@ 04,18 SAY " [ESC] cancela Impresi¢n " COLOR SCHEME 11
-IF NOT WEXIST("Aviso_Prt")
-   DEFINE WINDOW aviso_prt ;
-      FROM 10, 23 ;
-      TO 13,55 ;
-      NOFLOAT ;
-      NOCLOSE ;
-      SHADOW ;
-      NOMINIMIZE ;
-      COLOR SCHEME 10
+** VETT:revision 2  2021/10/13 01:15:03 ** 
+IF !VERSION()='Visual FoxPro'
+	IF NOT WEXIST("Aviso_Prt")
+	   DEFINE WINDOW aviso_prt ;
+	      FROM 10, 23 ;
+	      TO 13,55 ;
+	      NOFLOAT ;
+	      NOCLOSE ;
+	      SHADOW ;
+	      NOMINIMIZE ;
+	      COLOR SCHEME 10
+	ENDIF
+	ACTIVATE WINDOW aviso_prt
+	DO CASE
+	CASE _WINDOWS
+	   MOVE WINDOW aviso_prt BY 5,0
+	CASE _MAC
+	   MOVE WINDOW aviso_prt BY 5,0
+	ENDCASE
+	@ 0,0 SAY "          Imprimiendo" ;
+	   SIZE 1,21, 0
+	@ 1,4 SAY " ESC  cancela impresi¢n" ;
+	   SIZE 1,23, 0
+	@1,5 SAY [ESC] COLOR SCHEME 7
 ENDIF
-ACTIVATE WINDOW aviso_prt
-DO CASE
-CASE _WINDOWS
-   MOVE WINDOW aviso_prt BY 5,0
-CASE _MAC
-   MOVE WINDOW aviso_prt BY 5,0
-ENDCASE
-@ 0,0 SAY "          Imprimiendo" ;
-   SIZE 1,21, 0
-@ 1,4 SAY " ESC  cancela impresi¢n" ;
-   SIZE 1,23, 0
-@1,5 SAY [ESC] COLOR SCHEME 7
+** VETT:FIN revision 2 2021/10/13 01:15:03 ** 
 SET CONSOLE OFF
+
 IF TYPE("XTipRep") = "C" AND LASTKEY() # 27
    IF _destino = 1
       IF EMPTY(_interface)
@@ -3566,10 +3573,13 @@ PRIVATE respuesta
 ON  ESCAPE
 SET PRINTER TO
 SET ESCAPE OFF
-SET CONSOLE ON
-SET DEVICE TO SCREEN
-DO CASE
+*!*	IF !VERSION()='Visual FoxPro'
+	SET CONSOLE ON
+	SET DEVICE TO SCREEN
+*!*	ENDIF
 SET STEP ON 
+DO CASE
+
 CASE _destino = 2  
    *RUN README &_Archivo
 	IF (_WINDOWS OR _DOS OR _UNIX ) AND ( TYPE("XTipRep") != "C" OR (TYPE("XTipRep")="C" AND XTIPREP='XLS'))

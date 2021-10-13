@@ -102,14 +102,16 @@ Titulo = [ ** NOTAS DE CREDITO ** ]
 @ 16,11 SAY " Documento a Asignar " COLOR SCHEME 7
 SAVE SCREEN TO wPanIni
 ** variables del sistema **
-PRIVATE XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XiCodMon,XfTpoCmb,XsNumero
+
+PRIVATE XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XiCodMon,XfTpoCmb,XsNumero,SFSCodDoc 
 PRIVATE XfImpNet,XfImpTot,XsGlosa1,XsGlosa2,XsGlosa3,XfSdoDoc,XfImpIgv
 PRIVATE XcFlgEst,XdFchEmi
 PRIVATE XsNomCli,XsDirCli,XsRucCli
-STORE [] TO XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XdFchEmi,XsNumero
+STORE [] TO XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XdFchEmi,XsNumero,SFSCodDoc
 STORE [] TO XsGlosa1,XsGlosa2,XsGlosa3
 STORE [] TO XcFlgEst
 STORE [] TO XsNomCli,XsDirCli,XsRucCli,XsNomBreDoc
+
 STORE 0 TO XfTpoCmb,XfImpNet,XfImpTot,XfSdoDoc,XFIMPIGV
 XsTpoDoc = [ABONO]
 XsCodDoc = [N/C ]
@@ -159,6 +161,8 @@ ELSE
    XsCodDoc = SPACE(LEN(GDOC->CodDoc))
    XsNroDoc = SPACE(LEN(GDOC->NroDoc))
 ENDIF
+GoCfgVta.crear = Crear
+
 UltTecla = 0
 i = 1
 GsMsgKey = "[Esc] Salir   [F8] Ayuda   [Enter] Registrar"
@@ -278,8 +282,47 @@ PROCEDURE xTomar
 SELE GDOC
 IF &sesrgv
 	IF F1_Alert('Desea volver a generar asiento contable??','SI_O_NO') = 1
+	
+		DO xMover
+		@  1,75 GET XdFchDoc PICT '@D dd/mm/aa'
+		@  2,75 GET XdFchEmi PICT '@D dd/mm/aa'
+		CLEAR GETS
+		UltTecla = 0
+		i = 1
+		DO WHILE !INLIST(UltTecla,escape_)
+		   DO lib_mtec WITH 7
+		   DO CASE
+		      CASE i = 1
+		         @ 1,75 GET XdFchDoc PICT '@D dd/mm/aa'
+		         READ
+		         UltTecla = LASTKEY()
+		      CASE i = 2
+		         XdFchEmi = XdFchDoc
+		         @ 2,75 GET XdFchEmi PICT '@D dd/mm/aa'
+		         READ
+		         IF !ctb_aper(XdFchEmi)
+		            UltTecla = 0
+		            LOOP
+		         ENDIF
+		         UltTecla = LASTKEY()
+		      
+		   ENDCASE
+		   IF i = 2 .AND. UltTecla = Enter
+		      EXIT
+		   ENDIF
+		   i = IIF(UltTecla=Arriba,i-1,i+1)
+		   i = IIF(i<1,1,i)
+		   i = IIF(i>2,2,i)
+		ENDDO
+		IF UltTecla # escape_
+			iNumReg = RECNO('GDOC')
+		   DO yGraba1
+		ENDIF
 		IF ctb_aper(GDOC.FchEmi)
 			DO xAct_ctb
+			SELECT GDOC
+			GO iNumReg
+			DO Gen_SFS_TXT
 			SELECT GDOC
 			UNLOCK ALL
 			return 
@@ -473,6 +516,28 @@ XsNroAst = GDOC.NroAst
 XsCodOpe = GDOC.CodOpe
 _MES     = VAL(XsNroMes)
 
+RETURN
+***************
+PROCEDURE yGraba1
+***************
+** VETT:Grabamos fecha documento y emisión para regrabar asiento 2021/10/11 14:36:03 ** 
+SELECT GDOC
+=RLOCK()
+REPLACE FchDoc WITH XdFchDoc
+REPLACE FchEmi WITH XdFchEmi
+
+UNLOCK
+RETURN 
+*******************
+FUNCTION Gen_SFS_TXT
+*******************
+IF XcFlgEst="C"
+
+	SFSNroDoc = LEFT(XsCodRef,1)+LEFT(XsNroDoc,3)+"-"+RIGHT(REPLICATE('0',8)+ALLTRIM(SUBSTR(XsNroDoc,4)),8)
+	SFSNroRef =	LEFT(XsCodRef,1)+LEFT(XsNroRef,3)+"-"+RIGHT(REPLICATE('0',8)+ALLTRIM(SUBSTR(XsNroRef,4)),8) 
+	do ccb_copynotas_see-sfs with  SFSCodDoc,SFSNroDoc,SFSNroRef
+							** "07","F002-00000110" ,"F001-00006199"
+ENDIF
 RETURN
 ************************************************************************ FIN()
 * Grabar Informacion
@@ -809,11 +874,15 @@ ELSE
    ** FIN ----------------VETT 2008-05-28 -------------------------**
 ENDIF
 IF XfImpTot > 0   && << OJO << Caso error u omisi¢n (burrada)
-   DO xACT_CTB
-   SELECT GDOC
-   GO iNumReg
-   
-   
+	DO xACT_CTB
+	SELECT GDOC
+	GO iNumReg
+	** VETT:generamos archivo TXT para envio a Sunat 2021/10/12 15:53:09 ** 
+	DO Gen_SFS_TXT
+	SELECT GDOC
+	GO iNumReg
+	** VETT:FIN 2021/10/12 15:53:09 **
+	
 ENDIF
 
 RETURN
@@ -894,6 +963,14 @@ IF OK
    REPLACE FchAct WITH DATE()
    REPLACE SdoDoc WITH 0
    repla   flgest with "A"
+   
+	IF VerifyVar('UserElim','','CAMPO',"GDOC")
+		REPLACE UserElim WITH GoEntorno.User.Login IN GDOC
+	ENDIF
+	IF VerifyVar('FchElim','','CAMPO',"GDOC")
+		REPLACE FchElim WITH DATETIME() IN GDOC
+	ENDIF
+
 ENDIF
 
 UNLOCK ALL
@@ -1105,6 +1182,10 @@ RETURN
 *************** RUTINAS DE ACTUALIZACION DE CONTABILIDAD *********************
 ******************************************************************************
 PROCEDURE xACT_CTB
+** VETT:INI Guardamos el AÑO y MES actual 2021/10/11 14:29:38 ** 
+cur_ANO = _ANO
+cur_MES = _MES
+** VETT:FIN 2021/10/11 14:29:38 ** 
 nErrCode = S_OK
 PRIVATE DirCtb,UltTecla && _MES,_ANO,
 PRIVATE XiNroItm,XcEliItm,XsCodCta,XsCodRef,XsClfAux,XsCodAux,XcTpoMov
@@ -1153,9 +1234,25 @@ IF &sesrgv. AND !EMPTY(GDOC.CodOpe) AND !EMPTY(NroAst) AND !EMPTY(NroMes)
 	IF FOUND()
 		GOSVRCBD.Crear = .f.
 		GOSVRCBD.MovBorra(XsNroMes,XsCodOpe,XsNroAst,.T.)
+
 	ELSE
+	
 		GOSVRCBD.Crear = .T.
 	ENDIF
+	** VETT:INI Aqui reasignamos el nuevo _ANO , _mes segun fecha emisión, ** 
+	** para regrabar asiento - beta 2021/10/11 14:31:14 ** 
+	IF MONTH(GDOC.FchAct)<>MONTH(GDOC.FchEmi) OR YEAR(GDOC.FchAct)<>YEAR(GDOC.FchEmi)
+		
+		XsNroMes = TRANSFORM(MONTH(GDOC.FchEmi),"@L ##")
+		_MES = VAL(XsNroMes)
+		_ANO = YEAR(GDOC.FchEmi)
+		=RLOCK("GDOC")
+		REPLACE NroMes WITH XsNroMes IN GDOC
+		UNLOCK IN GDOC
+		XsNroAst = GOSVRCBD.NROAST()
+		GOSVRCBD.Crear = .T.
+	ENDIF
+	** VETT:FIN 2021/10/11 14:31:14 ** 
 ELSE
 	SELECT OPER
 	XsNroMes = TRANSF(_MES,"@L ##")
@@ -1175,6 +1272,21 @@ IF m.Err>=0
 	REPLACE GDOC.CodOpe WITH XsCodOpe
 	REPLACE GDOC.NroAst WITH XsNroAst
 	REPLACE GDOC.FlgCtb WITH .T.
+	IF GoCfgVta.crear AND !EMPTY(GDOC.CodOpe) AND !EMPTY(NroAst) AND !EMPTY(NroMes)
+		IF VerifyVar('UserModi','','CAMPO',"GDOC")
+			REPLACE UserModi WITH GoEntorno.User.Login  IN GDOC
+		ENDIF
+		IF VerifyVar('FchModi','','CAMPO',"GDOC")
+			REPLACE FchModi WITH DATETIME()  IN GDOC
+		ENDIF
+	ELSE
+		IF VerifyVar('UserCrea','','CAMPO',"GDOC")
+			REPLACE UserCrea WITH GoEntorno.User.Login IN GDOC
+		ENDIF
+		IF VerifyVar('FchCrea','','CAMPO',"GDOC")
+			REPLACE FchCrea WITH DATETIME() IN GDOC
+		ENDIF
+	ENDIF
 ELSE
 	REPLACE GDOC.FlgCtb WITH .F.
 	GoSvrCbd.MensajeErr(m.Err)
@@ -1267,6 +1379,7 @@ DO WHILE !EOF() .AND. TpoDoc+CodDoc+NroDoc = GDOC.TpoDoc+GDOC.CodDoc+GDOC.NroDoc
    SKIP
 ENDDO
 ** Grabamos la cuenta de Cargo **
+XsGloDoc = VMOV.NotAst
 =SEEK(GDOC.CodDoc,"TDOC")
 XsCodCta = PADR(IIF(Gdoc.CodMon=1,TDOC.CTA12_MN,TDOC.CTA12_ME),LEN(CTAS.CodCta))
 XsCodRef = SPACE(LEN(RMOV.CodRef))
@@ -1302,6 +1415,7 @@ IF CTAS.PidDoc=[S]
 	*!*	    XsCodDoc = IIF(SEEK(GsCodSed+GDOC.CodDoc+'001','DOCM'),DOCM.TpoDocSN,'')   && GDOC.CodDoc
 	** VETT  14/03/18 23:32 : Cambiamos de tabla de documentos para que detecte la CFG de retenciones 
 	XsCodDoc = IIF(SEEK(GDOC.CodDoc,'TDOC'),TDOC.TpoDocSN,'')   && GDOC.CodDoc
+	SFSCodDoc = LEFT(XsCodDoc,2)
     XsNroDoc = GDOC.NroDoc
     XdFchDoc = GDOC.FchDoc
 *!*	    XsNroRef = []  && GDOC.NroDoc
@@ -1523,6 +1637,8 @@ IF cVCtrl <> 'C'
 	DO Imprvouc IN Cbd_DiarioGeneral
 ENDIF	
 DO ctb_cier
+_ANO = CUR_ANO
+_MES = CUR_MES
 nErrCode = S_OK
 RETURN nErrCode
 ************************************************************************ FIN *
