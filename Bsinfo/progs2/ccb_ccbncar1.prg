@@ -17,6 +17,7 @@ DO def_teclas IN fxgen_2
 
 SET DISPLAY TO VGA25
 PUBLIC LoDatAdm as dataadmin OF "k:\aplvfp\classgen\vcxs\dosvr.vcx" 
+#include const.h 	
 
 LoDatAdm=CREATEOBJECT('Dosvr.DataAdmin')
 LoDatAdm.abrirtabla('ABRIR','CBDMCTAS','CTAS','CTAS01','')
@@ -68,7 +69,7 @@ SET RELATION TO GsClfCli+CodCli INTO AUXI
 DO fondo WITH 'NOTAS DE DEBITO',Goentorno.user.login,GsNomCia,GsFecha
 CLEAR
 IF _windows OR _mac
-	@  0,0 TO 22,100  PANEL
+	@  0,0 TO 24,100  PANEL
 ELSE
 	@  0,0 TO 22,79  PANEL
 endif
@@ -101,14 +102,15 @@ Titulo = [ ** NOTAS DE DEBITO ** ]
 @ 20,12 SAY "Situacion Actual :" COLOR SCHEME 7
 @ 19,46 SAY "TOTAL       " COLOR SCHEME 7
 @ 20,46 SAY "SALDO ACTUAL" COLOR SCHEME 7
+@ 21,12 SAY "ASIENTO:"     COLOR SCHEME 7
 
 SAVE SCREEN TO wPanIni
 ** variables del sistema **
-PRIVATE XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XiCodMon,XfTpoCmb
+PRIVATE XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XiCodMon,XfTpoCmb,SFSCodDoc 
 PRIVATE XfImpNet,XfImpIgv,XfImpTot,XsGlosa1,XsGlosa2,XsGlosa3,XfSdoDoc,XfImpBto
 PRIVATE XcFlgEst,XcFlgSit,XcFlgUbc,XdFchEmi,XsCodRef,XsNroRef,XsTpoRef,XsTipRef
 PRIVATE XsNomCli,XsDirCli,XsRucCli
-STORE [] TO XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XdFchEmi
+STORE [] TO XsTpoDoc,XsCodDoc,XsNroDoc,XdFchDoc,XsCodCli,XdFchEmi,SFSCodDoc 
 STORE [] TO XsGlosa1,XsGlosa2,XsGlosa3,XsCodRef,XsNroRef,XsTipRef
 STORE [] TO XsNomCli,XsDirCli,XsRucCli
 STORE 0 TO XfTpoCmb,XfImpNet,XfImpTot,XfSdoDoc,XfImpBto,XfImpIgv
@@ -228,6 +230,7 @@ ELSE
 ENDIF	
 @ 19,60 SAY ImpTot PICT "999,999,999.99"
 @ 20,60 SAY SdoDoc PICT "999,999,999.99"
+@ 21,21 SAY NroMes+'-'+CodOpe+'-'+NroAst
 ** datos del browse **
 PRIVATE Consulta,Modifica,Adiciona,Db_Pinta
 Consulta = .F.
@@ -250,17 +253,56 @@ SELE GDOC
 ** VETT:Vuelve a generar el asiento cuando se intenta imprimir 2021/01/16 02:13:04 ** 
 IF &sesrgv
 	IF F1_Alert('Desea volver a generar asiento contable??','SI_O_NO') = 1
-		IF ctb_aper(GDOC.FchEmi)
+		** VETT: 2021/11/11 03:40:18 ** 
+		DO xMover
+		@  1,68 GET XdFchDoc PICT '@D dd/mm/aa'
+		@  2,68 GET XdFchEmi PICT '@D dd/mm/aa'
+		CLEAR GETS
+		UltTecla = 0
+		i = 1
+		DO WHILE !INLIST(UltTecla,escape_)
+		   DO lib_mtec WITH 7
+		   DO CASE
+		      CASE i = 1
+		         @ 1,68 GET XdFchDoc PICT '@D dd/mm/aa'
+		         READ
+		         UltTecla = LASTKEY()
+		      CASE i = 2
+		         XdFchEmi = XdFchDoc
+		         @ 2,68 GET XdFchEmi PICT '@D dd/mm/aa'
+		         READ
+		         IF !ctb_aper(XdFchEmi)
+		            UltTecla = 0
+		            LOOP
+		         ENDIF
+		         UltTecla = LASTKEY()
+		      
+		   ENDCASE
+		   IF i = 2 .AND. UltTecla = Enter
+		      EXIT
+		   ENDIF
+		   i = IIF(UltTecla=Arriba,i-1,i+1)
+		   i = IIF(i<1,1,i)
+		   i = IIF(i>2,2,i)
+		ENDDO
+		IF UltTecla # escape_
+			iNumReg = RECNO('GDOC')
+		   DO yGraba1
+		ENDIF
+		IF ctb_aper(GDOC.FchEmi) AND UltTecla # escape_
 			DO xAct_ctb
+			SELECT GDOC
+			GO iNumReg
+			DO Gen_SFS_TXT
 			SELECT GDOC
 			UNLOCK ALL
 			return 
 		ENDIF	
+		** VETT: 2021/11/11 03:40:18 **
 	ELSE
 		SELECT GDOC
 		RETURN			
 	ENDIF
-	
 ELSE
 	DO xInvar
 ENDIF
@@ -278,171 +320,171 @@ CLEAR GETS
 UltTecla = 0
 i = 1
 DO WHILE !INLIST(UltTecla,escape_)
-   DO lib_mtec WITH 7
-   DO CASE
-      CASE i = 1
-         @ 1,68 GET XdFchDoc picture '@RD dd/mm/aa'
-         READ
-         UltTecla = LASTKEY()
-      CASE i = 2
-         ** Rutina que apertura las base contables a usar y ademas **
-         ** verifica que el mes contables NO este cerrado **
-         IF !ctb_aper(XdFchDoc)
-            i = i - 1
-            UltTecla = 0
-            LOOP
-         ENDIF
-         XdFchEmi = XdFchDoc
-         @ 2,68 GET XdFchEmi picture '@RD dd/mm/aa'
-         READ
-         UltTecla = LASTKEY()
-      CASE i = 3
-         SELE AUXI
-         @ 2,17 GET XsCodCli PICT "@!"
-         READ
-         UltTecla = LASTKEY()
-         IF UltTecla = escape_ .OR. UltTecla = Arriba
-            i = i - 1
-            LOOP
-         ENDIF
-         IF UltTecla = F8 .OR. EMPTY(XsCodCli)
-            IF !ccbbusca("CLIE")
-               SET ORDER TO AUXI01
-               LOOP
-            ENDIF
-            XsCodCli = AUXI->CodAux
-            SET ORDER TO AUXI01
-         ENDIF
-         @ 2,17 SAY XsCodCli
-         IF XsCodCli=[9999]  && Clientes Varios
-            * no pasa nada *
-         ELSE
-            SEEK GsClfCli+XsCodCli
-            IF !FOUND()
-               GsMsgErr = [ Cliente no Existe ]
-               DO lib_merr WITH 99
-               LOOP
-            ENDIF
-            XsNomCli = AUXI->NomAux
-            XsDirCli = AUXI->DirAux
-            XsRucCli = AUXI->RucAux
-            @  3,66 SAY XsRucCli
-            @  3,17 SAY XsNomCli PICT "@S35"
-            @  4,17 SAY XsDirCli PICT "@S35"
-         ENDIF
-      CASE i = 4 .AND. XsCodCli=[9999]
-         @  3,66 GET XsRucCli PICT "@!"
-         @  3,17 GET XsNomCli PICT "@!S35"
-         @  4,17 GET XsDirCli PICT "@!S35"
-         READ
-         UltTecla = LASTKEY()
-      CASE i = 5
-         @  5,17 GET XsGlosa1 PICT "@!S35"
-         READ
-         UltTecla = LASTKEY()
-      CASE i = 6
-         @  6,17 GET XsGlosa2 PICT "@!S35"
-         READ
-         UltTecla = LASTKEY()
-      CASE i = 7
-         @  7,17 GET XsGlosa3 PICT "@!S35"
-         READ
-         UltTecla = LASTKEY()
-      CASE i = 8
-         DO LIB_MTEC WITH 16
-         VecOpc(1)="S/."
-         VecOpc(2)="US$"
-         XiCodMon= Elige(XiCodMon,8,17,2)
-      CASE i = 9
-         SELE TDOC
-         SET FILTER TO TpoDoc = XsTpoDoc
-         @ 4,68 GET XsCodRef PICT "@!"
-         READ
-         UltTecla = LASTKEY()
-         IF INLIST(UltTecla,escape_,Arriba)
-            i = i - 1
-            SET FILTER TO
-            LOOP
-         ENDIF
-         DO CASE
-            CASE UltTecla = F8
-               IF ! ccbbusca("TDOC")
-                  SET FILTER TO
-                  LOOP
-               ENDIF
-               XsCodRef = CodDoc
-            CASE !TRIM(XsCodRef)==[]
-               SEEK XsCodRef
-               IF ! FOUND()
-                  WAIT "C¢digo de Documento no registrado" NOWAIT WINDOW
-                  LOOP
-               ENDIF
-         ENDCASE
-         SET FILTER TO
-         @ 04,68 SAY XsCodRef
-      CASE i = 10 .AND. !TRIM(XsCodRef)==[]
-         **@ 05,68 GET XsNroRef
-    ** OJO >> Se puede superar la asignacion **
-	SELE GDOC
-         SET ORDER TO GDOC04
-         @ 05,68 GET XsNroRef PICT "@!"
-         READ
-         UltTecla = LASTKEY()
-         IF INLIST(UltTecla,escape_,Arriba)
-            SET ORDER TO GDOC01
-            i = i - 1
-            LOOP
-         ENDIF
-         IF UltTecla = F8 .OR. EMPTY(XsNroRef)
-            IF ! ccbbusca("ASIG")
-               SET ORDER TO GDOC01
-               LOOP
-            ENDIF
-            XsNroRef = NroDoc
-         ENDIF
-         @ 05,68 SAY XsNroRef
-         SET ORDER TO GDOC01
-         SEEK XsTpoRef+XsCodRef+XsNroRef
-         IF !FOUND()
-            DO lib_merr WITH 6
-            LOOP
-         ENDIF
-         IF CodCli # XsCodCli
-            GsMsgErr = [El documento no es del Cliente]
-            DO lib_merr WITH 99
-            LOOP
-         ENDIF
-         IF FlgEst = [C]
-            GsMsgErr = [ Documento Cancelado ]
-            DO lib_merr WITH 99
-            LOOP
-         ENDIF
-         IF FlgEst = [A]
-            GsMsgErr = [ Documento Anulado ]
-            DO lib_merr WITH 99
-            LOOP
-         ENDIF
-	 * variables de calculo *
-         PRIVATE m.SdoDoc,m.Import,m.SdoAct
-         m.SdoDoc = GDOC->SdoDoc
-         m.Import = XfImpTot
-	SELECT  GDOC
-	SET ORDER TO GDOC01
-      CASE i = 11
-         SELE TCMB
-         SEEK DTOS(XdFchDoc)
-         =SEEK(XsCodOpe,"OPER")
-         XfTpoCmb = IIF(OPER.TpoCmb=1,OfiCmp,OfiVta)
-         @  8,64 GET XfTpoCmb PICT "9,999.9999" RANGE 0,
-         READ
-         UltTecla = LASTKEY()
-   ENDCASE
-   IF i = 11 .AND. UltTecla = Enter
-      EXIT
-   ENDIF
-   i = IIF(UltTecla=Arriba,i-1,i+1)
-   i = IIF(i<1,1,i)
-   i = IIF(i>11,11,i)
+	DO lib_mtec WITH 7
+	DO CASE
+		CASE i = 1
+	         @ 1,68 GET XdFchDoc picture '@RD dd/mm/aa'
+	         READ
+	         UltTecla = LASTKEY()
+		CASE i = 2
+	         ** Rutina que apertura las base contables a usar y ademas **
+	         ** verifica que el mes contables NO este cerrado **
+	         IF !ctb_aper(XdFchDoc)
+	            i = i - 1
+	            UltTecla = 0
+	            LOOP
+	         ENDIF
+	         XdFchEmi = XdFchDoc
+	         @ 2,68 GET XdFchEmi picture '@RD dd/mm/aa'
+	         READ
+	         UltTecla = LASTKEY()
+		CASE i = 3
+	         SELE AUXI
+	         @ 2,17 GET XsCodCli PICT "@!"
+	         READ
+	         UltTecla = LASTKEY()
+	         IF UltTecla = escape_ .OR. UltTecla = Arriba
+	            i = i - 1
+	            LOOP
+	         ENDIF
+	         IF UltTecla = F8 .OR. EMPTY(XsCodCli)
+	            IF !ccbbusca("CLIE")
+	               SET ORDER TO AUXI01
+	               LOOP
+	            ENDIF
+	            XsCodCli = AUXI->CodAux
+	            SET ORDER TO AUXI01
+	         ENDIF
+	         @ 2,17 SAY XsCodCli
+	         IF XsCodCli=[9999]  && Clientes Varios
+	            * no pasa nada *
+	         ELSE
+	            SEEK GsClfCli+XsCodCli
+	            IF !FOUND()
+	               GsMsgErr = [ Cliente no Existe ]
+	               DO lib_merr WITH 99
+	               LOOP
+	            ENDIF
+	            XsNomCli = AUXI->NomAux
+	            XsDirCli = AUXI->DirAux
+	            XsRucCli = AUXI->RucAux
+	            @  3,66 SAY XsRucCli
+	            @  3,17 SAY XsNomCli PICT "@S35"
+	            @  4,17 SAY XsDirCli PICT "@S35"
+	         ENDIF
+		CASE i = 4 .AND. XsCodCli=[9999]
+	         @  3,66 GET XsRucCli PICT "@!"
+	         @  3,17 GET XsNomCli PICT "@!S35"
+	         @  4,17 GET XsDirCli PICT "@!S35"
+	         READ
+	         UltTecla = LASTKEY()
+		CASE i = 5
+	         @  5,17 GET XsGlosa1 PICT "@!S35"
+	         READ
+	         UltTecla = LASTKEY()
+		CASE i = 6
+	         @  6,17 GET XsGlosa2 PICT "@!S35"
+	         READ
+	         UltTecla = LASTKEY()
+		CASE i = 7
+	         @  7,17 GET XsGlosa3 PICT "@!S35"
+	         READ
+	         UltTecla = LASTKEY()
+		CASE i = 8
+	         DO LIB_MTEC WITH 16
+	         VecOpc(1)="S/."
+	         VecOpc(2)="US$"
+	         XiCodMon= Elige(XiCodMon,8,17,2)
+		CASE i = 9
+	         SELE TDOC
+	         SET FILTER TO TpoDoc = XsTpoDoc
+	         @ 4,68 GET XsCodRef PICT "@!"
+	         READ
+	         UltTecla = LASTKEY()
+	         IF INLIST(UltTecla,escape_,Arriba)
+	            i = i - 1
+	            SET FILTER TO
+	            LOOP
+	         ENDIF
+	         DO CASE
+	            CASE UltTecla = F8
+	               IF ! ccbbusca("TDOC")
+	                  SET FILTER TO
+	                  LOOP
+	               ENDIF
+	               XsCodRef = CodDoc
+	            CASE !TRIM(XsCodRef)==[]
+	               SEEK XsCodRef
+	               IF ! FOUND()
+	                  WAIT "C¢digo de Documento no registrado" NOWAIT WINDOW
+	                  LOOP
+	               ENDIF
+	         ENDCASE
+	         SET FILTER TO
+	         @ 04,68 SAY XsCodRef
+		CASE i = 10 .AND. !TRIM(XsCodRef)==[]
+	    	**@ 05,68 GET XsNroRef
+	    	** OJO >> Se puede superar la asignacion **
+			SELE GDOC
+			SET ORDER TO GDOC04
+			@ 05,68 GET XsNroRef PICT "@!"
+			READ
+			UltTecla = LASTKEY()
+			IF INLIST(UltTecla,escape_,Arriba)
+			    SET ORDER TO GDOC01
+			    i = i - 1
+			    LOOP
+			ENDIF
+			IF UltTecla = F8 .OR. EMPTY(XsNroRef)
+			    IF ! ccbbusca("ASIG")
+			       SET ORDER TO GDOC01
+			       LOOP
+			    ENDIF
+			    XsNroRef = NroDoc
+			ENDIF
+			@ 05,68 SAY XsNroRef
+			SET ORDER TO GDOC01
+			SEEK XsTpoRef+XsCodRef+XsNroRef
+			IF !FOUND()
+			    DO lib_merr WITH 6
+			    LOOP
+			ENDIF
+			IF CodCli # XsCodCli
+			    GsMsgErr = [El documento no es del Cliente]
+			    DO lib_merr WITH 99
+			    LOOP
+			ENDIF
+			IF FlgEst = [C]
+			    GsMsgErr = [ Documento Cancelado ]
+			    DO lib_merr WITH 99
+			    LOOP
+			ENDIF
+			IF FlgEst = [A]
+			    GsMsgErr = [ Documento Anulado ]
+			    DO lib_merr WITH 99
+			    LOOP
+			ENDIF
+		 * variables de calculo *
+	        PRIVATE m.SdoDoc,m.Import,m.SdoAct
+	        m.SdoDoc = GDOC->SdoDoc
+	        m.Import = XfImpTot
+			SELECT  GDOC
+			SET ORDER TO GDOC01
+		CASE i = 11
+	        SELE TCMB
+	        SEEK DTOS(XdFchDoc)
+	        =SEEK(XsCodOpe,"OPER")
+	        XfTpoCmb = IIF(OPER.TpoCmb=1,OfiCmp,OfiVta)
+	        @  8,64 GET XfTpoCmb PICT "9,999.9999" RANGE 0,
+	        READ
+	        UltTecla = LASTKEY()
+	ENDCASE
+	IF i = 11 .AND. UltTecla = Enter
+    	EXIT
+	ENDIF
+	i = IIF(UltTecla=Arriba,i-1,i+1)
+	i = IIF(i<1,1,i)
+	i = IIF(i>11,11,i)
 ENDDO
 IF UltTecla # escape_
    DO xGraba
@@ -476,6 +518,11 @@ STORE 0 TO XfTpoCmb,XfImpNet,XfImpTot,XfSdoDoc,XfImpBto
 XsTpoDoc = [CARGO]
 XsCodDoc = [N/D ]
 XiCodMon = 1   && SOLES
+** VETT: 2021/11/11 02:36:03 **
+XsTpoRef = [CARGO]
+XsCodRef = SPACE(LEN(GDOC->CodRef))
+XsNroRef = SPACE(LEN(GDOC->NroRef))
+** VETT: 2021/11/11 02:36:03 **
 * Variables Contables *
 _MES     = 0
 XsNroMes = SPACE(LEN(GDOC.NroMes))
@@ -508,12 +555,38 @@ XfSdoDoc = GDOC->SdoDoc
 XfImpBto = GDOC->ImpBto
 XfImpIgv = GDOC->ImpIgv
 XiCodMon = GDOC->CodMon
+** VETT: 2021/11/11 02:38:03 ** 
+XsCodRef = GDOC->CodRef
+XsNroRef = GDOC->NroRef
+** VETT: 2021/11/11 02:38:03 ** 
 * Variables contables
 XsNroMes = GDOC.NroMes
 XsNroAst = GDOC.NroAst
 XsCodOpe = GDOC.CodOpe
 _MES     = VAL(XsNroMes)
 
+RETURN
+***************
+PROCEDURE yGraba1
+***************
+** VETT:Grabamos fecha documento y emisión para regrabar asiento 2021/10/11 14:36:03 ** 
+SELECT GDOC
+=RLOCK()
+REPLACE FchDoc WITH XdFchDoc
+REPLACE FchEmi WITH XdFchEmi
+
+UNLOCK
+RETURN 
+*******************
+FUNCTION Gen_SFS_TXT
+*******************
+IF !EMPTY(XsCodRef) AND !EMPTY(XsNroRef)	&& XcFlgEst="C"
+
+	SFSNroDoc = LEFT(XsCodRef,1)+LEFT(XsNroDoc,3)+"-"+RIGHT(REPLICATE('0',8)+ALLTRIM(SUBSTR(XsNroDoc,4)),8)
+	SFSNroRef =	LEFT(XsCodRef,1)+LEFT(XsNroRef,3)+"-"+RIGHT(REPLICATE('0',8)+ALLTRIM(SUBSTR(XsNroRef,4)),8) 
+	do ccb_copynotas_see-sfs with  SFSCodDoc,SFSNroDoc,SFSNroRef
+							** "07","F002-00000110" ,"F001-00006199"
+ENDIF
 RETURN
 ************************************************************************ FIN()
 * Grabar Informacion
@@ -617,7 +690,14 @@ REPLACE FlgEst WITH XcFlgEst
 REPLACE FlgUbc WITH XcFlgUbc
 REPLACE FlgSit WITH XcFlgSit
 IF XfImpTot > 0   && << OJO << Caso error u omisi¢n (burrada)
-   DO xACT_CTB
+	DO xACT_CTB
+	** VETT:generamos archivo TXT para envio a Sunat 2021/11/11 03:38:09 **  
+	SELECT GDOC
+	GO iNumReg
+	DO Gen_SFS_TXT
+	SELECT GDOC
+	GO iNumReg
+	** VETT:FIN 2021/11/11 03:38:09 ** 
 ENDIF
 
 RETURN
@@ -667,31 +747,39 @@ OK = .T.
 SELE RDOC
 SEEK GDOC->TpoDoc+GDOC->CodDoc+GDOC->NroDoc
 SCAN WHILE TpoDoc+CodDoc+NroDoc = GDOC->TpoDoc+GDOC->CodDoc+GDOC->NroDoc
-   IF !REC_LOCK(5)
-      OK = .F.
-      EXIT
-   ENDIF
-   DELETE
-   UNLOCK
+    IF !REC_LOCK(5)
+    	OK = .F.
+    	EXIT
+	ENDIF
+    DELETE
+    UNLOCK
 ENDSCAN
 IF OK
-   * actualizamos clientes *
-   SELE SLDO
-   IF GDOC->CodMon = 1
-      REPLACE CgoNAC WITH CgoNAC - GDOC->ImpTot
-   ELSE
-      REPLACE CgoUSA WITH CgoUSA - GDOC->ImpTot
-   ENDIF
-   UNLOCK
-   *
-   IF GDOC.FlgCtb
-      DO xANUL_CTB
-   ENDIF
-   *
-   SELE GDOC
-   REPLACE FlgEst WITH [A]
-   REPLACE FchAct WITH DATE()
-   REPLACE SdoDoc WITH 0
+    * actualizamos clientes *
+    SELE SLDO
+    IF GDOC->CodMon = 1
+    	REPLACE CgoNAC WITH CgoNAC - GDOC->ImpTot
+    ELSE
+    	REPLACE CgoUSA WITH CgoUSA - GDOC->ImpTot
+    ENDIF
+    UNLOCK
+    *
+    IF GDOC.FlgCtb
+    	DO xANUL_CTB
+    ENDIF
+    *
+    SELE GDOC
+    REPLACE FlgEst WITH [A]
+    REPLACE FchAct WITH DATE()
+	REPLACE SdoDoc WITH 0
+	IF VerifyVar('UserElim','','CAMPO',"GDOC")
+		REPLACE UserElim WITH GoEntorno.User.Login IN GDOC
+	ENDIF
+	IF VerifyVar('FchElim','','CAMPO',"GDOC")
+		REPLACE FchElim WITH DATETIME() IN GDOC
+	ENDIF
+ 
+ 
    SKIP
 ENDIF
 * por siaca *
@@ -740,13 +828,13 @@ TBorde   = Nulo
 E1       = []
 E2       = []
 E3       = []
-LinReg   = [Codigo+'  '+LEFT(TABLA->Nombre,40)+' '+TRANS(Import,'999,999,999.99')]
+LinReg   = [Codigo+'  '+PADR(GLOSA,40)+' '+TRANS(Import,'999,999,999.99')]
 Static   = .F.
 VSombra  = .F.
 SELECT RDOC
 *** Variable a Conocer ****
-PRIVATE XsCodigo,XfImport
-STORE [] TO XsCodigo,XfImport
+PRIVATE XsCodigo,XfImport,XSGLOSA
+STORE [] TO XsCodigo,XfImport,XSGLOSA
 **
 DO DBrowse
 SELECT GDOC
@@ -762,9 +850,11 @@ IF ! Crear
    ENDIF
    XsCodigo = RDOC->Codigo
    XfImport = RDOC->Import
+   XsGlosa  = RDOC.Glosa
 ELSE
    XsCodigo = SPACE(LEN(RDOC->Codigo))
    XfImport = 0.00
+   XsGlosa  = SPACE(LEN(RDOC.Glosa  ))
 ENDIF
 *
 DO Lib_MTec WITH 7    && Teclas edicion linea
@@ -796,11 +886,19 @@ DO WHILE .NOT. INLIST(UltTecla,escape_,CtrlW,F10)
             LOOP
          ENDIF
          @ LinAct,19 SAY LEFT(TABLA->Nombre,40)
+         XsGlosa=LEFT(TABLA->Nombre,40) 
          IF XsCodigo = "IGV"
             XfImpIgv = ROUND(XfImpTot*CfgADMIgv/100,2)
             XfImport = ROUND(XfImpTot*CfgADMIgv/100,2)
          ENDIF
-      CASE i = 2
+     CASE i = 2
+         @ LinAct,19 GET XsGlosa PICT "@S40"
+         READ
+         UltTecla = LastKey()
+         IF UltTecla = escape_
+            LOOP
+         ENDIF
+      CASE i = 3
          @ LinAct,60 GET XfImport PICT "999,999,999.99" RANGE 0,
          READ
          UltTecla = LastKey()
@@ -809,7 +907,7 @@ DO WHILE .NOT. INLIST(UltTecla,escape_,CtrlW,F10)
          ENDIF
    ENDCASE
    i = IIF(UltTecla = Arriba, i-1, i+1)
-   i = IIF(i>2, 2, i)
+   i = IIF(i>3, 3, i)
    i = IIF(i<1, 1, i)
 ENDDO
 SELECT RDOC
@@ -836,6 +934,7 @@ ELSE
 ENDIF
 REPLACE Codigo WITH XsCodigo
 REPLACE Import WITH XfImport
+REPLACE Glosa  WITH XsGlosa
 UNLOCK
 XfImpTot = XfImpTot + XfImport
 @ 19,60 SAY XfImpTot PICT "999,999,999.99"
@@ -906,6 +1005,11 @@ RETURN
 *************** RUTINAS DE ACTUALIZACION DE CONTABILIDAD *********************
 ******************************************************************************
 PROCEDURE xACT_CTB
+** VETT:INI Guardamos el AÑO y MES actual 2021/11/11 04:31:31 **
+cur_ANO = _ANO
+cur_MES = _MES
+** VETT:FIN 2021/11/11 04:31:31 **  
+nErrCode = S_OK
 PRIVATE DirCtb,UltTecla && _MES,_ANO,
 PRIVATE XiNroItm,XcEliItm,XsCodCta,XsCodRef,XsClfAux,XsCodAux,XcTpoMov
 PRIVATE XsNroRuc,XfImpNac,XfImpUsa,XsGloDoc,XsCodDoc,XsNroDoc,XsNroRef,XsTipRef,XdFchDtr,XsNroDtr
@@ -972,6 +1076,19 @@ IF &sesrgv. AND !EMPTY(GDOC.CodOpe) AND !EMPTY(NroAst) AND !EMPTY(NroMes)
 	ELSE
 		GOSVRCBD.Crear = .T.
 	ENDIF
+	** VETT:INI Aqui reasignamos el nuevo _ANO , _mes segun fecha emisión, ** 
+	** para regrabar asiento - beta 2021/11/11 04:23:08 ** 
+	IF MONTH(GDOC.FchAct)<>MONTH(GDOC.FchEmi) OR YEAR(GDOC.FchAct)<>YEAR(GDOC.FchEmi)
+		XsNroMes = TRANSFORM(MONTH(GDOC.FchEmi),"@L ##")
+		_MES = VAL(XsNroMes)
+		_ANO = YEAR(GDOC.FchEmi)
+		=RLOCK("GDOC")
+		REPLACE NroMes WITH XsNroMes IN GDOC
+		UNLOCK IN GDOC
+		XsNroAst = GOSVRCBD.NROAST()
+		GOSVRCBD.Crear = .T.
+	ENDIF
+	** VETT:FIN 2021/11/11 04:23:08 **
 ELSE
 	SELECT OPER
 	XsNroMes = TRANSF(_MES,"@L ##")
@@ -985,12 +1102,29 @@ XiCodMon = GDOC.CodMon
 XfTpoCmb = GDOC.TpoCmb
 XsNotAst = GDOC.CodDoc+[ ]+GDOC.NroDoc+[ ]+GDOC.NomCli
 m.Err= GOSVRCBD.MovGraba(XsNroMes,XsCodOpe,@XsNroAst)
-IF m.Err>=0
+IF m.Err>=0 
 ** ACTUALIZAR DATOS DE CABECERA **
 	REPLACE GDOC.NroMes WITH XsNroMes
 	REPLACE GDOC.CodOpe WITH XsCodOpe
 	REPLACE GDOC.NroAst WITH XsNroAst
 	REPLACE GDOC.FlgCtb WITH .T.
+	** VETT: 2021/11/11 11:17:39 **
+	IF GoCfgVta.crear AND !EMPTY(GDOC.CodOpe) AND !EMPTY(NroAst) AND !EMPTY(NroMes)
+		IF VerifyVar('UserModi','','CAMPO',"GDOC")
+			REPLACE UserModi WITH GoEntorno.User.Login  IN GDOC
+		ENDIF
+		IF VerifyVar('FchModi','','CAMPO',"GDOC")
+			REPLACE FchModi WITH DATETIME()  IN GDOC
+		ENDIF
+	ELSE
+		IF VerifyVar('UserCrea','','CAMPO',"GDOC")
+			REPLACE UserCrea WITH GoEntorno.User.Login IN GDOC
+		ENDIF
+		IF VerifyVar('FchCrea','','CAMPO',"GDOC")
+			REPLACE FchCrea WITH DATETIME() IN GDOC
+		ENDIF
+	ENDIF
+	** VETT: FIN 2021/11/11 11:17:39 **
 ELSE
 	REPLACE GDOC.FlgCtb WITH .F.
 	GoSvrCbd.MensajeErr(m.Err)
@@ -1108,9 +1242,10 @@ XdFchRef = {}
 
 IF CTAS.PidDoc=[S]
 	XsClfAux = 	CTAS.ClfAux
-   XsCodDoc = IIF(SEEK(GsCodSed+GDOC.CodDoc+'001','DOCM'),DOCM.TpoDocSN,'')
-   XsNroDoc = GDOC.NroDoc
-   XdFchDoc = GDOC.FchDoc
+	XsCodDoc = IIF(SEEK(GsCodSed+GDOC.CodDoc+'001','DOCM'),DOCM.TpoDocSN,'')
+	SFSCodDoc = LEFT(XsCodDoc,2)
+	XsNroDoc = GDOC.NroDoc
+	XdFchDoc = GDOC.FchDoc
 ENDIF
 IF CTAS.PidGlo=[S]
 	XsTipRef = 	IIF(SEEK(GDOC.CodRef,'TDOC'),TDOC.TpoDocSN,'')	
@@ -1128,8 +1263,11 @@ GOSVRCBD.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
 WAIT [Fin de Generacion] WINDOW NOWAIT
 *DO Imprvouc IN Ccb_Ctb
 DO ctb_cier
+_ANO = CUR_ANO
+_MES = CUR_MES
+nErrCode = S_OK
+RETURN nErrCode
 
-RETURN
 ************************************************************************ FIN *
 * Objeto : Anulacion del asiento contable
 ******************************************************************************

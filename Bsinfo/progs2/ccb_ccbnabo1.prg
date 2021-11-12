@@ -67,7 +67,7 @@ SET RELATION TO GsClfCli+CodCli INTO AUXI
 DO fondo WITH 'NOTAS DE CREDITO',Goentorno.user.login,GsNomCia,GsFecha
 CLEAR
 IF _windows OR _mac
-	@  0,0 TO 22,100  PANEL
+	@  0,0 TO 24,100  PANEL
 ELSE
 	@  0,0 TO 22,79  PANEL
 endif
@@ -318,7 +318,7 @@ IF &sesrgv
 			iNumReg = RECNO('GDOC')
 		   DO yGraba1
 		ENDIF
-		IF ctb_aper(GDOC.FchEmi)
+		IF ctb_aper(GDOC.FchEmi) AND UltTecla # escape_
 			DO xAct_ctb
 			SELECT GDOC
 			GO iNumReg
@@ -882,7 +882,6 @@ IF XfImpTot > 0   && << OJO << Caso error u omisi¢n (burrada)
 	SELECT GDOC
 	GO iNumReg
 	** VETT:FIN 2021/10/12 15:53:09 **
-	
 ENDIF
 
 RETURN
