@@ -14,6 +14,25 @@ goentorno.open_dbf1('ABRIR','CCBMVTOS','CMOV','VTOS03','')
 goentorno.open_dbf1('ABRIR','CCBSALDO','SLDO','SLDO01','')
 goentorno.open_dbf1('ABRIR','CCBRGDOC','GDOC','GDOC01','')
 
+** VETT:Captura de observaciones de liquidación de cobranzas, ctacte clientes 2021/11/24 00:48:22 ** 
+Ll_Liqui_C=.F.
+IF !USED('L_C_Cobr')
+	IF FILE(ADDBS(goentorno.TsPathcia)+'Liq_Cob.dbf')
+		SELECT 0
+		USE Liq_Cob ORDER LIQ_AST ALIAS L_C_Cobr	&& LIQUI
+		Ll_Liqui_C=.T.
+	ENDIF	
+ENDIF
+Ll_Liqui_D=.F.
+IF !USED('L_D_Cobr')
+	IF FILE(ADDBS(goentorno.TsPathcia)+'Liq_Det.dbf')
+		SELECT 0
+		USE Liq_Det ORDER CodDoc ALIAS L_D_Cobr	&& LIQUI
+		Ll_Liqui_D=.T.
+	ENDIF
+ENDIF
+** VETT: 2021/11/24 00:48:22 **
+
 cTit1 = GsNomCia
 cTit2 = MES(_MES,1)+" DE "+TRANS(_ANO,"9999")
 cTit3 = "Usuario : "+TRIM(GsUsuario)
@@ -28,6 +47,7 @@ SET RELATION TO NROMES+CODOPE+NROAST INTO VMOV
 XiCodMon = 1
 XsNroMes = TRANSF(_MES,"@L ##")
 XsClfAux = SPACE(LEN(ClfAux))
+STORE [] TO XsNomClfAux , XsNomAux,LsFchIni,LsFchFin
 XsCodAux = SPACE(LEN(CodAux))
 XsCodCta = SPACE(LEN(CodCta))
 XsNomCta = SPACE(LEN(CTAS.NomCta))
@@ -37,17 +57,43 @@ i        = 1
 XlGenCtaCob =  INLIST(UPPER(GoEntorno.User.Login),'VETT','VICTOR') 
 XlGenCtaCob = .F.
 
+** VETT:Divisionarias 2021/11/22 23:18:55 ** 
+XnCodDiv = 1+GnDivis
+Store [] TO XsCodDiv
+** VETT: 2021/11/22 23:18:55 ** 
+
 DO FORM cbd_cbdrc004
 RETURN
 
-******************
-PROCEDURE Imprimir
-******************
+********************
+PROCEDURE GEN_REPORT
+********************
+** VETT:** VETT:Damos de baja a F0PRINT (gracias x 20 años de servicio compañero)  2021/11/22 12:30:52 ** 
+** Usaremos el clagen_spool (Imprimir, pantalla , exportar (CSV,TXT,XLS,XLSX,XML,etc) 
+** Tambien quitaremos los @ say para imprimir todo irá a un cursor temporal
+** 2021/11/22 12:30:52 **
+*!*	DO F0PRINT
+*!*	IF UltTecla = K_Esc
+*!*		RETURN
+*!*	ENDIF
 
-DO F0PRINT
-IF UltTecla = K_Esc
-	RETURN
-ENDIF
+** Filtros para la divisionaria
+LsFor1= IIF(!GoCfgCbd.TIPO_CONSO=2 OR XsCodDiv='**','.T.','CodDiv=XsCodDiv')
+LsFor2= IIF(!GoCfgCbd.TIPO_CONSO=2 OR XsCodDiv='**','.T.','CodCta_B=XsCodDiv')
+
+** VETT:Calculamos fecha de inicio y fin según mes seleccionado del reporte  2021/12/09 11:25:22 **
+	LsFchIni= '01/'+XsNroMes+'/'++TRANS(_ANO,"9999")
+	IF VAL(XsNroMes) < 12
+	   LdFchFin=CTOD("01/"+STR(VAL(XsNroMes)+1,2,0)+"/"+STR(_Ano,4,0))-1
+	ELSE
+	   LdFchFin=CTOD("31/12/"+STR(_Ano,4,0))
+	ENDIF
+	LsFchFin	=	DTOC(LdFchFin)
+** VETT: 2021/12/09 11:25:22 **
+
+
+** VETT: 2021/11/22 12:30:52 **
+
 DIMENSION vCodCta(20,2)
 NumEle = 0
 MaxEle = 20
@@ -58,16 +104,16 @@ XsNomCta = TRIM(NomCta)
 SET ORDER TO CTAS03
 SEEK "SS"+XsClfAux
 DO WHILE AftMov+PidAux+ClfAux = "SS"+XsClfAux
-   IF CodCta = TRIM(XsCodCta)         &&   .AND. ! INLIST(CodCta,"12101")
-      IF NumEle = MaxEle
-         MaxEle = MaxEle + 10
-         DIMENSION vCodCta(MaxEle,2)
-      ENDIF
-      NumEle = NumEle + 1
-      vCodCta(NumEle,1) = CodCta
-      vCodCta(NumEle,2) = NomCta
-   ENDIF
-   SKIP
+	IF CodCta = TRIM(XsCodCta)         &&   .AND. ! INLIST(CodCta,"12101")
+		IF NumEle = MaxEle
+        	MaxEle = MaxEle + 10
+        	DIMENSION vCodCta(MaxEle,2)
+    	ENDIF
+    	NumEle = NumEle + 1
+    	vCodCta(NumEle,1) = CodCta
+    	vCodCta(NumEle,2) = NomCta
+	ENDIF
+	SKIP
 ENDDO
 IF NumEle = 0
 	WAIT WINDOW "No existen cuentas asignadas a este auxiliar"
@@ -79,9 +125,11 @@ SELECT AUXI
 Llave = XsClfAux+TRIM(XsCodAux)
 SEEK Llave
 IF ! FOUND()
-   WAIT WINDOW "No existen registros a listar"
-   RETURN
+	WAIT WINDOW "No existen registros a listar"
+    RETURN
 ENDIF
+XsNomAux = AUXI.NomAux
+
 
 IniImp   = _Prn8a+_Prn2    && 12   cpi
 Ancho    = 118
@@ -97,11 +145,11 @@ Tit_SDer = "FECHA : "+DTOC(DATE())
 Tit_IDer = ""
 Titulo   = ""
 SubTitulo= ""
-EN1    = "CUENTA PENDIENTES AL "+DTOC(GdFecha)
-EN2    = "(EXPRESADO EN "+IIF(XiCodMon = 1,"NUEVOS SOLES","DOLARES AMERICANOS")+")"
-EN3    = ""
-EN4    = ""
-En5    = ""
+EN1    = "(EXPRESADO EN "+IIF(XiCodMon = 1,"NUEVOS SOLES","DOLARES AMERICANOS")+")"
+EN2    = ""
+EN3    = XsClfAux + "  " + XsNomClfAux
+EN4    = IIF(EMPTY(XsCodAux),"",XsCodAux + "  " + XsNomAux)
+En5    = "CUENTAS PENDIENTES AL "+LsFchFin
 En6 = "****** ************** **************** **************** ********** ********** ********** ******** ******************** ***"
 En7 = "CODIGO    REFE-                                         FECHA      FECHA        COMPROBANTE                            OR "
 En8 = "DE CTA   RENCIA         D E B I T O     C R E D I T O   DCTO.      VCTO.      FECHA      NRO.        G  L  O  S  A     IG "
@@ -136,42 +184,49 @@ nImport   = 0
 IF GsSigCia='TYJ' and GsCodCia='003'
 	TI=2
 ENDIF
-
-PRINTJOB
-   GOTO RegIni
-   NumPag   = 0
-   Inicio   = .T.
-   DO WHILE ClfAux+CodAux = Llave .AND. ! Cancelar
+L0NumItm = 0
+L0Cargos = 0
+L0Abonos = 0
+*!*	PRINTJOB
+*!*	   GOTO RegIni
+*!*	   NumPag   = 0
+Inicio   = .T.
+DO WHILE ClfAux+CodAux = Llave .AND. ! Cancelar
       **** Quiebre por Auxiliar ****
-      LsCodAux = CodAux
-      SET DEVICE TO SCREEN
-      EN3    = TRIM(CodAux)+" "+TRIM(NOMAUX)
+	LsCodAux = CodAux
+*!*	      SET DEVICE TO SCREEN
+*!*	    EN3    = TRIM(CodAux)+" "+TRIM(NOMAUX)
 *      @ 24,0 SAY PADC(EN3,80)
-      SET DEVICE TO PRINT
+*!*	      SET DEVICE TO PRINT
       ** VETT  17/05/2016 02:05 AM : imprime totales cuando no hay movimientos para mostrar a Sunat 
       
-      IF TI=2
-         Inicio   = .T.
-      ELSE
-         EN3 = []
-      ENDIF
-      L1NumItm = 0
-      L1Cargos = 0
-      L1Abonos = 0
-      Quiebre1 = .T.
-      *** Buscando las cuentas que selecciona el auxiliar ***
-      Cancelar = ( INKEY() = k_esc )
-      FOR Item = 1 TO NumEle
-         LsCodCta = vCodCta(Item,1)
-         LsNomCta = vCodCta(Item,2)
-         L2NumItm = 0
-         L2Cargos = 0
-         L2Abonos = 0
-         Quiebre2 = .T.
-         *** Buscando Movimientos para el auxiliar seleccionado ***
-         SELECT RMOV
-         SEEK LsCodCta+LsCodAux
-         DO WHILE CodCta+CodAux = LsCodCta+LsCodAux .AND. ! Cancelar
+    IF TI=2
+    	Inicio   = .T.
+    ELSE
+*!*	    	EN3 = []
+    ENDIF
+    L1NumItm = 0
+    L1Cargos = 0
+    L1Abonos = 0
+    Quiebre1 = .T.
+    *** Buscando las cuentas que selecciona el auxiliar ***
+    Cancelar = ( INKEY() = k_esc )
+	FOR Item = 1 TO NumEle
+    	LsCodCta = vCodCta(Item,1)
+		LsNomCta = vCodCta(Item,2)
+		L2NumItm = 0
+		L2Cargos = 0
+		L2Abonos = 0
+		Quiebre2 = .T.
+		*** Buscando Movimientos para el auxiliar seleccionado ***
+		SELECT RMOV
+		SEEK LsCodCta+LsCodAux
+		DO WHILE CodCta+CodAux = LsCodCta+LsCodAux .AND. ! Cancelar
+			IF !&LsFor1
+				SELECT RMOV
+				SKIP
+				LOOP
+			ENDIF
             **** Quiebre por Documento ****
             LsNroDoc = NroDoc
             L3NumItm = 0
@@ -179,158 +234,203 @@ PRINTJOB
             L3Abonos = 0
             Quiebre3 = .T.
             DO CHECKDOC
-            DO WHILE CodCta+CodAux+NroDoc = LsCodCta+LsCodAux+LsNroDoc .AND. ! Cancelar
-	             SELECT temporal
-		         APPEND BLANK
-		         Replace codcta WITH Rmov.CodCta         
-		         SELECT RMOV
-	               IF NROMES <= XsNroMes
+			DO WHILE CodCta+CodAux+NroDoc = LsCodCta+LsCodAux+LsNroDoc .AND. ! Cancelar
+				IF !&LsFor1
+					SELECT RMOV
+					SKIP
+					LOOP
+				ENDIF
+				SELECT RMOV
+				IF NROMES <= XsNroMes
 					DO LinImp
-	               ELSE
-	               	SKIP
-	               ENDIF
-	               Cancelar = ( INKEY() = k_esc )
-            ENDDO
-            IF ! Cancelar && .AND. L3NumItm > 0
-               L2NumItm = L2NumItm + 1
-               L2Cargos = L2Cargos + L3Cargos
-               L2Abonos = L2Abonos + L3Abonos
+				ELSE
+				   	SKIP
+				ENDIF
+				Cancelar = ( INKEY() = k_esc )
+			ENDDO
+            IF ! Cancelar .AND. L3NumItm > 0
+            	L2NumItm = L2NumItm + 1
+            	L2Cargos = L2Cargos + L3Cargos
+            	L2Abonos = L2Abonos + L3Abonos
             ENDIF
                 && Saldo Por Documento
-	         IF TdSalAct<>0 THEN 
-	         		SELECT temporal
-			 	APPEND BLANK
-			 	replace CodAux WITH LsCodAux
-			 	replace NomAux WITH "*** TOTAL DOCUMENTO : " + LsNroDoc
-			 	replace Debe WITH TdCargos
-			 	Replace Haber WITH TdAbonos
-			 	replace Saldo WITH TdSalAct			 		 
-			 	SELECT rmov
-		 	ENDIF 
-         ENDDO
-         IF ! Cancelar .AND. L2NumItm > 0
-	           DO RESETPAG
-	           L2SalAct = L2Cargos - L2Abonos
-	           NumLin = PROW() + 2
-               IF GsSigCia='TYJ' and GsCodCia='003'
-	           		@ NumLin,0   SAY " * T O T A L  C U E N T A *     ---------------------> *   S A L D O   *"
-	           ELSE
-	           		@ NumLin,0   SAY " * T O T A L *     -----------------  ---------------- *   S A L D O   *"	
-	           ENDIF 
-      	       SELECT temporal
-	           APPEND BLANK
-	           replace NomAux WITH "'---- TOTAL AUXILIAR  ------------------------->"
-	            NumLin = PROW() + 1
-                ** VETT  17/05/2016 02:05 AM : imprime totales cuando no hay movimientos para mostrar a Sunat 
-	            @ NumLin,0   SAY IIF(GsSigCia='TYJ' and GsCodCia='003',LsCodCta+' '+LsNomCta,"** POR CTA")
-	            IF GsSigCia='TYJ' and GsCodCia='003'
+*!*		        IF TdSalAct<>0 THEN 
+*!*		        	SELECT temporal
+*!*				 	APPEND BLANK
+*!*				 	replace CodAux WITH LsCodAux
+*!*					replace NomAux WITH "*** TOTAL DOCUMENTO : " + LsNroDoc
+*!*				 	replace Glodoc WITH "*** TOTAL DOCUMENTO : " + LsNroDoc
+*!*				 	replace Debe WITH TdCargos
+*!*				 	Replace Haber WITH TdAbonos
+*!*				 	replace Saldo WITH TdSalAct			 		 
+*!*				 	SELECT rmov
+*!*			 	ENDIF 
+		ENDDO
+		IF ! Cancelar .AND. L2NumItm > 0
+*!*		           DO RESETPAG
+			L2SalAct = L2Cargos - L2Abonos
+			NumLin = PROW() + 2
+			IF GsSigCia='TYJ' and GsCodCia='003'
+			*!*		           		@ NumLin,0   SAY " * T O T A L  C U E N T A *     ---------------------> *   S A L D O   *"
+			ELSE
+			*!*		           		@ NumLin,0   SAY " * T O T A L *     -----------------  ---------------- *   S A L D O   *"	
+			ENDIF 
+			SELECT temporal
+			APPEND BLANK
+			replace CodCta WITH LsCodCta
+			replace CodAux WITH LsCodAux
+			replace NomAux WITH "'---- TOTAL CUENTA  ------------------------->"
+			replace Glodoc WITH "*** TOTAL CUENTA :" + LsCodCta
+
+            NumLin = PROW() + 1
+            ** VETT  17/05/2016 02:05 AM : imprime totales cuando no hay movimientos para mostrar a Sunat 
+*!*		            @ NumLin,0   SAY IIF(GsSigCia='TYJ' and GsCodCia='003',LsCodCta+' '+LsNomCta,"** POR CTA")
+            IF GsSigCia='TYJ' and GsCodCia='003'
+            ELSE
+	            IF L2Cargos >= 0
+	            		replace debe WITH L2Cargos
+*!*				               @ NumLin ,21  SAY L2Cargos       PICTURE "9999,999,999.99"
 	            ELSE
-		            IF L2Cargos >= 0
-		            		replace debe WITH L2Cargos
-			               @ NumLin ,21  SAY L2Cargos       PICTURE "9999,999,999.99"
-		            ELSE
-		            		replace debe WITH -L2Cargos
-		       	        @ NumLin ,21  SAY -L2Cargos      PICTURE "9999,999,999.99-"
-		            ENDIF
-		            IF L2Abonos >= 0
-		            		replace haber WITH L2Abonos
-		               	@ NumLin ,39  SAY L2Abonos       PICTURE "9999,999,999.99"
-		            ELSE
+	            		replace debe WITH -L2Cargos
+*!*			       	        @ NumLin ,21  SAY -L2Cargos      PICTURE "9999,999,999.99-"
+	            ENDIF
+	            IF L2Abonos >= 0
+	            	replace haber WITH L2Abonos
+*!*			               	@ NumLin ,39  SAY L2Abonos       PICTURE "9999,999,999.99"
+	            ELSE
 					replace haber WITH -L2Abonos
-		               	@ NumLin ,39  SAY -L2Abonos      PICTURE "9999,999,999.99-"
-		            ENDIF
+*!*			               	@ NumLin ,39  SAY -L2Abonos      PICTURE "9999,999,999.99-"
 	            ENDIF
-	            IF L2SalAct >= 0
-	               	@ NumLin ,57  SAY L2SalAct       PICTURE "9999,999,999.99"
-	               	replace saldo WITH L2SalAct
-	            ELSE
-	               	@ NumLin ,57  SAY -L2SalAct      PICTURE "9999,999,999.99-"
-	               	replace saldo WITH -L2SalAct
-	            ENDIF
-	            SELECT RMOV
-	            NumLin = PROW() + 1
-	            @ NumLin,0 SAY []
-	            L1NumItm = L1NumItm + 1
-	            L1Cargos = L1Cargos + L2Cargos
-	            L1Abonos = L1Abonos + L2Abonos
-         ENDIF
-         IF Cancelar
-	            EXIT
-         ENDIF
-      NEXT
-      IF ! Cancelar .AND. L1NumItm > 0
-         NumLin = PROW()+2
-         L1SalAct = L1Cargos - L1Abonos
-         IF GsSigCia='TYJ' and GsCodCia='003'
-    	     @ NumLin,0  SAY " * T O T A L   A U X I L I A R  ---------------------> *   S A L D O   *"
-         ELSE
-	         @ NumLin,0  SAY " * T O T A L *     -----------------  ---------------- *   S A L D O   *"
-         ENDIF
-         NumLin = PROW()+1
+            ENDIF
+            IF L2SalAct >= 0
+*!*		               	@ NumLin ,57  SAY L2SalAct       PICTURE "9999,999,999.99"
+               	replace saldo WITH L2SalAct
+            ELSE
+*!*		               	@ NumLin ,57  SAY -L2SalAct      PICTURE "9999,999,999.99-"
+               	replace saldo WITH -L2SalAct
+            ENDIF
+            SELECT RMOV
+            NumLin = PROW() + 1
+*!*		            @ NumLin,0 SAY []
+			APPEND BLANK
+			replace CodCta WITH LsCodCta
+			replace CodAux WITH LsCodAux
+            L1NumItm = L1NumItm + 1
+            L1Cargos = L1Cargos + L2Cargos
+			L1Abonos = L1Abonos + L2Abonos
+		ENDIF
+		IF Cancelar
+			EXIT
+		ENDIF
+	NEXT
+	IF ! Cancelar .AND. L1NumItm > 0
+        NumLin = PROW()+2
+        L1SalAct = L1Cargos - L1Abonos
+        IF GsSigCia='TYJ' and GsCodCia='003'
+*!*	    	     @ NumLin,0  SAY " * T O T A L   A U X I L I A R  ---------------------> *   S A L D O   *"
+        ELSE
+*!*		         @ NumLin,0  SAY " * T O T A L *     -----------------  ---------------- *   S A L D O   *"
+        ENDIF
+		NumLin = PROW()+1
          ** VETT  17/05/2016 02:05 AM : imprime totales cuando no hay movimientos para mostrar a Sunat 
-         @ NumLin,0   SAY IIF(GsSigCia='TYJ' and GsCodCia='003',LsCodAux+' '+PADR(AUXI.NomAux,40),"** AUXILIAR")  
-         IF GsSigCia='TYJ' and GsCodCia='003'
-         ELSE
-	         IF L1Cargos >= 0
-	            @ NumLin , 21 SAY L1Cargos       PICTURE "9999,999,999.99"
-	         ELSE
-	            @ NumLin , 21 SAY -L1Cargos      PICTURE "9999,999,999.99-"
-	         ENDIF
-	         IF L1Abonos >= 0
-	            @ NumLin , 39 SAY L1Abonos       PICTURE "9999,999,999.99"
-	         ELSE
-	            @ NumLin , 39 SAY -L1Abonos      PICTURE "9999,999,999.99-"
-	         ENDIF
-	     ENDIF    
-         IF L1SalAct >= 0
-            @ NumLin , 57 SAY L1SalAct       PICTURE "9999,999,999.99"
-         ELSE
-            @ NumLin , 57 SAY -L1SalAct      PICTURE "9999,999,999.99-"
-         ENDIF
-         NumLIn = PROW() + 1
-         @ NumLin,00 SAY [ ]
-      ENDIF
-      SELECT AUXI
-      SKIP
-   ENDDO
-   EJECT PAGE
-ENDPRINTJOB
-SET DEVICE TO SCREEN
+*!*	         @ NumLin,0   SAY IIF(GsSigCia='TYJ' and GsCodCia='003',LsCodAux+' '+PADR(AUXI.NomAux,40),"** AUXILIAR")  
+		SELECT temporal
+		APPEND BLANK
+		replace CodCta WITH LsCodCta
+		replace CodAux WITH LsCodAux
+		replace NomAux WITH "'---- TOTAL AUXILIAR ------------------------->"
+		replace Glodoc WITH "*** TOTAL AUXILIAR : " + LsCodAux+" " + AUXI.NomAux	
+
+
+		IF GsSigCia='TYJ' and GsCodCia='003'
+        ELSE
+	    	IF L1Cargos >= 0
+	        	replace debe WITH L1Cargos
+*!*		            @ NumLin , 21 SAY L1Cargos       PICTURE "9999,999,999.99"
+	        ELSE
+*!*		            @ NumLin , 21 SAY -L1Cargos      PICTURE "9999,999,999.99-"
+	        	replace debe WITH -L1Cargos
+	        ENDIF
+	        IF L1Abonos >= 0
+	        	replace haber WITH L1Abonos
+*!*		            @ NumLin , 39 SAY L1Abonos       PICTURE "9999,999,999.99"
+	        ELSE
+*!*		            @ NumLin , 39 SAY -L1Abonos      PICTURE "9999,999,999.99-"
+	        	replace haber WITH -L1Abonos
+	        ENDIF
+		ENDIF    
+        IF L1SalAct >= 0
+			replace saldo WITH L1SalAct
+*!*	            @ NumLin , 57 SAY L1SalAct       PICTURE "9999,999,999.99"
+        ELSE
+*!*	            @ NumLin , 57 SAY -L1SalAct      PICTURE "9999,999,999.99-"
+         	replace saldo WITH -L1SalAct
+        ENDIF
+        NumLIn = PROW() + 1
+*!*	         @ NumLin,00 SAY [ ]
+		APPEND BLANK
+		replace CodCta WITH LsCodCta
+		replace CodAux WITH LsCodAux
+		L0NumItm = L0NumItm + 1
+		L0Cargos = L0Cargos + L1Cargos	
+		L0Abonos = L0Abonos + L1Abonos
+	ENDIF
+	SELECT AUXI
+	SKIP
+ENDDO
+IF ! Cancelar .AND. L0NumItm > 0
+	SELECT TEMPORAL
+	APPEND BLANK
+	replace GloDoc	WITH PADC("** TOTAL GENERAL "+" **",LEN(GloDoc))
+ 	replace Debe	WITH L0Cargos
+ 	replace Haber	WITH L0Abonos
+ 	L0SalAct = L0Cargos - L0Abonos
+ 	replace Saldo	WITH L0SalAct
+ENDIF
+*!*	   EJECT PAGE
+*!*	ENDPRINTJOB
+*!*	SET DEVICE TO SCREEN
 SELECT TEMPORAL 
 LOCATE
-XTipRep = 'XLS'
-DO F0PRFIN &&IN ADMPRINT
-RELEASE xTipRep
+*!*	XTipRep = 'XLS'
+*!*	DO F0PRFIN &&IN ADMPRINT
+*!*	RELEASE xTipRep
 RETURN
 **********************************************************************
 PROCEDURE LinImp
 ****************
-DO RESETPAG
-IF TI = 1
-   NumLin = PROW() + 1
-   DO RESETPAG
-	IF Quiebre1
-      		Quiebre1 = .F.
-      		NumLin = PROW()+1
-      		@ NumLin,0   SAY _Prn6a+LsCodAux+" "+AUXI->NomAux+_Prn6b
-              SELECT Temporal
-	       replace CodAux WITH LsCodAux
-	       replace NomAux WITH AUXI->NomAux
-	       replace RucAux WITH AUXI->RucAux
-	*!*	      replace AuxRuc WITH AUXI->RucAux
-	*!*	      replace RucAux WITH AUXI->RucAux
-	      SELECT Rmov
-	      NumLin = PROW()+1
-	ELSE
-	      NumLin = PROW()
-	ENDIF
+IF Quiebre1
+	Quiebre1 = .F.
+    SELECT Temporal
+    APPEND BLANK
+	REPLACE CodCta WITH LsCodCta
+	replace CodAux WITH LsCodAux
+	replace NomAux WITH AUXI->NomAux
+	replace RucAux WITH AUXI->RucAux
+	REPLACE GloDoc WITH LsCodAUX+" " + AUXI.NomAux	
+*!*	      replace AuxRuc WITH AUXI->RucAux
+*!*	      replace RucAux WITH AUXI->RucAux
+	SELECT Rmov
+ENDIF
+IF Quiebre2
+	Quiebre2 = .F.
+    SELECT Temporal
+    APPEND BLANK
+	REPLACE CodCta WITH LsCodCta
+	replace CodAux WITH LsCodAux
+	REPLACE GloDoc WITH LsCodCta + " " + LsNomCta
+	SELECT Rmov
 ENDIF
 SELECT Temporal
+APPEND BLANK
+REPLACE CodCta WITH RMOV.CodCta
+REPLACE CodAux WITH RMOV.CodAux
+
 replace CodDoc WITH Rmov.CodDoc
 replace NroDoc WITH Rmov.NroDoc
 SELECT Rmov
-@ NumLin , 0  SAY CodDoc
-@ NumLin , 6  SAY NroDoc
+*!*	@ NumLin , 0  SAY CodDoc
+*!*	@ NumLin , 6  SAY NroDoc
 DO CALIMP
 DO CASE
    CASE TpoMov = "D"
@@ -342,17 +442,17 @@ DO CASE
 ENDCASE
 SELECT Temporal
 IF Cargos >= 0
-   @ NumLin ,21  SAY Cargos       PICTURE "@Z 9999,999,999.99"
+*!*	   @ NumLin ,21  SAY Cargos       PICTURE "@Z 9999,999,999.99"
 	replace Debe WITH Cargos
 ELSE
-   @ NumLin ,21  SAY -Cargos      PICTURE "@Z 9999,999,999.99-"
+*!*	   @ NumLin ,21  SAY -Cargos      PICTURE "@Z 9999,999,999.99-"
       replace Debe WITH -Cargos
 ENDIF
 IF Abonos >= 0
-   @ NumLin ,39  SAY Abonos       PICTURE "@Z 9999,999,999.99"
+*!*	   @ NumLin ,39  SAY Abonos       PICTURE "@Z 9999,999,999.99"
      replace Haber WITH Abonos
 ELSE
-   @ NumLin ,39  SAY -Abonos      PICTURE "@Z 9999,999,999.99-"
+*!*	   @ NumLin ,39  SAY -Abonos      PICTURE "@Z 9999,999,999.99-"
      replace Haber WITH -Abonos
 ENDIF
 replace FchDoc WITH Rmov.FchDoc
@@ -366,15 +466,17 @@ replace Impusa WITH Rmov.Impusa
 replace CodAux WITH LsCodAux
 replace RucAux WITH AUXI->RucAux
 replace NomAux WITH AUXI->NomAux
-replace FchVto		WITH RMOV.FchVto
+replace FchVto WITH RMOV.FchVto
+replace Fchast WITH RMOV.FchAst
+replace Obser  WITH Captura_Obs()
 SELECT Rmov
-@ NumLin ,57  SAY FchDoc
-@ NumLin ,71  SAY FchVto
-@ NumLin ,82  SAY NroAst
-@ NumLin ,94  SAY GloDoc PICT "@S20"
-@ NumLin ,116 SAY CodOpe
+*!*	@ NumLin ,57  SAY FchDoc
+*!*	@ NumLin ,71  SAY FchVto
+*!*	@ NumLin ,82  SAY NroAst
+*!*	@ NumLin ,94  SAY GloDoc PICT "@S20"
+*!*	@ NumLin ,116 SAY CodOpe
 NumLin = PROW()+1    && Linea en blanco
-@ NumLin ,0   SAY []
+*!*	@ NumLin ,0   SAY []
 L3NumItm = L3NumItm + 1
 L3Cargos = L3Cargos + Cargos
 L3Abonos = L3Abonos + Abonos
@@ -408,6 +510,11 @@ SCATTER NAME oRmov BLANK
 SCATTER NAME oCancel BLANK 
 SCATTER NAME oLetra BLANK 
 DO WHILE CodCta+CodAux+NroDoc = LsCodCta+LsCodAux+LsNroDoc .AND. ! EOF()
+	IF !&LsFor1
+		SELECT RMOV
+		SKIP
+		LOOP
+	ENDIF
 	DO CALIMP
 	DO CASE
 		CASE NroMes > XsNroMes
@@ -569,3 +676,38 @@ ELSE
 ENDIF
 UNLOCK IN SLDO
 SELECT (LsArea_Act)
+
+** VETT:Capturamos observacion cuando es ctacte de clientes 2021/11/23 22:42:22 ** 
+*********************
+FUNCTION Captura_Obs
+********************* 
+IF !(Ll_Liqui_C AND Ll_Liqui_D)
+	RETURN ""
+ENDIF 
+LOCAL LnSelect
+IF VARTYPE(LsObs)<>'C'
+	LsObs = ""
+ENDIF 
+LnSelect=SELECT()
+IF !USED('L_C_Cobr')
+	RETURN ""
+ENDIF
+IF !USED('L_D_Cobr')
+	RETURN ""
+ENDIF
+DO CASE
+	CASE RMOV.CODCTA='12' AND RMOV.TpoMov = "H"
+		IF rmov.COdOpe='010' AND (RMOV.NroAst>='09000004' AND RMOV.NroAst>='09000012') 
+*!*				SET STEP ON 
+		ENDIF 
+		LsCodDoc=RMOV.CodDoc
+		LsNroDoc=RMOV.NroDOc
+		SELECT L_C_Cobr
+		=SEEK(LEFT(DTOS(RMOV.FchAst),6)+RMOV.CodOpe+RMOV.NroAst,"L_C_Cobr")
+		LsLiqui = Liqui
+		SELECT L_D_Cobr
+		SEEK ALLTRIM(LsCodDoc+PADR(LsNroDoc,LEN(L_d_Cobr.nrodoc))+LsLiqui)
+		LsObs = Obs		
+ENDCASE
+SELECT (LnSelect)
+RETURN LsObs

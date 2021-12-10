@@ -622,7 +622,10 @@ Define Class ExcelXml As Custom
 		lcToolTipText = ""
 		LsCodStyleTit = this.CodStyleTit &&'t00001'
 		FOR LnTit=1 TO ALEN(This.aTitles)
-			lcXmlRows = lcXmlRows + [   <Row ss:AutoFitHeight="0" ss:Height="] + Alltrim(Str(This.GridObject.HeaderHeight)) + [">] + This.crlf
+		** VETT:Mejor le asignamos una propiedad especifica para los titulos en lugar de usar la de los headers del grid 2021/12/02 22:24:54 **
+*!*				lcXmlRows = lcXmlRows + [   <Row ss:AutoFitHeight="0" ss:Height="] + Alltrim(Str(This.GridObject.HeaderHeight)) + [">] + This.crlf
+			lcXmlRows = lcXmlRows + [   <Row ss:AutoFitHeight="0" ss:Height="] + Alltrim(Str(This.GridObject.nHeightTitExcel)) + [">] + This.crlf
+			** VETT: 2021/12/02 22:24:54 **
 			lcXmlRows = lcXmlRows + [     <Cell ss:StyleID="] + LsCodStyleTit + ["><Data ss:Type="String">] + This.aTitles[LnTit] + [</Data>] + lcToolTipText + [</Cell>] + This.crlf
 			lcXmlRows = lcXmlRows + [   </Row>] + This.crlf
 		ENDFOR
@@ -1292,26 +1295,46 @@ Define Class ExcelXml As Custom
 		** VETT  12/02/2018 08:52 PM : Titulos para el caso de reportes, pueden ser hasta 4 filas adicionales, si lo sé, sería mas bonito con un arreglo (array)
 		** Verificamos si agregamos filas (rows) para titulos (Titles) o leyendas (legends) antes  de los encabezados (headers) de las columnas
 		LnTotTitles=0
-		IF VARTYPE(This.GridObject.cTitExcel1)='C' AND !EMPTY(This.GridObject.cTitExcel1)
-			LnTotTitles = LnTotTitles + 1
-			DIMENSION This.aTitles[LnTotTitles]
-			This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel1
-		ENDIF
-		IF VARTYPE(This.GridObject.cTitExcel2)='C' AND !EMPTY(This.GridObject.cTitExcel2)
-			LnTotTitles = LnTotTitles + 1
-			DIMENSION This.aTitles[LnTotTitles]
-			This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel2
-		ENDIF
-		IF VARTYPE(This.GridObject.cTitExcel3)='C' AND !EMPTY(This.GridObject.cTitExcel3)
-			LnTotTitles = LnTotTitles + 1
-			DIMENSION This.aTitles[LnTotTitles]
-			This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel3			
-		ENDIF
-		IF VARTYPE(This.GridObject.cTitExcel4)='C' AND !EMPTY(This.GridObject.cTitExcel4)
-			LnTotTitles = LnTotTitles + 1
-			DIMENSION This.aTitles[LnTotTitles]
-			This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel4		
-		ENDIF
+
+		FOR nTit = 1 TO 6
+			LsVar=[This.GridObject.cTitExcel]+STR(nTit,1)
+			IF VARTYPE(EVALUATE(LsVar))='C' AND !EMPTY(EVALUATE(LsVar))
+				LnTotTitles = LnTotTitles + 1
+				DIMENSION This.aTitles[LnTotTitles]
+				This.aTitles[LnTotTitles]	=	EVALUATE(LsVar)
+			ENDIF
+		ENDFOR
+		
+*!*			IF VARTYPE(This.GridObject.cTitExcel1)='C' AND !EMPTY(This.GridObject.cTitExcel1)
+*!*				LnTotTitles = LnTotTitles + 1
+*!*				DIMENSION This.aTitles[LnTotTitles]
+*!*				This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel1
+*!*			ENDIF
+*!*			IF VARTYPE(This.GridObject.cTitExcel2)='C' AND !EMPTY(This.GridObject.cTitExcel2)
+*!*				LnTotTitles = LnTotTitles + 1
+*!*				DIMENSION This.aTitles[LnTotTitles]
+*!*				This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel2
+*!*			ENDIF
+*!*			IF VARTYPE(This.GridObject.cTitExcel3)='C' AND !EMPTY(This.GridObject.cTitExcel3)
+*!*				LnTotTitles = LnTotTitles + 1
+*!*				DIMENSION This.aTitles[LnTotTitles]
+*!*				This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel3			
+*!*			ENDIF
+*!*			IF VARTYPE(This.GridObject.cTitExcel4)='C' AND !EMPTY(This.GridObject.cTitExcel4)
+*!*				LnTotTitles = LnTotTitles + 1
+*!*				DIMENSION This.aTitles[LnTotTitles]
+*!*				This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel4		
+*!*			ENDIF
+*!*			IF VARTYPE(This.GridObject.cTitExcel5)='C' AND !EMPTY(This.GridObject.cTitExcel5)
+*!*				LnTotTitles = LnTotTitles + 1
+*!*				DIMENSION This.aTitles[LnTotTitles]
+*!*				This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel5		
+*!*			ENDIF
+*!*			IF VARTYPE(This.GridObject.cTitExcel6)='C' AND !EMPTY(This.GridObject.cTitExcel6)
+*!*				LnTotTitles = LnTotTitles + 1
+*!*				DIMENSION This.aTitles[LnTotTitles]
+*!*				This.aTitles[LnTotTitles]	=	This.GridObject.cTitExcel6		
+*!*			ENDIF
 		
 		Text To lcXmlWorksheet_part1 Textmerge Pretext 2 Noshow
 			 <Worksheet ss:Name="<<This.SheetName>>">

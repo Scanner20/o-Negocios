@@ -1,12 +1,13 @@
-*****************************************************************************
-* Programa     : ccbnabo1.prg												*
-* Sistema      : Cuentas por Cobrar											*
-* Autor        : VETT														*
-* Creaci¢n     : 13/03/95													*
-* Proposito    : Ingreso de Notas de Credito y Otros Abonos					*
-*				  VETT 02/09/2003 Adaptacion para VFP 7					 	*
-* Actualizacion: VETT 23/11/2003											*
-*****************************************************************************
+*******************************************************************************
+* Programa     : ccbnabo1.prg												               *
+* Sistema      : Cuentas por Cobrar											            *
+* Autor        : VETT														               *
+* Creaci¢n     : 13/03/95													               *
+* Proposito    : Ingreso de Notas de Credito y Otros Abonos					      *
+*				  VETT 02/09/2003 Adaptacion para VFP 7					 	         *
+* Actualizacion: VETT 23/11/2003											               *
+* Actualizacion: VETT 12/11/2021 9:26am - SFS Sunat TXT .NOT .DET .TRI 			*								               *
+*******************************************************************************
 IF !verifyvar('GsRegirV','C')
 	return
 ENDIF

@@ -5185,18 +5185,23 @@ RETURN retorno
 *!      Called by: GER_S_VB.PRG
 *!               : VCONTROL()         (function in belcsoft.PRG)
 *!               : _MES()             (function in GER_S_VB.PRG)
-*!
+*!** VETT:acepta numero de mes en  tipo caracter 2021/12/02 23:51:11 **
 *!*****************************************************************************
 FUNC mes
 PARAMETER parametro1, parametro2
 PRIVATE nummes , mestexto , strtipo
-
-IF varTYPE(Parametro1)='D' OR varTYPE(Parametro1)='T'
-   nummes = MONTH(parametro1)
-ELSE
-   nummes = parametro1
-ENDIF
-
+DO CASE 
+	CASE varTYPE(Parametro1)='D' OR varTYPE(Parametro1)='T'
+		nummes = MONTH(parametro1)
+	CASE VARTYPE(Parametro1)="C" 
+		IF BETWEEN(VAL(Parametro1),0,13)
+			nummes = VAL(parametro1)
+		ELSE
+			nummes = -1	
+		ENDIF	
+	OTHER
+		NumMes = Parametro1
+ENDCASE
 DO CASE
 CASE nummes = 0
    mestexto = ("apertura")

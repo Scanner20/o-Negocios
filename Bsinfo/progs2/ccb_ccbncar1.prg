@@ -8,6 +8,7 @@
 * Actualizacion: VETT 28/03/00 Adhesivos S.A.								*
 *				  VETT 02/09/2003 Adaptacion para VFP 7						*
 * Actualizacion: VETT 23/11/2003 CEVA										*
+* Actualizacion: VETT 12/11/2021 9:26am - SFS Sunat TXT .NOT .DET .TRI 		*
 *****************************************************************************
 IF !verifyvar('GsRegirV','C')
 	return

@@ -3638,12 +3638,13 @@ CLOSE DATA
 RETURN
 *!*********************************************************************
 *!
-*!      Funcion:   MES
+*!      Funcion:   MES_OLD  antes : MES
 *!
 *!
 *!
+** VETT:vamos a ir prescindiendo de las funciones de FXgen_2 gradualmente 2021/12/02 23:52:50 ** 
 *!*********************************************************************
-FUNC MES
+FUNC MES_old
 PARAMETER Parametro1, Parametro2
 PRIVATE NumMes , MesTexto , StrTipo
 

@@ -11,7 +11,7 @@ IF !USED('L_C_Cobr')
 	IF FILE(ADDBS(goentorno.TsPathcia)+'Liq_Cob.dbf')
 		SELECT 0
 		USE Liq_Cob ORDER LIQ_AST ALIAS L_C_Cobr	&& LIQUI
-		Ll_Liqui=.T.
+		Ll_Liqui_C=.T.
 	ENDIF	
 ENDIF
 Ll_Liqui_D=.F.
@@ -35,6 +35,13 @@ INC = 0   && SOLES
 SELECT RMOV
 SET FILTER TO LEFT(CODOPE,1)<>"9"
 *************************************************
+** VETT:Guardamos valores iniciales   2021/12/09 16:29:40 ** 
+*!*	PRIVATE XsNroMes,GdFecha
+GdFechaIni = GdFecha   
+
+** VETT: 2021/12/09 16:29:40 **
+
+
 XiCodMon = 1
 XsNroMes = TRANSF(_MES,"@L ##")
 XsClfAux = SPACE(LEN(ClfAux))
@@ -48,11 +55,19 @@ i        = 1
 XsCtaDes = SPACE(LEN(CTAS.CodCta))
 XsCtaHas = SPACE(LEN(CTAS.CodCta))
 STORE '' TO LsNomCtaDes,LsNomCtaHAs
+STORE [] TO XsNomClfAux , XsNomAux,LsFchIni,LsFchFin,Titulo
+
 
 XnCodDiv = 1+GnDivis
 Store [] TO XsCodDiv
 
 DO FORM cbd_cbdrc003
+
+** VETT: 2021/12/09 16:29:40 **
+XsNroMes	= TRANSF(_MES,"@L ##")
+GdFechaIni  = GdFecha 
+** VETT: 2021/12/09 16:29:40 **
+
 RETURN
 
 ********************
@@ -110,6 +125,14 @@ XTipRep = 'XLS'
 
 *!*	DO F0PRINT  WITH XTipRep
 
+** VETT: 2021/12/09 16:29:40 **
+IF VAL(XsNroMes) < 12
+    GdFecha=CTOD("01/"+STR(VAL(XsNroMes)+1,2,0)+"/"+STR(_Ano,4,0))-1
+ELSE
+    GdFecha=CTOD("31/12/"+STR(_Ano,4,0))
+ENDIF
+** VETT: 2021/12/09 16:29:40 **
+
 IF UltTecla = k_esc
 	RETURN
 ENDIF
@@ -130,13 +153,13 @@ Tit_SIzq = GsNomCia
 Tit_IIzq = GsDirCia
 Tit_SDer = "FECHA : "+DTOC(DATE())
 Tit_IDer = ""
-Titulo   = "BALANCE DE CUENTA CORRIENTE AL "+DTOC(GdFecha)
+Titulo   = "ANALISIS DE CUENTA CORRIENTE AL "+DTOC(GdFecha)
 SubTitulo= ''
 EN1    = "(EXPRESADO EN "+IIF(XiCodMon = 1,"NUEVOS SOLES","DOLARES AMERICANOS")+")"
-En2    = IIF(LsCtas,'Desde:'+XsCtaDes+' '+LsNomCtaDes,LsNomCtaDes)
-En3    = IIF(LsCtas,'Hasta:'+XsCtaHasT+' '+LsNomCtaHas,'')
-En4    = IIF(XnCodDiv=0,'',vDivision(XnCodDiv))
-En5    = ""
+En2    = IIF(LsCtas,'DESDE:'+XsCtaDes +' - '+LsNomCtaDes,'')
+En3    = IIF(LsCtas,'HASTA:'+XsCtaHasT+' - '+LsNomCtaHas,'')
+En4    = IIF(XnCodDiv=0,'',"  DIVISIÓN : "+vDivision(XnCodDiv))
+En5    = XsCodAux+ "  " + XsNomAux +"  "+IIF(XiTpoMov=1,"MOVIMIENTO MENSUAL  ","MOVIMIENTO TOTAL  ")
 IF XsTipRep=1
 	En6 = "******** *************** ************** ********** ******** ******** *************************** ************* ************ ************ ************** **************"
 	En7 = "               No.                                 FECHA    FECHA                                         US$                                   SALDO   OBSERVACION   "
@@ -279,10 +302,15 @@ nImport   = 0
 				 	REPLACE CodCta WITH CTAS.CodCta
 				 	replace CodAux WITH LsCodAux
 	*!*				 	replace NroDoc WITH LsNroDoc
-				 	replace GLODOC WITH PADL("*** TOTAL DOCUMENTO: " + LsNroDoc,LEN(GloDoc))
+				 	replace GLODOC WITH PADC("*** TOTAL DOCUMENTO: " + LsNroDoc,LEN(GloDoc))
 				 	replace Debe WITH L2Cargos
 				 	Replace Haber WITH L2Abonos
-				 	replace Saldo WITH L2Cargos -	L2Abonos		 		 
+				 	replace Saldo WITH L2Cargos -	L2Abonos		 
+				 	** VETT: ** Linea separadora en blanco  2021/12/10 10:00:42 ** 
+				 	APPEND BLANK
+					replace CodCta WITH LsCodCta
+					replace CodAux WITH LsCodAux
+					** VETT:   2021/12/10 10:00:42 **  		 
 			 	ENDIF
 			 	SELECT rmov
 			 	** VETT  06/12/2012 01:45 PM : Fin 
@@ -337,14 +365,19 @@ nImport   = 0
 				ENDIF
 				** VETT  06/12/2012 01:40 PM : Total x Auxiliar 
 				SELECT temporal
-	              APPEND BLANK
-	              =generasecuencia(0,'006',ALIAS())
-	              REPLACE CodCta WITH CTAS.CodCta
-	              replace GloDoc WITH PADL("** TOTAL "+LsCodAux+" **",LEN(GloDoc))
-	              replace CodAux WITH LsCodAux
+	            APPEND BLANK
+	            =generasecuencia(0,'006',ALIAS())
+	            REPLACE CodCta WITH CTAS.CodCta
+	            replace GloDoc WITH PADC("** TOTAL "+LsCodAux+" **",LEN(GloDoc))
+	            replace CodAux WITH LsCodAux
 			 	replace Debe WITH L1Cargos
 			 	Replace Haber WITH L1Abonos
 			 	replace Saldo WITH L1SalAct
+				** VETT: ** Linea separadora en blanco  2021/12/10 10:00:42 ** 
+				APPEND BLANK
+				replace CodCta WITH LsCodCta
+				replace CodAux WITH LsCodAux
+				** VETT:   2021/12/10 10:00:42 **  	
 			 	SELECT rmov
 			 	** VETT  06/12/2012 01:45 PM : Fin 
 				NumLin = PROW()+1
@@ -402,10 +435,16 @@ nImport   = 0
 	        APPEND BLANK
 	        =generasecuencia(0,'007',ALIAS())
 	        replace CodCta WITH CTAS.CodCta
-	        replace GLODOC WITH PADL("** TOTAL CUENTA "+LsUltCta+" **",LEN(GloDoc))
+	        replace GLODOC WITH PADC("** TOTAL CUENTA "+LsUltCta+" **",LEN(GloDoc))
 		 	replace Debe WITH LaCargos
 		 	Replace Haber WITH LaAbonos
 		 	replace Saldo WITH LaSalAct
+		 	** VETT: ** Linea separadora en blanco  2021/12/10 10:00:42 ** 
+		 	APPEND BLANK
+			replace CodCta WITH LsCodCta
+			replace CodAux WITH LsCodAux
+			** VETT:   2021/12/10 10:00:42 **  	
+
 		 	** VETT  06/12/2012 01:45 PM : Fin 
 		 	SELECT rmov
 		ENDIF
@@ -454,7 +493,7 @@ nImport   = 0
         APPEND BLANK
         =generasecuencia(0,'008',ALIAS())
 *!*	        replace CodCta WITH CTAS.CodCta
-        replace GLODOC WITH PADL("** TOTAL GENERAL "+" **",LEN(GloDoc))
+        replace GLODOC WITH PADC("** TOTAL GENERAL "+" **",LEN(GloDoc))
 	 	replace Debe WITH L0Cargos
 	 	Replace Haber WITH L0Abonos
 	 	replace Saldo WITH L0SalAct
@@ -489,9 +528,7 @@ IF LsQuiCta AND lsCtas
 	 =generasecuencia(0,'001',ALIAS())
 	 replace CodCta  WITH CTAS.CodCta
      replace CodAux WITH LsCodAux
-     replace Nrodoc WITH CODCTA+[ ]+CTAS.NomCta
-     LsCadena1=RTRIM(CODCTA+[ ]+CTAS.NomCta)
-     replace NroRef WITH RIGHT(LsCadena1,LEN(LsCadena1)-LEN(NroDoc))
+     replace Glodoc WITH CODCTA+[ ]+CTAS.NomCta
  	 SELECT RMOV
  	 ** VETT  06/12/2012 06:05 PM : Fin 
 
@@ -508,9 +545,8 @@ IF Quiebre1
 	    replace CodAux WITH LsCodAux
 	    replace NomAux WITH AUXI->NomAux
 	    replace RucAux WITH AUXI->RucAux
-	    replace NroDoc WITH AUXI->RucAux+[ ]+AUXI->NomAux
-	    LsCadena1=RTRIM(AUXI->RucAux+[ ]+AUXI->NomAux)
-	    replace NroRef WITH RIGHT(LsCadena1,LEN(LsCadena1)-LEN(NroDoc))
+	    replace GloDoc WITH AUXI->RucAux+[ ]+AUXI->NomAux
+
  	 SELECT RMOV
  	 ** VETT  06/12/2012 06:05 PM : Fin 
 ENDIF
@@ -795,16 +831,19 @@ RETURN
 *********************
 FUNCTION Captura_Obs
 ********************* 
+IF !(Ll_Liqui_C AND Ll_Liqui_D)
+	RETURN ""
+ENDIF 
 LOCAL LnSelect
 IF VARTYPE(LsObs)<>'C'
 	LsObs = ""
 ENDIF 
 LnSelect=SELECT()
 IF !USED('L_C_Cobr')
-	RETURN
+	RETURN ""
 ENDIF
 IF !USED('L_D_Cobr')
-	RETURN
+	RETURN ""
 ENDIF
 DO CASE
 	CASE CODCTA='12' AND TpoMov = "H"
