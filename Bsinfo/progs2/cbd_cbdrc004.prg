@@ -103,7 +103,7 @@ SEEK XsCodCta
 XsNomCta = TRIM(NomCta)
 SET ORDER TO CTAS03
 SEEK "SS"+XsClfAux
-DO WHILE AftMov+PidAux+ClfAux = "SS"+XsClfAux
+DO WHILE AftMov+PidAux+ClfAux = "SS"+XsClfAux AND !EOF()
 	IF CodCta = TRIM(XsCodCta)         &&   .AND. ! INLIST(CodCta,"12101")
 		IF NumEle = MaxEle
         	MaxEle = MaxEle + 10
@@ -191,7 +191,7 @@ L0Abonos = 0
 *!*	   GOTO RegIni
 *!*	   NumPag   = 0
 Inicio   = .T.
-DO WHILE ClfAux+CodAux = Llave .AND. ! Cancelar
+DO WHILE ClfAux+CodAux = Llave .AND. ! Cancelar AND !EOF()
       **** Quiebre por Auxiliar ****
 	LsCodAux = CodAux
 *!*	      SET DEVICE TO SCREEN
@@ -221,7 +221,7 @@ DO WHILE ClfAux+CodAux = Llave .AND. ! Cancelar
 		*** Buscando Movimientos para el auxiliar seleccionado ***
 		SELECT RMOV
 		SEEK LsCodCta+LsCodAux
-		DO WHILE CodCta+CodAux = LsCodCta+LsCodAux .AND. ! Cancelar
+		DO WHILE CodCta+CodAux = LsCodCta+LsCodAux   AND !EOF() .AND. ! Cancelar
 			IF !&LsFor1
 				SELECT RMOV
 				SKIP
@@ -234,7 +234,7 @@ DO WHILE ClfAux+CodAux = Llave .AND. ! Cancelar
             L3Abonos = 0
             Quiebre3 = .T.
             DO CHECKDOC
-			DO WHILE CodCta+CodAux+NroDoc = LsCodCta+LsCodAux+LsNroDoc .AND. ! Cancelar
+			DO WHILE CodCta+CodAux+NroDoc = LsCodCta+LsCodAux+LsNroDoc  AND !EOF() .AND. ! Cancelar 
 				IF !&LsFor1
 					SELECT RMOV
 					SKIP

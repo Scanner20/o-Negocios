@@ -29,7 +29,7 @@ GlRegenerAuto	= .F.
 ** Variables de compatibilidad con librerias de versiones anterirores
 GsSistema = [CONTAB]
 GsBusca   = "CbdSelec"
-GsProgram  = PROGRAM()
+GsProgram  = PROGRAM(1)
 EXTERNAL ARRAY VecOpc
 set century on
 DIMENSION vCdMDos(1,1)

@@ -159,7 +159,7 @@ EN1    = "(EXPRESADO EN "+IIF(XiCodMon = 1,"NUEVOS SOLES","DOLARES AMERICANOS")+
 En2    = IIF(LsCtas,'DESDE:'+XsCtaDes +' - '+LsNomCtaDes,'')
 En3    = IIF(LsCtas,'HASTA:'+XsCtaHasT+' - '+LsNomCtaHas,'')
 En4    = IIF(XnCodDiv=0,'',"  DIVISIÓN : "+vDivision(XnCodDiv))
-En5    = XsCodAux+ "  " + XsNomAux +"  "+IIF(XiTpoMov=1,"MOVIMIENTO MENSUAL  ","MOVIMIENTO TOTAL  ")
+En5    = XsCodAux+ "  " + XsNomAux +IIF(EMPTY(XsCodAux),"","  -  ")+IIF(XiTpoMov=1,"MOVIMIENTO MENSUAL  ","MOVIMIENTO TOTAL  ")
 IF XsTipRep=1
 	En6 = "******** *************** ************** ********** ******** ******** *************************** ************* ************ ************ ************** **************"
 	En7 = "               No.                                 FECHA    FECHA                                         US$                                   SALDO   OBSERVACION   "
@@ -702,7 +702,7 @@ PROCEDURE CHECKDOC
 RegAct = RECNO()
 SalAct = 0
 UltMes = "  "
-DO WHILE CodCta+CodAux+NroDoc = LsCodCta+LsCodAux+LsNroDoc .AND. ! Cancelar
+DO WHILE CodCta+CodAux+NroDoc = LsCodCta+LsCodAux+LsNroDoc  AND !EOF() .AND. ! Cancelar
 	IF !&LsFor1
 		SELECT RMOV
 		SKIP

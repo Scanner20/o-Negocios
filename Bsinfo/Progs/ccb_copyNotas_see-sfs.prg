@@ -199,7 +199,7 @@ FUNCTION Envia_Nota
 PARAMETERS PcAliasCAB, PcAliasDET
 IF HasAccess('EnvioSunat')
 	IF INLIST(THISFORM.ObjRefTran.XsCodDoc,'FACT','BOLE','N/C','N/D')
-		LsTpoDoc=IFF(INLIST(THISFORM.ObjRefTran.XsCodDoc,'FACT','BOLE','N/D'),'CARGO','ABONO')
+		LsTpoDoc=IIF(INLIST(THISFORM.ObjRefTran.XsCodDoc,'FACT','BOLE','N/D'),'CARGO','ABONO')
 	
 		IF SEEK(LsTpoDoc+THISFORM.ObjRefTran.XsCodDoc+thisform.objreftran.XsNroDoc,'GDOC') AND !INLIST(GDOC.FlgEst,'A')
 
