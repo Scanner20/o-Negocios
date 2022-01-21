@@ -608,6 +608,24 @@ REPLACE TpoCmb WITH XfTpoCmb
 REPLACE Glosa1 WITH XsGlosa1
 REPLACE Glosa2 WITH XsGlosa2
 REPLACE Glosa3 WITH XsGlosa3
+
+IF cvctrl=[C]
+	IF VerifyVar('UserCrea','','CAMPO',"GDOC")
+		REPLACE UserCrea WITH GoEntorno.User.Login IN GDOC
+	ENDIF
+	IF VerifyVar('FchCrea','','CAMPO',"GDOC")
+		REPLACE FchCrea WITH DATETIME() IN GDOC
+	ENDIF
+ELSE
+
+	IF VerifyVar('UserModi','','CAMPO',"GDOC")
+		REPLACE UserModi WITH GoEntorno.User.Login IN GDOC
+	ENDIF
+	IF VerifyVar('FchModi','','CAMPO',"GDOC")
+		REPLACE FchModi WITH DATETIME() IN GDOC
+	ENDIF
+ENDIF
+
 ** datos del Browse **
 PRIVATE Consulta,Modifica,Adiciona,Db_Pinta
 Consulta = .F.

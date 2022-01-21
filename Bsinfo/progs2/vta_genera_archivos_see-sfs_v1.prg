@@ -13,6 +13,7 @@ LsExtFile	=ICASE(INLIST(LsCodDoc,'01','03'),".CAB",INLIST(LsCodDoc,'07','08'),".
 
 LsNomArc	=GsRucCia+'-'+LsCodDoc+'-'+LsSerie+'-'+RIGHT('00000000'+RTRIM(SUBSTR(PoDataCab.NroDoc,4)),8)+LsExtFile	&&  '.CAB'
 
+LlHayCuotas	= .F. 
 
 DO Genera_Cadena_CAB WITH  PoDataCab,PsRuta
 DO Genera_Cadena_DET WITH  PoDataDet,PsRuta,PoDataCab
@@ -23,11 +24,15 @@ DO CASE
 ENDCASE
 
 LsMensaje=""
-LsMensaje = LsMensaje + LsNomArc+'.CAB' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.CAB'),' [OK]',' [ERROR]') + CRLF  
-LsMensaje = LsMensaje + LsNomArc+'.DET' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.DET'),' [OK]',' [ERROR]') + CRLF  
-LsMensaje = LsMensaje + LsNomArc+'.ACA' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.ACA'),' [OK]',' [ERROR]') + CRLF  
-LsMensaje = LsMensaje + LsNomArc+'.LEY' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.LEY'),' [OK]',' [ERROR]') + CRLF  
-LsMensaje = LsMensaje + LsNomArc+'.TRI' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.TRI'),' [OK]',' [ERROR]') + CRLF  
+LsMensaje = LsMensaje + JUSTSTEM(LsNomArc)+'.CAB' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.CAB'),' [OK]',' [ERROR]') + CRLF  
+LsMensaje = LsMensaje + JUSTSTEM(LsNomArc)+'.DET' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.DET'),' [OK]',' [ERROR]') + CRLF  
+LsMensaje = LsMensaje + JUSTSTEM(LsNomArc)+'.ACA' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.ACA'),' [OK]',' [ERROR]') + CRLF  
+LsMensaje = LsMensaje + JUSTSTEM(LsNomArc)+'.LEY' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.LEY'),' [OK]',' [ERROR]') + CRLF  
+LsMensaje = LsMensaje + JUSTSTEM(LsNomArc)+'.TRI' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.TRI'),' [OK]',' [ERROR]') + CRLF  
+LsMensaje = LsMensaje + JUSTSTEM(LsNomArc)+'.PAG' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.PAG'),' [OK]',' [ERROR]') + CRLF 
+IF LlHayCuotas	 
+	LsMensaje = LsMensaje + JUSTSTEM(LsNomArc)+'.DPA' + IIF(FILE(Lsruta+JUSTSTEM(LsNomArc)+'.DPA'),' [OK]',' [ERROR]') + CRLF 
+ENDIF
 
 IF "ERROR"$LsMensaje
 	LsMensaje = LsMensaje +  'Generación de archivos presenta algunos problemas, revisar en la ruta:'+CRLF
@@ -245,6 +250,69 @@ PARAMETERS PoDataCab,PsRuta
 			=fput(LnControlArc,LsCadena)    
 			=fclose(LnControlArc)			
 
+			LsNomArc=JUSTSTEM(LsNomArc)+".PAG"
+			IF FILE(Lsruta+LsNomArc)
+				DELETE FILE (Lsruta+LsNomArc)
+			ENDIF
+
+			LnControlArc = fcreate(Lsruta+LsNomArc)
+
+			if LnControlArc<0
+			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Tributos Generales')
+			   RETURN .f.
+			endif
+			LsCndPgo=PoDataCab.CndPgo
+			LnDiaVto=PoDataCab.Diavto
+			LsFchVto=IIF(!EMPTY(PoDataCab.FchVto),TRANSFORM(DTOS(PoDataCab.FchVto), "@R ####-##-##"),"-")			
+			LsFmaPgo=ICASE(LsCndPgo="C/E","Contado",LnDiavto>0 and !empty(LsCndPgo),"Credito")
+			LsMoneda=ICASE(PoDataCab.CodMon=1,'PEN',PoDataCab.CodMon=2,'USD','')	
+			
+			LsCadena = LsFmaPgo												+"|"	
+			LsCadena = LsCadena + ALLTRIM(STR(LfTotVta,15,2))				+"|"
+			LsCadena = LsCadena + LsMoneda									+"|"
+			
+			=fput(LnControlArc,LsCadena)    
+			=fclose(LnControlArc)			
+
+			IF LsFmaPgo="Credito"
+				LsNomArc=JUSTSTEM(LsNomArc)+".DPA"
+				IF FILE(Lsruta+LsNomArc)
+					DELETE FILE (Lsruta+LsNomArc)
+				ENDIF
+
+				LnControlArc = fcreate(Lsruta+LsNomArc)
+
+				if LnControlArc<0
+					=messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Tributos Generales')
+					RETURN .f.
+				endif
+
+				*Verificamos si hay sistema de cuotas*
+				
+				IF verifyvar('VTARCUOT','TABLE','INDBC','P'+GsCodCia+STR(_ANO,4,0))
+					IF !USED("RCUO")
+						goentorno.open_dbf1('ABRIR','VTARCUOT','RCUO','FACT','')
+					ENDIF
+					LlHayCuotas	= .T. 
+					SELECT RCUO
+					=SEEK(PoDataCab.TpoDoc+PoDataCab.CodDoc+PoDataCab.NroDoc,'RCUO','FACT')
+					SCAN WHILE TpoRef+CodRef+NroRef=PoDataCab.TpoDoc+PoDataCab.CodDoc+PoDataCab.NroDoc 
+						LsFchVto=TRANSFORM(DTOS(FchCob), "@R ####-##-##")
+
+						LsCadena = ALLTRIM(STR(Import,15,2))							+"|"	
+						LsCadena = LsCadena + LsFchVto									+"|"
+						LsCadena = LsCadena + LsMoneda									+"|"
+
+						=fput(LnControlArc,LsCadena) 
+					ENDSCAN
+				ELSE
+					LsCadena = ALLTRIM(STR(LfTotVta,15,2))							+"|"	
+					LsCadena = LsCadena + LsFchVto									+"|"
+					LsCadena = LsCadena + LsMoneda									+"|"
+					=fput(LnControlArc,LsCadena) 
+				ENDIF
+				=fclose(LnControlArc)			
+			ENDIF
 	OTHERWISE
 			LsFecha		= TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##")
 			LsCadena =				ALLTRIM(TRANSFORM(PoDataCab.TpoVta,'@L 99'))						+"|"
@@ -276,7 +344,7 @@ RETURN
 PROCEDURE Genera_Cadena_DET
 PARAMETERS PoDataDet,PsRuta,PoDataCab
 
-	LOCAL LoDatAdm as dataadmin OF SYS(5)+'\aplvfp\classgen\vcxs\dosvr.vcx" 
+	LOCAL LoDatAdm as dataadmin OF SYS(5)+'\aplvfp\classgen\vcxs\dosvr.vcx' 
 	LoDatAdm = CREATEOBJECT('Dosvr.DataAdmin')
 	
 	LoDatAdm.Obj2Cur(PoDataDet,'cDVta')
