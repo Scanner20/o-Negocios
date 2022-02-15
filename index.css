@@ -20,7 +20,7 @@ p,
 li {
   font-family: "Roboto Mono";  
   font-size: 18px;
-  color: rgb(139, 83, 46);
+  color: rgb(230,159,115);
 }
  
  
@@ -82,6 +82,7 @@ h2 {
     color: rgb(129,247,216);  
     /*Keyword*/
     color: rgb(189, 136, 235);
+    color: rgb(94, 30, 161);
     /*Constant*/
     color: rgb(243,247,129);
     /*Normal*/
@@ -92,4 +93,5 @@ h2 {
     color: rgb(247,129,159);
     /*Variable*/
     color: rgb(249,145,87);
+    color: rgb(230,159,115);
   } 
