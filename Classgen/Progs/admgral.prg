@@ -7,16 +7,20 @@
 *-- Class:        cmdaceptar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:50:05 PM
+*-- Time Stamp:   09/15/09 12:07:03 AM
 *
 DEFINE CLASS cmdaceptar AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\aceptar.bmp"
+	Picture = "..\..\grafgen\iconos\button_ok.bmp"
 	DisabledPicture = "..\..\grafgen\iconos\aceptar_disable.bmp"
 	Caption = "\<Aceptar"
-	PicturePosition = 7
+	Enabled = .T.
+	Style = 0
+	ToolTipText = "Aceptar"
+	SpecialEffect = 0
+	PicturePosition = 14
 	Name = "cmdaceptar"
 
 
@@ -59,16 +63,18 @@ ENDDEFINE
 *-- Class:        cmdanular (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:51:02 PM
+*-- Time Stamp:   09/23/10 01:07:14 PM
 *
 DEFINE CLASS cmdanular AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\anular.bmp"
+	Picture = "..\..\grafgen\iconos\anular.ico"
 	DisabledPicture = "..\..\grafgen\iconos\anular_disable.bmp"
 	Caption = "\<Anular"
-	PicturePosition = 7
+	Enabled = .T.
+	ToolTipText = "Anular registro"
+	PicturePosition = 14
 	Name = "cmdanular"
 
 
@@ -172,18 +178,19 @@ ENDDEFINE
 *-- Class:        cmdbuscar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:52:03 PM
+*-- Time Stamp:   07/05/10 10:02:01 AM
 *-- buscar elemento de cabecera
 *
 DEFINE CLASS cmdbuscar AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\buscar.bmp"
+	Picture = "..\..\grafgen\iconos\find.bmp"
 	DisabledPicture = "..\..\grafgen\iconos\buscar_disable.bmp"
 	Caption = "\<Buscar"
+	Enabled = .T.
 	ToolTipText = "Buscar elemento"
-	PicturePosition = 7
+	PicturePosition = 14
 	Name = "cmdbuscar"
 	xreturn = .F.
 
@@ -203,18 +210,20 @@ ENDDEFINE
 *-- Class:        cmdcancelar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:52:09 PM
+*-- Time Stamp:   09/15/09 12:05:13 AM
 *-- cancelar cambios efectuados
 *
 DEFINE CLASS cmdcancelar AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\cancelar.bmp"
-	DisabledPicture = "..\..\grafgen\iconos\cancelar_disable.bmp"
+	Picture = "..\..\grafgen\iconos\button_cancel.bmp"
+	DisabledPicture = "..\..\grafgen\iconos\button_cancel_disable.bmp"
 	Caption = "\<Cancelar"
+	Enabled = .T.
 	ToolTipText = "Ignorar cambios"
-	PicturePosition = 7
+	SpecialEffect = 0
+	PicturePosition = 14
 	Name = "cmdcancelar"
 
 
@@ -233,18 +242,18 @@ ENDDEFINE
 *-- Class:        cmdcomentarios (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:52:13 PM
+*-- Time Stamp:   09/23/10 12:57:06 PM
 *
 DEFINE CLASS cmdcomentarios AS cmdbase
 
 
 	Height = 40
 	FontSize = 7
-	Picture = "..\..\grafgen\iconos\comentarios.bmp"
+	Picture = "..\..\grafgen\iconos\comentarios.ico"
 	DisabledPicture = "..\..\grafgen\iconos\comentarios_disable.bmp"
 	Caption = "Comentarios"
 	ToolTipText = "Comentarios"
-	PicturePosition = 7
+	PicturePosition = 14
 	*-- Es el ID de la tabla MComentarios
 	idcomentario = ("")
 	Name = "cmdcomentarios"
@@ -320,19 +329,30 @@ ENDDEFINE
 *-- Class:        cmdeliminar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:53:13 PM
+*-- Time Stamp:   09/23/10 03:41:07 PM
 *-- eliminar elemento de cabecera
 *
 DEFINE CLASS cmdeliminar AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\eliminar.bmp"
+	Picture = "..\..\grafgen\iconos\eliminar.ico"
 	DisabledPicture = "..\..\grafgen\iconos\eliminar_disable.bmp"
 	Caption = "\<Eliminar"
-	ToolTipText = "Eliminar elemento"
-	PicturePosition = 7
+	ToolTipText = "Eliminar registro"
+	PicturePosition = 14
 	Name = "cmdeliminar"
+
+
+	PROCEDURE activado
+		LsProceso=thisform.Name+'_Eliminar'
+		IF HasAccess(LsProceso)
+			RETURN .T.
+		ELSE
+			MESSAGEBOX('Acceso denegado / Access denied',0+16,'ATENCION!!! / WARNING !!!')
+			RETURN .F.
+		ENDIF
+	ENDPROC
 
 
 	PROCEDURE Click
@@ -397,7 +417,7 @@ ENDDEFINE
 *-- Class:        cmdgrabar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:54:10 PM
+*-- Time Stamp:   09/23/10 01:31:03 PM
 *-- guardar cambios efectuados
 *
 DEFINE CLASS cmdgrabar AS cmdbase
@@ -405,12 +425,40 @@ DEFINE CLASS cmdgrabar AS cmdbase
 
 	Height = 46
 	Width = 46
-	Picture = "..\..\grafgen\iconos\motif\alien floppy drive (3.5)16x16.bmp"
-	DisabledPicture = "..\..\grafgen\iconos\grabar_disable.bmp"
+	Picture = "..\..\grafgen\iconos\grabar.ico"
+	DisabledPicture = "..\..\grafgen\iconos\vista\common\ico\24x24\save_green_24_d.ico"
 	Caption = "\<Grabar"
+	Enabled = .T.
 	ToolTipText = "Grabar cambios"
-	PicturePosition = 7
+	PicturePosition = 14
 	Name = "cmdgrabar"
+
+
+	PROCEDURE activado
+		DO CASE
+			CASE Thisform.xReturn='A'
+				LsProceso=thisform.Name+'_Modificar'
+			CASE Thisform.xReturn='I'
+				LsProceso=thisform.Name+'_Adicionar'
+			CASE Thisform.xReturn='E'
+				LsProceso=thisform.Name+'_Eliminar'
+		ENDCASE
+		IF HasAccess(LsProceso)
+			** Pide Password ** 
+			IF INLIST(Thisform.xReturn,'A','E') AND HasAccess('PideClaveTransaccion') AND UPPER(TRIM(goentorno.user.groupname))<>'MASTER'
+				LsPassOK = .f.
+				DO FORM adm_PideClaveTransaccion TO LsPassOK
+				IF !LsPassOK
+					MESSAGEBOX('Clave de acceso a transaccion errada / Wrong access transaction password',0+16,'ATENCION!!! / WARNING !!!')
+					RETURN .F.
+				ENDIF
+			ENDIF
+			RETURN .T.
+		ELSE
+			MESSAGEBOX('Acceso denegado / Access denied',0+16,'ATENCION!!! / WARNING !!!')
+			RETURN .F.
+		ENDIF
+	ENDPROC
 
 
 ENDDEFINE
@@ -459,16 +507,17 @@ ENDDEFINE
 *-- Class:        cmdimportar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:55:02 PM
+*-- Time Stamp:   09/23/10 01:56:10 PM
 *
 DEFINE CLASS cmdimportar AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\importar.bmp"
+	Picture = "..\..\grafgen\iconos\importar.ico"
 	DisabledPicture = "..\..\grafgen\iconos\importar_disable.bmp"
 	Caption = "\<Importar"
-	PicturePosition = 7
+	ToolTipText = "Importar"
+	PicturePosition = 14
 	Name = "cmdimportar"
 
 
@@ -482,17 +531,22 @@ ENDDEFINE
 *-- Class:        cmdimprimir (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:55:08 PM
+*-- Time Stamp:   02/12/18 10:24:12 AM
 *-- imprimir reportes, etiquetas etc.
 *
 DEFINE CLASS cmdimprimir AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\imprimir.bmp"
-	DisabledPicture = "..\..\grafgen\iconos\imprimir_disable.bmp"
+	Picture = "..\..\grafgen\iconos\printer1.bmp"
+	DisabledPicture = "..\..\grafgen\iconos\printer_off.bmp"
 	Caption = "\<Imprimir"
-	PicturePosition = 7
+	Enabled = .T.
+	Style = 0
+	ToolTipText = "Imprimir, ver en pantalla, exportar a otros formatos (excel, pdf, txt, csv)"
+	SpecialEffect = 0
+	PicturePosition = 14
+	ColorSource = 4
 	Name = "cmdimprimir"
 
 
@@ -504,6 +558,29 @@ DEFINE CLASS cmdimprimir AS cmdbase
 ENDDEFINE
 *
 *-- EndDefine: cmdimprimir
+**************************************************
+
+
+**************************************************
+*-- Class:        cmdinicio (k:\aplvfp\classgen\vcxs\admgral.vcx)
+*-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- BaseClass:    commandbutton
+*-- Time Stamp:   09/25/10 02:58:14 AM
+*
+DEFINE CLASS cmdinicio AS cmdbase
+
+
+	Picture = "..\..\grafgen\iconos\crystallized\home.ico"
+	DisabledPicture = "..\..\grafgen\iconos\crystallized\home_disable.ico"
+	Caption = "Inicio"
+	ToolTipText = "Comenzar de nuevo"
+	PicturePosition = 14
+	Name = "cmdinicio"
+
+
+ENDDEFINE
+*
+*-- EndDefine: cmdinicio
 **************************************************
 
 
@@ -536,23 +613,36 @@ ENDDEFINE
 *-- Class:        cmdmodificar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:55:14 PM
+*-- Time Stamp:   04/20/16 09:38:01 AM
 *-- modificar elementos de cabecera
 *
 DEFINE CLASS cmdmodificar AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\modificar.bmp"
+	Picture = "..\..\grafgen\iconos\modificar.ico"
 	DisabledPicture = "..\..\grafgen\iconos\modificar_disable.bmp"
 	Caption = "\<Modificar"
-	ToolTipText = "Modificar elemento"
-	PicturePosition = 7
+	Enabled = .T.
+	ToolTipText = "Modificar registro"
+	PicturePosition = 14
 	Name = "cmdmodificar"
 
 
 	PROCEDURE Click
 		*thisform.lcTipOpe = this.name
+	ENDPROC
+
+
+	PROCEDURE activado
+		LsProceso1=thisform.Name+'_Modificar'
+		LsProceso2=thisform.Name+'_Consultar'
+		IF HasAccess(LsProceso1) && OR HasAccess(LsProceso2)
+			RETURN .T.
+		ELSE
+			MESSAGEBOX('Acceso denegado / Access denied',0+16,'ATENCION!!! / WARNING !!!')
+			RETURN .F.
+		ENDIF
 	ENDPROC
 
 
@@ -566,7 +656,7 @@ ENDDEFINE
 *-- Class:        cmdmodificar_detalle (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:56:04 PM
+*-- Time Stamp:   09/23/10 02:21:02 PM
 *-- modificar elemento de detalle
 *
 DEFINE CLASS cmdmodificar_detalle AS cmdbase
@@ -576,7 +666,8 @@ DEFINE CLASS cmdmodificar_detalle AS cmdbase
 	Picture = "..\..\grafgen\iconos\modificardetalle.bmp"
 	DisabledPicture = "..\..\grafgen\iconos\modificardetalle_disable.bmp"
 	Caption = "Modificar"
-	PicturePosition = 7
+	ToolTipText = "Modificar registro del detalle"
+	PicturePosition = 14
 	Name = "cmdmodificar_detalle"
 
 
@@ -590,18 +681,18 @@ ENDDEFINE
 *-- Class:        cmdnuevo (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:56:09 PM
+*-- Time Stamp:   09/23/10 03:46:06 PM
 *-- nuevo elemento de cabecera
 *
 DEFINE CLASS cmdnuevo AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\nuevo.bmp"
+	Picture = "..\..\grafgen\iconos\nuevo.ico"
 	DisabledPicture = "..\..\grafgen\iconos\nuevo_disable.bmp"
 	Caption = "\<Adicionar"
-	ToolTipText = "Añadir nuevo elemento"
-	PicturePosition = 7
+	ToolTipText = "Añadir nuevo registro"
+	PicturePosition = 14
 	Name = "cmdnuevo"
 
 
@@ -644,15 +735,16 @@ ENDDEFINE
 *-- Class:        cmdpreview (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:57:00 PM
+*-- Time Stamp:   09/22/09 02:18:05 PM
 *
 DEFINE CLASS cmdpreview AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\preview.bmp"
+	Picture = "..\..\grafgen\iconos\lcd-monitor.bmp"
 	Caption = "\<Pantalla"
-	PicturePosition = 7
+	ToolTipText = "Vista previa"
+	PicturePosition = 14
 	Name = "cmdpreview"
 
 
@@ -671,17 +763,18 @@ ENDDEFINE
 *-- Class:        cmdprocesar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 07:57:04 PM
+*-- Time Stamp:   09/23/10 04:21:05 PM
 *
 DEFINE CLASS cmdprocesar AS cmdbase
 
 
 	Height = 57
 	Width = 55
-	Picture = "..\..\grafgen\iconos\proceso2.ico"
+	Picture = "..\..\grafgen\iconos\proceso3.ico"
 	DisabledPicture = "..\..\grafgen\iconos\proceso2.ico"
 	Caption = "\<Procesar"
-	PicturePosition = 7
+	ToolTipText = "Procesar"
+	PicturePosition = 14
 	Name = "cmdprocesar"
 
 
@@ -695,7 +788,7 @@ ENDDEFINE
 *-- Class:        cmdrecursos (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 08:13:01 PM
+*-- Time Stamp:   09/23/10 04:25:03 PM
 *
 DEFINE CLASS cmdrecursos AS cmdbase
 
@@ -704,7 +797,8 @@ DEFINE CLASS cmdrecursos AS cmdbase
 	Width = 56
 	Picture = "..\..\grafgen\iconos\libreria.ico"
 	Caption = "Recursos "
-	PicturePosition = 7
+	ToolTipText = "Recursos"
+	PicturePosition = 14
 	Name = "cmdrecursos"
 
 
@@ -718,16 +812,17 @@ ENDDEFINE
 *-- Class:        cmdrefrescar (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 08:13:05 PM
+*-- Time Stamp:   09/23/10 04:29:13 PM
 *
 DEFINE CLASS cmdrefrescar AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\refrescar.bmp"
+	Picture = "..\..\grafgen\iconos\refrescar.ico"
 	DisabledPicture = "..\..\grafgen\iconos\refrescar_disable.bmp"
 	Caption = "Refrescar"
-	PicturePosition = 7
+	ToolTipText = "Refrescar"
+	PicturePosition = 14
 	Name = "cmdrefrescar"
 
 
@@ -741,7 +836,7 @@ ENDDEFINE
 *-- Class:        cmdreqinsumos (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 08:13:10 PM
+*-- Time Stamp:   09/23/10 04:32:08 PM
 *
 DEFINE CLASS cmdreqinsumos AS cmdbase
 
@@ -750,7 +845,8 @@ DEFINE CLASS cmdreqinsumos AS cmdbase
 	Width = 82
 	Picture = "..\..\grafgen\fondos\library.bmp"
 	Caption = "\<Req. de Insumos"
-	PicturePosition = 7
+	ToolTipText = "Requisicion de insumos"
+	PicturePosition = 14
 	Name = "cmdreqinsumos"
 
 
@@ -787,27 +883,28 @@ ENDDEFINE
 *-- Class:        cmdsalir (k:\aplvfp\classgen\vcxs\admgral.vcx)
 *-- ParentClass:  cmdbase (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    commandbutton
-*-- Time Stamp:   04/27/06 08:14:07 PM
+*-- Time Stamp:   09/23/10 04:47:04 PM
 *
 DEFINE CLASS cmdsalir AS cmdbase
 
 
 	Height = 40
-	Picture = "..\..\grafgen\iconos\close.bmp"
+	Picture = "..\..\grafgen\iconos\salir.ico"
 	DisabledPicture = "..\..\..\grafgen\iconos\close_disable.bmp"
 	Caption = "\<Salir"
+	Enabled = .T.
 	ToolTipText = "Salir"
-	PicturePosition = 7
+	PicturePosition = 14
 	Name = "cmdsalir"
-
-
-	PROCEDURE Init
-		NODEFAULT
-	ENDPROC
 
 
 	PROCEDURE Click
 		THISFORM.RELEASE()
+	ENDPROC
+
+
+	PROCEDURE Init
+		NODEFAULT
 	ENDPROC
 
 

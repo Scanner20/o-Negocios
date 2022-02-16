@@ -7,16 +7,16 @@
 *-- Class:        contabilidad (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   06/23/08 08:28:14 PM
+*-- Time Stamp:   05/19/21 11:45:11 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
-DEFINE CLASS contabilidad AS custom OLEPUBLIC
+DEFINE CLASS contabilidad AS custom
 
 
-	Height = 44
-	Width = 46
-	Picture = "..\..\grafgen\iconos\formtran.ico"
+	Height = 41
+	Width = 89
+	Picture = "..\..\grafgen\png\accounting-40.png"
 	*-- Descripcion del error
 	serr = ([])
 	*-- Campos que conforman la clave
@@ -25,6 +25,8 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 	vclave = .F.
 	*-- Vinculo  a la clase de entorno general del sistema
 	oentorno = .NULL.
+	*-- XML Metadata for customizable properties
+	_memberdata = [<VFPData><memberdata name="actualiza_contabilidad_det" type="method" display="Actualiza_Contabilidad_Det"/><memberdata name="alindetcbd" type="property" display="aLinDetCbd"/></VFPData>]
 	Name = "contabilidad"
 
 	*-- Raferencia administrador de acceso a datos.
@@ -53,6 +55,9 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 	oitem = .F.
 	xfporigv = .F.
 	DIMENSION v_imp[1]
+
+	*-- Arreglo para enviar variables del detalle del asiento contable
+	DIMENSION alindetcbd[20,1]
 
 
 	*-- Recalculo los saldos contables
@@ -83,7 +88,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		   CASE  xielige=1
 		      SELE ACCT
 		      nMesIni = 0
-		      nMesFin = 13
+		      nMesFin = 12
 		      IF XiExclu= 1
 			      ZAP IN ACCT
 		      ELSE
@@ -103,7 +108,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		      *
 		   CASE  xielige=3
 		      nMesIni = 0
-		      nMesFin = 13
+		      nMesFin = 12
 		      FOR I= nMesIni TO nMesFin
 		          cNroMes = str(i,2,0)
 		          SEEK cNroMes+xscodcta
@@ -364,8 +369,15 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		ENDIF
 		SCATTER name GoCfgCbd
 		USE in CNFG0
-		RESTORE FROM THIS.oentorno.tspathcia+'vtaCONFG.MEM' ADDITIVE
-		this.XfPorIgv = CFGADMIGV
+		IF !FILE(THIS.oentorno.tspathcia+'vtaCONFG.MEM')
+			** VETT  26/04/17 03:31 PM : Falta hacer que cargue desde un archivo xml 
+			this.XfPorIgv = 18  
+		ELSE
+
+			RESTORE FROM THIS.oentorno.tspathcia+'vtaCONFG.MEM' ADDITIVE
+			this.XfPorIgv = CFGADMIGV
+		ENDIF
+
 		RETURN .t.
 	ENDPROC
 
@@ -628,8 +640,8 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		nErrCode = S_OK
 		PRIVATE _MES,_ANO,DirCtb,UltTecla
 		PRIVATE XiNroItm,XcEliItm,XsCodCta,XsCodRef,XsClfAux,XsCodAux,XcTpoMov
-		PRIVATE XsNroRuc,XfImpNac,XfImpUsa,XsGloDoc,XsCodDoc,XsNroDoc,XsNroRef
-		PRIVATE XfImport,XdFchDoc,XdFchVto
+		PRIVATE XsNroRuc,XfImpNac,XfImpUsa,XsGloDoc,XsCodDoc,XsNroDoc,XsNroRef,XsTipRef,XsNroDtr
+		PRIVATE XfImport,XdFchDoc,XdFchVto,XdFchRef,XdFchDtr
 		PRIVATE XsNroMes,XdFchAst,XsNroVou,XiCodMon,XfTpoCmb,XsNotAst,XsCodOpe,XsNroAst,TsCodDiv1,XsCjaDiv
 		PRIVATE XiNroItm,XsCodDiv,XsCtaPre,XcAfecto,XsCodCco,GlInterface,XsCodDoc,XsNroDoc 
 		PRIVATE XsNroRef,XsCodFin,XdFchdoc,XdFchVto,XsIniAux,XdFchPed,NumCta,XsNivAdi
@@ -640,23 +652,23 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		UltTecla = 0
 		GlInterface = .f.
 		TsCodDiv1= '01'
+
 		XsCodDiv = TsCodDiv1
 		XsCjaDiv = TsCodDiv1
 		** Valores variables inicializados como STRING
 		dimension vcodcta(10)
-		STORE {} TO XdFchDoc,XdFchVto,XdFchPed
+		STORE {} TO XdFchDoc,XdFchVto,XdFchPed,XdFchRef,XdFchDtr
 		STORE '' TO XsNroVou,XsNotAst,XsCodOpe,XsNroMes,XsNroAst,XsAuxil
-		STORE '' TO XsCodCco ,XsCodDoc,XsNroDoc,XsNroRef,XsCtaPre,XsIniAux,XsNivAdi,XcTipoC,XsCodFin
+		STORE '' TO XsCodCco ,XsCodDoc,XsNroDoc,XsNroRef,XsCtaPre,XsIniAux,XsNivAdi,XcTipoC,XsCodFin,XsTipRef,XsNroDtr
 		STORE '' TO XsChkCta,XsTipDoc,XsCC1Cta,XsAn1Cta,vCodCta,XcAfecto,XsCodCco,XsCtaPre
 		** Valores variables inicializados como NUMERO
 		STORE 0 TO nImpNac,nImpUsa,NumCta,XiCodMon,XfTpoCmb
 
-
 		DO CASE 
 			CASE _Que_transaccion='VENTAS'
 				** Posicionar Mes y Año
-				_MES = MONTH(GDOC->FchDoc)
-				_ANO = YEAR(GDOC->FchDoc)
+				_MES = MONTH(oData1.FchDoc)
+				_ANO = YEAR(oData1.FchDoc)
 				* Abrimos Base de Datos *
 		        	this.oDatAdm.oentorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
 				this.oEntorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
@@ -664,29 +676,29 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 					RETURN  
 				ENDIF
 				*DirCtb = PathDef+"\cia"+GsCodCia+"\C"+STR(_ANO,4)+"\"
-		*		SET STEP ON 
-				IF !this.oDatAdm.Open_File('CTB')   
-				   RETURN
+
+				IF !this.oDatAdm.Open_File('CTB',STR(_ANO,4,0))   
+				   RETURN SIN_ACCESO_TABLA
 				ENDIF
-				XsNroMes = GDOC->NroMes
-				XsCodOpe = GDOC->CodOpe
-				XsNroAst = GDOC->NroAst
+				XsNroMes = oData1.NroMes
+				XsCodOpe = oData1.CodOpe
+				XsNroAst = oData1.NroAst
 				NClave   = [NroMes+CodOpe+NroAst]
 				VClave   = XsNroMes+XsCodOpe+XsNroAst
 
-				IF EMPTY(GDOC.CodOpe) AND EMPTY(GDOC.NroAst) AND EMPTY(GDOC.NroMes)
+				IF EMPTY(oData1.CodOpe) AND EMPTY(oData1.NroAst) AND EMPTY(oData1.NroMes)
 					THIS.Crear = .T.
 				ELSE
-					IF !EMPTY(GDOC.CodOpe) AND !EMPTY(GDOC.NroAst) AND !EMPTY(GDOC.NroMes)
+					IF !EMPTY(oData1.CodOpe) AND !EMPTY(oData1.NroAst) AND !EMPTY(oData1.NroMes)
 						THIS.Crear = .F.
 					ELSE
 						THIS.Crear = .T.
 					ENDIF
 				ENDIF
-				IF GDOC.FlgEst='A'
+				IF oData1.FlgEst='A'
 					_Que_transaccion = 'VENTAS_ANULAR'
-					XsNotAst = [ANULADA:]+[PROV. ]+GDOC->CodDoc+[. ]+GDOC->NomCli
-					XsNroVou = GDOC.NroDoc
+					XsNotAst = [ANULADA:]+[PROV. ]+oData1.CodDoc+[. ]+oData1.NomCli
+					XsNroVou = oData1.NroDoc
 				ENDIF
 				IF _Que_transaccion = 'VENTAS_ANULAR'
 					this.MovBorra(XsNroMes,XsCodOpe,XsNroAst)
@@ -695,50 +707,56 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 				ENDIF
 				* Grabamos Cabecera *
 				** Valores Fijos
+				IF oData1.CodDoc='PROF'
+					TsCodDiv1	= '02'
+					XsCodDiv	= TsCodDiv1
+					XsCjaDiv	= TsCodDiv1
+				ENDIF
 				XcAfecto = 'A'
 
 				**
 				XsNroMes = IIF(THIS.Crear,TRANS(_MES,"@L ##"),XsNroMes)
-				XdFchAst = GDOC->FchDoc
+				XdFchAst = oData1.FchDoc
 				XsNroVou = []
-				XiCodMon = GDOC->CodMon
-				XfTpoCmb = GDOC->TpoCmb
-				XsNotAst = [PROV. ]+GDOC->CodDoc+[. ]+GDOC->NomCli
+				XiCodMon = oData1.CodMon
+				XfTpoCmb = oData1.TpoCmb
+				XsNotAst = [PROV. ]+oData1.CodDoc+[. ]+oData1.NomCli
 
-		       	=seek(gdoc.coddoc,"TDOC")
+			       	=seek(oData1.coddoc,"TDOC")
 				XsCodOpe = IIF(THIS.Crear,TDOC.CodOpe,XsCodOpe)
 				IF this.MOVGRABA(XsNroMes,XsCodOpe,@XsNroAst) = 0
-					REPLACE GDOC->NroMes WITH XsNroMes
-					REPLACE GDOC->CodOpe WITH XsCodOpe
-					REPLACE GDOC->NroAst WITH XsNroAst
-					REPLACE GDOC->FlgCtb WITH .T.
+					oData1.NroMes	=	XsNroMes
+					oData1.CodOpe	=	XsCodOpe
+					oData1.NroAst	=	XsNroAst
+					oData1.FlgCtb	=	.T.
 					NClave   = [NroMes+CodOpe+NroAst]
 					VClave   = XsNroMes+XsCodOpe+XsNroAst
 				ELSE
 					this.oDatAdm.Close_File('CTB')
 					RETURN AST_CABECERA_NO_GRABO
 				ENDIF
-				*
+				* Borramos ajustes por redondeo * - * Solo afectamos el detalle
+				this.MovBorra(XsNroMes,XsCodOpe,XsNroAst,.T.,'EliItm=[:]')
 
 				* Grabamos Detalle *
 					* Cuenta de Factura
-					=SEEK(GDOC->CodDoc,"TDOC")
+					=SEEK(oData1.CodDoc,"TDOC")
 					XiNroItm = 1
 					XcEliItm = [ ]
-					XsCodCta = PADR(IIF(Gdoc.CodMon=1,TDOC.CTA12_MN,TDOC.CTA12_ME),LEN(CTAS.CodCta))
-					XsCodRef = GDOC->CodDoc
+					XsCodCta = PADR(IIF(oData1.CodMon=1,TDOC.CTA12_MN,TDOC.CTA12_ME),LEN(CTAS.CodCta))
+					XsCodRef = oData1.CodDoc
 					=SEEK(XsCodCta,"CTAS")
 					IF CTAS->PIDAUX="S"
 					   XsClfAux = CTAS.ClfAux
-					   XsCodAux = GDOC->CodCli
-					   XsNroRuc = GDOC->RucCli
+					   XsCodAux = oData1.CodCli
+					   XsNroRuc = oData1.RucCli
 					ELSE
 					   XsClfAux = SPACE(LEN(RMOV.ClfAux))
 					   XsCodAux = SPACE(LEN(RMOV.CodAux))
 					   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
 					ENDIF
 					XcTpoMov = [D]
-					XfImport = GDOC->ImpTot
+					XfImport =     IIF(oData1.CodDoc='PROF',oData1.ImpTot,oData1.ImpTot)    &&oData1.ImpBto - oData1.ImpDto
 					IF XiCodMon = 1
 					   XfImpNac = XfImport
 					   XfImpUsa = XfImport/XfTpoCmb
@@ -746,15 +764,15 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 					   XfImpUsa = XfImport
 					   XfImpNac = XfImport*XfTpoCmb
 					ENDIF
-					XsGloDoc = GDOC->NomCli
+					XsGloDoc = oData1.NomCli
 
 					IF ctas.PidDoc='S'
 						XsTipDoc = TDOC.TpoDocSN
 						XsCodDoc = TDOC.TpoDocSN  && IIF(SEEK(cParm1,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
-						XsNroDoc = GDOC->NroDoc
-						XsNroRef = GDOC->NroRef
-						XdFchDoc = GDOC->FchDoc
-						XdFchVto = GDOC->FchVto
+						XsNroDoc = oData1.NroDoc
+						XsNroRef = oData1.NroRef
+						XdFchDoc = oData1.FchDoc
+						XdFchVto = oData1.FchVto
 					ELSE
 						XsCodDoc = []
 						XsNroDoc = []
@@ -764,105 +782,173 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 					ENDIF
 					this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
 					**=Movbveri(XsNroMes+XsCodOpe+XsNroAst+STR(C_RMOV.NroItm,5),0,'','')
-					* Cuenta de Impuestos
+					* CUENTA DE IMPUESTOS
 					XcEliItm = [ ]
 					XsCodCta = PADR(TDOC.CTA40,LEN(CTAS.CodCta))      && Del plan de cuentas
 					XsCodRef = []
-					=SEEK(XsCodCta,"CTAS")
-					IF CTAS->PIDAUX="S"
-					   XsClfAux = CTAS.ClfAux
-					   XsCodAux = GDOC->CodCli
-					   XsNroRuc = GDOC->RucCli
-					ELSE
-					   XsClfAux = SPACE(LEN(RMOV.ClfAux))
-					   XsCodAux = SPACE(LEN(RMOV.CodAux))
-					   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+					IF !EMPTY(XsCodCta)
+						=SEEK(XsCodCta,"CTAS")
+						IF CTAS->PIDAUX="S"
+						   XsClfAux = CTAS.ClfAux
+						   XsCodAux = oData1.CodCli
+						   XsNroRuc = oData1.RucCli
+						ELSE
+						   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+						   XsCodAux = SPACE(LEN(RMOV.CodAux))
+						   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+						ENDIF
+						XcTpoMov = [H]
+						XfImport = oData1.ImpIgv
+						IF XiCodMon = 1
+						   XfImpNac = XfImport
+						   XfImpUsa = XfImport/XfTpoCmb
+						ELSE
+						   XfImpUsa = XfImport
+						   XfImpNac = XfImport*XfTpoCmb
+						ENDIF
+						XsGloDoc = []
+						IF CTAS.PidDoc='S'
+							XsCodDoc = IIF(SEEK(GsCodSed+XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
+							XsNroDoc = oData1.NroDoc
+							XsNroRef = oData1.NroRef
+							XdFchDoc = oData1.FchDoc
+							XdFchVto = oData1.FchVto
+						ELSE
+							XsCodDoc = []
+							XsNroDoc = []
+							XsNroRef = []
+							XdFchDoc = {}
+							XdFchVto = {}
+						ENDIF
+						XiNroItm = XiNroItm + 1
+						this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','') 
 					ENDIF
-					XcTpoMov = [H]
-					XfImport = GDOC->ImpIgv
-					IF XiCodMon = 1
-					   XfImpNac = XfImport
-					   XfImpUsa = XfImport/XfTpoCmb
-					ELSE
-					   XfImpUsa = XfImport
-					   XfImpNac = XfImport*XfTpoCmb
-					ENDIF
-					XsGloDoc = []
-					IF CTAS.PidDoc='S'
-						XsCodDoc = IIF(SEEK(GsCodSed+XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
-						XsNroDoc = GDOC->NroDoc
-						XsNroRef = GDOC->NroRef
-						XdFchDoc = GDOC.FchDoc
-						XdFchVto = GDOC.FchVto
-					ELSE
-						XsCodDoc = []
-						XsNroDoc = []
-						XsNroRef = []
-						XdFchDoc = {}
-						XdFchVto = {}
-					ENDIF
-					XiNroItm = XiNroItm + 1
-					this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','') 
 					* Cuenta 7
 					**>> =SEEK(GDOC->CodDoc+GDOC->NroDoc,"DETA")
 					**>> =SEEK(LEFT(DETA->CodMat,LEN(FAMI->CodFam)),"FAMI")
-					XcEliItm = [ ]
-					XsCodCta = PADR(TDOC.Cta70,LEN(CTAS.CodCta))
 
-					XsCodRef = GDOC->CodDoc
+					THIS.oDatAdm.Obj2Cur(oData2,'cDetaVenta')
+
+					** VETT 14/11/2003: Proceso de conversión de sistema procedimental a POO ... Una paja
+					** Ojo : GsClfDiv , GnLenDiv  son variables publicas que se definen en Janesoft:Define_Division_Familia 
+					** Algun dia lo cambiare a un objeto ... pero si al final va  a ser un objeto publico, entonces como debe ser?
+					** 
+
+					XsCodCta	= PADR(TDOC.Cta70,LEN(CTAS.CodCta))   && XsCodCta  
 					=SEEK(XsCodCta,"CTAS")
-					IF CTAS->PIDAUX="S"
-					   XsClfAux = CTAS.ClfAux
-					   XsCodAux = GDOC->CodCli
-					   XsNroRuc = GDOC->RucCli
-					ELSE
-					   XsClfAux = SPACE(LEN(RMOV.ClfAux))
-					   XsCodAux = SPACE(LEN(RMOV.CodAux))
-					   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+					XsCodDoc	= IIF(SEEK(XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')
+					XsNroDoc	= oData1.NroDoc
+					XsCodRef	= oData1.CodDoc
+					XsNroRef	= oData1.NroRef
+					XdFchDoc	= oData1.FchDoc
+					XdFchVto	= oData1.FchVto
+					XcEliItm	=		[ ]
+					XcTpoMov	=		[H]
+					XfImport	=	IIF(oData1.CodDoc='PROF',oData1.ImpTot,oData1.ImpBto - oData1.ImpDto)   &&-GDOC->ImpInt-GDOC->ImpAdm
+					XsGloDoc	=	[]
+
+					XsCodAux 	=	oData1.CodCli
+					XsClfAux	=	CTAS.ClfAux
+					XsNroRuc	=	oData1.RucCli
+
+					*** Verificamos si tomamos la cuenta directo de la configuracion por tipo de documento o segun Division Familia
+
+		*!*				WAIT WINDOW SET("Udfparms") 
+					LnClfFam	= ALEN(GaClfDiv) - 1
+					IF LnClfFam=0
+						*WAIT WINDOW 'No esta definida la configuración de familias y codigo de material' 
+						RETURN NO_DEFINIDA_CONFIG_FAM_MAT
 					ENDIF
-					XcTpoMov = [H]
-					XfImport = GDOC->ImpBto-GDOC->ImpDto &&-GDOC->ImpInt-GDOC->ImpAdm
-					IF XiCodMon = 1
-					   XfImpNac = XfImport
-					   XfImpUsa = XfImport/XfTpoCmb
+					LsClfDiv	= GaClfDiv(LnClfFam)
+					IF "XXX"$XsCodCta && this.aLinDetCbd[1]  && Evaluamos el valor de la cuenta , si bien viene de la configuracion se puede mejorar este tipo de  control
+						IF !USED('DIVF')
+							lreturnok=This.oDatAdm.abrirtabla('ABRIR','ALMTDIVF','DIVF','DIVF01','')
+						ENDIF
+						SELECT cDetaVenta
+						SELECT CodMat , SUM(ImpLin) as ImpLin FROM cDetaVenta  GROUP BY codmat INTO CURSOR cDetaVenta2
+						INDEX on codmat TAG codmat
+						SELECT cDetaVenta2
+						SCAN 
+							DIMENSION aDetTemp[20,1] 
+
+							=SEEK(LsClfDiv+LEFT(CodMat,GnLenDiv),"DIVF")
+							XsCodCta	= 	DIVF.Ctac70
+							XfImport	=	IIF(oData1.CodDoc='BOLE',IIF(GoCfgVta.XfPorIgv>0,ROUND(ImpLin/(1+GoCfgVta.XfPorIgv/100),2),0 ),ImpLin)
+							IF !SEEK(XsCodCta,"CTAS")
+								WAIT WINDOW 'Cuenta contable no existe' 
+								RETURN .F.
+								LOOP
+							ELSE
+								IF CTAS.PIDAUX<>"S"
+								   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+								   XsCodAux = SPACE(LEN(RMOV.CodAux))
+								   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+								ENDIF
+								IF XiCodMon = 1
+								   XfImpNac = XfImport
+								   XfImpUsa = XfImport/XfTpoCmb
+								ELSE
+								   XfImpUsa = XfImport
+								   XfImpNac = XfImport*XfTpoCmb
+								ENDIF
+								*		XsCodDoc = GDOC->CodDoc
+								IF CTAS.PidDoc<>'S'
+									XsCodDoc = []
+									XsNroDoc = []
+									XsNroRef = []
+									XdFchDoc = {}
+									XdFchVto = {}
+								ENDIF
+								XiNroItm = XiNroItm + 1
+								this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
+
+							ENDIF
+							SELECT cDetaVenta2
+						ENDSCAN
 					ELSE
-					   XfImpUsa = XfImport
-					   XfImpNac = XfImport*XfTpoCmb
+		*!*					DIMENSION aDetTemp[20,1] 
+		*!*					ACOPY(this.aLinDetCbd,aDetTemp) 
+		*!*					this.Actualiza_Contabilidad_Det(@aDetTemp) 	&& this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
+						IF !SEEK(XsCodCta,"CTAS")
+							** WAIT WINDOW 'Cuenta contable no existe' 
+							RETURN NO_EXISTE_CUENTA_CONTABLE
+						ELSE
+							IF CTAS.PIDAUX<>"S"
+							   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+							   XsCodAux = SPACE(LEN(RMOV.CodAux))
+							   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+							ENDIF
+							IF XiCodMon = 1
+							   XfImpNac = XfImport
+							   XfImpUsa = XfImport/XfTpoCmb
+							ELSE
+							   XfImpUsa = XfImport
+							   XfImpNac = XfImport*XfTpoCmb
+							ENDIF
+							*		XsCodDoc = GDOC->CodDoc
+							IF CTAS.PidDoc<>'S'
+								XsCodDoc = []
+								XsNroDoc = []
+								XsNroRef = []
+								XdFchDoc = {}
+								XdFchVto = {}
+							ENDIF
+							XiNroItm = XiNroItm + 1
+							this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
+						ENDIF
 					ENDIF
-					XsGloDoc = []
-			*		XsCodDoc = GDOC->CodDoc
-					IF CTAS.PidDoc='S'
-						XsCodDoc = IIF(SEEK(XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
-						XsNroDoc = GDOC->NroDoc
-						XsNroRef = GDOC->NroRef
-						XdFchDoc = GDOC.FchDoc
-						XdFchVto = GDOC.FchVto
-					ELSE
-						XsCodDoc = []
-						XsNroDoc = []
-						XsNroRef = []
-						XdFchDoc = {}
-						XdFchVto = {}
-					ENDIF
-					XiNroItm = XiNroItm + 1
-					this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
 					* * * *
 				SELE VMOV
-				*cResp = []
-				*cResp = AVISO(10,[>>>>>>>>>>>>************<<<<<<<<<<<<<<],;
-				*              [>>>>  coloque formato de VOUCHER en su impresora  <<<<],[Presione barra espaciadora para continuar],;
-				*              3,[ ],0,.T.,.F.,.T.)
-				*DO ImprVouc IN VTAMMOVM
-		   	   this.oDatAdm.Close_File('CTB')
+			   	THIS.oDatAdm.Close_File('CTB')
 
-			RETURN nErrCode
+				RETURN nErrCode
 			CASE _Que_transaccion='CJA_INGRESO_LIQ_CCB'
 				** 			--Fecha-Ope-Nroast-
 				** cParm2 = YYYYMMDDOOOAAAAAAAA   && Información para generar asiento
 				** Posicionar Mes y Año
 				_MES = MONTH(oData1.Fecha)
 				_ANO = YEAR(oData1.Fecha)
-		       	this.oDatAdm.oentorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+		       		this.oDatAdm.oentorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
 				this.oEntorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
 				IF !this.oDatAdm.Open_File('CTB')   
 				   RETURN AST_CABECERA_NO_GRABO
@@ -876,7 +962,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 				NClave   = [NroMes+CodOpe+NroAst]
 				VClave   = XsNroMes+XsCodOpe+XsNroAst
 				XdFchAst = oData1.Fecha
-				XsNotAst = "Cobranza del Dia Liq:"+oData1.Liqui  && alltrim(thisform.text7.value)
+				XsNotAst = "Cobranza x Liq.:"+oData1.Liqui  && alltrim(thisform.text7.value)
 				XfTpoCmb = oData1.TpoCmb
 				XiCodMon = oData1.CodMon    && 2 Asumimos 
 				**
@@ -909,6 +995,9 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 				XsCdAux2 = CodAux2
 				XsCdAux3 = CodAux3
 				XsCdAux4 = CodAux4
+				** VETT:Tope para aplicar redondeo por Dif. Cmb. 2015/03/24 14:03:19 ** 
+				XfDif_ME = Dif_ME
+				XfDif_MN = Dif_MN
 				***
 				this.odatadm.obj2cur(oData3,'cDocumentos')
 				SELECT cDocumentos
@@ -927,12 +1016,13 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		*!*				  stor impdol to impd
 		*!*				  stor nrete to nt
 		*!*				  stor frete to fr
-
+		*!*	SET STEP ON 
 				STORE 0 TO YfImport,YfImpUsa,XiNroItm
 				SCAN FOR FlgErr=0  && Sin Errores o incosistencias en Cobranzas
 
 					XcTpoMov = "H"
-					XiCodMon = Mone
+					** VETT:Moneda de la cancelacion NO usar moneda original del documento 2015/03/24 ** 
+					XiCodMon =  oData1.CodMon  && Moneda de la cancelacion      && Mone
 					IF XiCodMon = 1
 						XfImport = impsol
 						XfImpUsa = ROUND(XfImport/XfTpoCmb,2)
@@ -941,8 +1031,17 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 						XfImport = ROUND(XfImpUsa*XfTpoCmb,2)
 					ENDIF
 					*xscoddiv = TsCodDiv
-					XsCodCta = Cuenta &&xCodCta(NumEle)
+					XsCodCta = PADR(Cuenta,LEN(CTAS.CodCta)) &&xCodCta(NumEle)
 					=SEEK(XsCodCta,"CTAS")
+					IF '.'$XsCodCta  && Cuentas I
+						TsCodDiv1	= '02'
+						XsCodDiv	= TsCodDiv1
+						XsCjaDiv	= TsCodDiv1
+					ELSE	&& Cuentas F
+						TsCodDiv1	= '01'
+						XsCodDiv	= TsCodDiv1
+						XsCjaDiv	= TsCodDiv1
+					ENDIF
 					XsNroRef = ''
 					XsClfAux = CTAS->CLFAUX
 					XsCodAux = PADR(codi,LEN(RMOV.CodAux))
@@ -950,8 +1049,9 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 					XsGloDoc = Cliente	&& vNotAst(NumEle)
 					XsCodDoc = TDOC 	&& vTpoAst(NumEle)
 					XsNroDoc = NDOC 	&& vNroAst(NumEle)
-					=SEEK(XsCodDoc,'PROV')
-					XnCodMon = Mone
+					=SEEK(XsCodDoc,'PROV','PROV01')
+					** VETT:Moneda de la cancelacion NO usar moneda original del documento 2015/03/24 ** 
+					XnCodMon = oData1.CodMon    && Moneda de la cancelacion	&& Mone
 					XsCodCCo = IIF(INLIST(GoCfgCbd.C_Costo,1,2,3),XsAuxil,'')
 					XsCodDo1 = ""
 					*!*		XcEliItm = CHR(255)
@@ -973,27 +1073,69 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 						ENDIF
 					ENDIF
 					*!* ACTUALIZA C/C *!*
-					PRIVATE   vTpoAst,vNroAst,vImport,xCodMon
-					DIMENSION vTpoAst(1),vNroAst(1),vImport(1),xCodMon(1)
+					PRIVATE   vTpoAst,vNroAst,vImport,xCodMon,pCodMon
+					DIMENSION vTpoAst(1),vNroAst(1),vImport(1),xCodMon(1),pCodmon(1)
 					NumEle = 1
 					vTpoAst(NumEle) = XsCodDoc
 					vNroAst(NumEle) = XsNroDoc
 					vImport(NumEle) = IIF(XiCodMon=1,XfImport,XfImpUsa)
 					xCodMon(NumEle) = XiCodMon
+					pCodMon(NumEle)	=	0   && Moneda original del documento 
 					IF TipoProv='C'
 						DO GRACOB
-					ENDIF
 
-					IF ctas.PidDoc='S'
-						XsTipDoc = IIF(VARTYPE(PROV.CodDoc)='C',PROV.CodDoc,XsCodDoc)
-					ELSE 
-						XsTipDoc = []
-						XsCodDoc = []	   
-					ENDIF
-					IF CTAS->AftDcb = "S"
-						DO DIFCMB
+						IF ctas.PidDoc='S'
+							XsTipDoc = IIF(VARTYPE(PROV.CodDoc)='C',PROV.CodDoc,XsCodDoc)
+						ELSE 
+							XsTipDoc = []
+							XsCodDoc = []	   
+						ENDIF
+						LfSdoVtos	= 0
+						** VETT:Diferencia de cambio se aplica si la cuenta contable es en dolares 
+						** VETT:O si la moneda de cancelacion es diferente a moneda de docmunento origen ** 2015/03/24 15:31:53 
+						** VETT:Aplicamos DIFCMB si hay saldo menor tope DIF_MN o DIF_ME segun moneda del documento 2015/03/30 16:33:00 ** 
+						DO CASE
+							CASE INLIST(vTpoAst(NumEle),'FACT','BOLE','LETR','PROF','N/D')
+								LsTpoDoc	= 'CARGO'
+							CASE INLIST(vTpoAst(NumEle),'N/C','ADEL')
+								LsTpoDoc	= 'ABONO'
+						ENDCASE
+						LlFiltroDifCmb = .T.
+						** VETT:Capturamos el saldo luego de actualizar el importe cancelado para verificar si hay 
+						** VETT:diferencia de cambio por aplicar 2015/03/31 13:15:00 ** 
+						IF XsNroDoc='0010026179'
+							SET STEP ON
+						ENDIF
+						LfImpTot	=	Importe
+						DIMENSION vImporte(3)
+						LfSdoVtos = CCb_Sldo(XsCodAux,LsTpoDoc,XsCodDoc,XsNroDoc,pCodMon(NumEle),XfTpoCmb,LfImpTot,".T.",@vImporte)
+
+						DO CASE
+							CASE pCodMon(NumEle)= 1
+								LlHaySaldo = LfSdoVtos<>0 and ABS(LfSdoVtos)<=XfDif_MN
+							CASE pCodMon(NumEle)= 2
+								LlHaySaldo = LfSdoVtos<>0 and ABS(LfSdoVtos)<=XfDif_ME
+							OTHERWISE 
+								LlHaySaldo = .F.
+						ENDCASE
+						IF CTAS->AftDcb = "S" OR pCodMon(NumEle)<>XiCodMon OR LlHaySaldo 
+							DO DIFCMB
+						ELSE
+							DO GRBRMOV
+						ENDIF
 					ELSE
-						DO GRBRMOV
+						IF ctas.PidDoc='S'
+							XsTipDoc = IIF(VARTYPE(PROV.CodDoc)='C',PROV.CodDoc,XsCodDoc)
+						ELSE 
+							XsTipDoc = []
+							XsCodDoc = []	   
+						ENDIF
+
+						IF CTAS->AftDcb = "S" 
+							DO DIFCMB
+						ELSE
+							DO GRBRMOV
+						ENDIF
 					ENDIF
 
 				ENDSCAN
@@ -1014,6 +1156,16 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 						XnMoneda = CTAS.CodMon
 					ENDIF
 					*!* Graba la cuenta de  Caja *!*
+					IF '.'$XsCodCta  && Cuentas I
+						TsCodDiv1	= '02'
+						XsCodDiv	= TsCodDiv1
+						XsCjaDiv	= TsCodDiv1
+					ELSE	&& Cuentas F
+						TsCodDiv1	= '01'
+						XsCodDiv	= TsCodDiv1
+						XsCjaDiv	= TsCodDiv1
+					ENDIF
+
 					XsCodCta = XsCtaCja
 					XsCodDiv = xsCjaDiv
 					XsAuxil  = CodCco
@@ -1074,6 +1226,222 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 				ENDSCAN
 
 				RETURN nErrCode
+				CASE _Que_transaccion='LIBRO_CONTABLE'
+					_MES = MONTH(oData1.Mes)
+					_ANO = YEAR(oData1.Fecha)
+			       		this.oDatAdm.oentorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+					this.oEntorno.GsPeriodo=	TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+					IF !this.oDatAdm.Open_File('CTB')   
+					   RETURN AST_CABECERA_NO_GRABO
+					ENDIF
+			*!*			XsNroMes = SUBSTR(cParm2,5,2)
+			*!*			XsCodOpe = SUBSTR(cParm2,9,3)
+			*!*			XsNroAst = SUBSTR(cParm2,12,8)
+					XsNroMes = TRANSFORM(MONTH(oData1.Fecha),'@L 99')
+					XsCodOpe = PADR(oData1.CodOpe,LEN(OPER.CodOpe))
+					XsNroAst = PADR(oData1.Asiento,LEN(RMOV.NroAst)) && NroAst
+					NClave   = [NroMes+CodOpe+NroAst]
+					VClave   = XsNroMes+XsCodOpe+XsNroAst
+					XdFchAst = oData1.Fecha
+					XsNotAst = "Cobranza del Dia Liq:"+oData1.Liqui  && alltrim(thisform.text7.value)
+					XfTpoCmb = oData1.TpoCmb
+					XiCodMon = oData1.CodMon    && 2 Asumimos 
+					**
+					IF EMPTY(XsNroAst)
+						this.Crear = .T.
+					ELSE
+						this.Crear = .F.
+					ENDIF
+					IF this.MOVGRABA(XsNroMes,XsCodOpe,@XsNroAst) = 0
+						oData1.NroMes  = XsNroMes 
+						oData1.CodOpe  = XsCodOpe
+						oData1.Asiento = XsNroAst
+
+						NClave   = [NroMes+CodOpe+NroAst]
+						VClave   = XsNroMes+XsCodOpe+XsNroAst
+					ELSE
+						this.oDatAdm.Close_File('CTB')
+						RETURN AST_CABECERA_NO_GRABO
+					ENDIF
+					*** Grabamos Detalle de documentos *** 
+					** restauramos el cursor contenido en el objeto de datos ** 
+					*** 
+					SELECT CNFG
+					SEEK '01' && Configuracion DIF. Tipo De Cambio
+					XsCdCta1 = CodCta1
+					XsCdCta2 = CodCta2
+					XsCdCta3 = CodCta3
+					XsCdCta4 = CodCta4
+					XsCdAux1 = CodAux1
+					XsCdAux2 = CodAux2
+					XsCdAux3 = CodAux3
+					XsCdAux4 = CodAux4
+					***
+					this.odatadm.obj2cur(oData3,'cDocumentos')
+					SELECT cDocumentos
+			*!*			      stor cliente to cl
+			*!*				  stor codi to cc 
+			*!*				  stor tdoc to td
+			*!*				  stor fecha to fe
+			*!*				  stor ndoc to nd
+			*!*				  stor mone to mo
+			*!*				  stor soles to ims
+			*!*				  stor dolar to imd
+			*!*				  stor tpocmb to tc1
+			*!*				  stor agente1 to agi
+			*!*				  stor nroch  to nch1
+			*!*				  stor impsol to imps
+			*!*				  stor impdol to impd
+			*!*				  stor nrete to nt
+			*!*				  stor frete to fr
+
+					STORE 0 TO YfImport,YfImpUsa,XiNroItm
+					SCAN FOR FlgErr=0  && Sin Errores o incosistencias en Cobranzas
+
+						XcTpoMov = "H"
+						XiCodMon = Mone
+						IF XiCodMon = 1
+							XfImport = impsol
+							XfImpUsa = ROUND(XfImport/XfTpoCmb,2)
+						ELSE
+							XfImpUsa = impdol
+							XfImport = ROUND(XfImpUsa*XfTpoCmb,2)
+						ENDIF
+						*xscoddiv = TsCodDiv
+						XsCodCta = PADR(Cuenta,LEN(CTAS.CodCta)) &&xCodCta(NumEle)
+						=SEEK(XsCodCta,"CTAS")
+						XsNroRef = ''
+						XsClfAux = CTAS->CLFAUX
+						XsCodAux = PADR(codi,LEN(RMOV.CodAux))
+						XsCodRef = ""
+						XsGloDoc = Cliente	&& vNotAst(NumEle)
+						XsCodDoc = TDOC 	&& vTpoAst(NumEle)
+						XsNroDoc = NDOC 	&& vNroAst(NumEle)
+						=SEEK(XsCodDoc,'PROV','PROV01')
+						XnCodMon = Mone
+						XsCodCCo = IIF(INLIST(GoCfgCbd.C_Costo,1,2,3),XsAuxil,'')
+						XsCodDo1 = ""
+						*!*		XcEliItm = CHR(255)
+						XcEliItm = CHR(43)  
+						XsCodBco = CTAS.CodBco  && vCodBco(NumEle)
+						XsNroCta = CTAS.NroCta  && vNroCta(NumEle)
+						XsNroChq = '' 			&& vNroChq(NumEle)
+						IF XiCodMon = 1
+							IF XfImport < 0
+								XcTpoMov = IIF(XcTpoMov # "D","D","H")
+								XfImport = -XfImport
+								XfImpUsa = -XfImpUsa
+							ENDIF
+						ELSE
+							IF XfImpUsa < 0
+								XcTpoMov = IIF(XcTpoMov # "D","D","H")
+								XfImport = -XfImport
+								XfImpUsa = -XfImpUsa
+							ENDIF
+						ENDIF
+						*!* ACTUALIZA C/C *!*
+						PRIVATE   vTpoAst,vNroAst,vImport,xCodMon
+						DIMENSION vTpoAst(1),vNroAst(1),vImport(1),xCodMon(1)
+						NumEle = 1
+						vTpoAst(NumEle) = XsCodDoc
+						vNroAst(NumEle) = XsNroDoc
+						vImport(NumEle) = IIF(XiCodMon=1,XfImport,XfImpUsa)
+						xCodMon(NumEle) = XiCodMon
+						IF TipoProv='C'
+							DO GRACOB
+						ENDIF
+
+						IF ctas.PidDoc='S'
+							XsTipDoc = IIF(VARTYPE(PROV.CodDoc)='C',PROV.CodDoc,XsCodDoc)
+						ELSE 
+							XsTipDoc = []
+							XsCodDoc = []	   
+						ENDIF
+						IF CTAS->AftDcb = "S"
+							DO DIFCMB
+						ELSE
+							DO GRBRMOV
+						ENDIF
+
+					ENDSCAN
+					Ll1stCtaCja= .T.
+					XfTotIngreso = 0
+					XnMoneda = 2
+					*** Grabamos cuentas de caja
+					this.odatadm.obj2cur(oData2,'cCtasCaja')
+					SELECT cCtasCaja
+					SCAN
+						XcEliItm = " "
+						XsCtaCja = Cuenta
+						IF XsCtaCja='10' AND Tipo='D' AND Ll1stCtaCja
+							=SEEK(XsCtaCja,"CTAS")
+							REPLACE VMOV.CtaCja WITH XsCtaCja
+							XcEliItm = "."
+							Ll1stCtaCja= .F.
+							XnMoneda = CTAS.CodMon
+						ENDIF
+						*!* Graba la cuenta de  Caja *!*
+						XsCodCta = XsCtaCja
+						XsCodDiv = xsCjaDiv
+						XsAuxil  = CodCco
+						XfImpChq = Importe
+			 			=SEEK(XsCodCta,"CTAS")
+						XnCodMon = Ctas.CodMon
+						IF XnCodMon = 1
+						   YfImport = XfImpChq
+						   YfImpUsa = ROUND(YfImport/XfTpoCmb,2)
+						ELSE
+							YfImpUsa = XfImpChq
+							YfImport = ROUND(YfImpUsa*XfTpoCmb,2)
+						ENDIF
+						XfTotIngreso = XfTotIngreso + IIF(XnMoneda=1,YfImport,YfImpUsa)
+						XsCodRef = ""
+						XsNroRef = ""
+						XsClfAux = ''
+						XsCodAux = ''
+
+						DO CASE
+							CASE GoCfgCbd.C_COSTO=1
+								XsClfAux = GsClfCCt
+								XsCodAux = XsAuxil
+							CASE GoCfgCbd.C_COSTO=2
+
+							CASE GoCfgCbd.C_COSTO=3
+								XsCodCCo = XsAuxil
+							OTHER
+								XsClfAux = CTAS->ClfAux
+								XsCodAux = XsAuxil
+						ENDCASE
+						XsGloDoc = XsNotAst
+						XsCodDoc = tdoc && XsCodDo1
+						XsNroDoc = ndoc && XsNroChq
+						XsTipDoc = TDOC
+
+						XsCodBco = []
+						XsNroCta = []
+						XsNroChq = []
+						LfImpUsa = YfImpUsa
+						LfImport = YfImport
+						XcTpoMov = TIPO
+						IF XnCodMon = 1
+							IF LfImport < 0
+								XcTpoMov = IIF(XcTpoMov="D","H","D")
+							ENDIF
+						ELSE
+							IF LfImpUsa < 0
+								XcTpoMov = IIF(XcTpoMov="D","H","D")
+							ENDIF
+						ENDIF
+						XfImport = ABS(LfImport)
+						XfImpUsa = ABS(LfImpUsa)
+						DO GrbRMOV
+						SELECT VMOV
+						REPLACE VMOV->NROITM  WITH XiNroitm
+						REPLACE VMOV.ImpChq   WITH XfTotIngreso
+					ENDSCAN
+
+					RETURN nErrCode
+
 		ENDCASE
 	ENDPROC
 
@@ -1421,6 +1789,8 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		   SELECT VMOV
 		ELSE
 		   *** ACTUALIZA CAMBIOS DE LA CABECERA EN EL CUERPO ***
+		   SELECT VMOV
+		   SEEK (__XsNroMes + __XsCodOpe + __XsNroAst)
 		   IF VMOV->FchAst <> XdFchAst .OR. VMOV->NroVou <> XsNroVou
 		      SELECT RMOV
 		      Llave = (__XsNroMes + __XsCodOpe +__XsNroAst )
@@ -1438,12 +1808,13 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		   ENDIF
 		   SELECT VMOV
 		ENDIF
-		REPLACE VMOV->FchAst  WITH XdFchAst
-		REPLACE VMOV->NroVou  WITH XsNroVou
-		REPLACE VMOV->CodMon  WITH XiCodMon
-		REPLACE VMOV->TpoCmb  WITH XfTpoCmb
-		REPLACE VMOV->NotAst  WITH XsNotAst
-		REPLACE VMOV->Digita  WITH GsUsuario
+		REPLACE VMOV.FchAst		WITH XdFchAst
+		REPLACE VMOV.NroVou	WITH XsNroVou
+		REPLACE VMOV.CodMon	WITH XiCodMon
+		REPLACE VMOV.TpoCmb	WITH XfTpoCmb
+		REPLACE VMOV.NotAst		WITH XsNotAst
+		REPLACE VMOV.Digita		WITH GsUsuario
+		REPLACE VMOV.Auxil		WITH TsCodDiv1
 		IF VARTYPE(GlAsientoTipo)='L'
 			IF this.Tot_Imp = 0 AND !This.Cabecera
 			   REPLACE VMOV->NotAst  WITH " A N U L A D O "
@@ -1550,7 +1921,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 
 	*-- Borra asiento contable
 	PROCEDURE movborra
-		PARAMETERS __Nromes,__CodOpe,__NroAst,__SoloDet
+		PARAMETERS __Nromes,__CodOpe,__NroAst,__SoloDet,__LsFor
 
 
 		IF PARAMETERS()=0
@@ -1560,6 +1931,12 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		ENDIF
 		IF PARAMETERS()<4
 			__SoloDet = .f.
+		ENDIF
+		IF PARAMETERS()<5
+			__LsFor = ''
+		ENDIF
+		IF EMPTY(__LsFor)
+			__LsFor = '.T.'
 		ENDIF
 		nErrCode = S_OK
 		Llave = (__NroMes + __CodOpe + __NroAst )
@@ -1578,33 +1955,35 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		ok     = .t.
 		DO WHILE ! EOF() .AND.  ok .AND. ;
 		   Llave = (NroMes + CodOpe + NroAst )
-		   IF Rlock()
-		      SELECT RMOV
-		      IF ! XsCodOpe = "9"
-		         this.CBDACTCT(CodCta , CodRef , _MES , TpoMov , -Import , -ImpUsa, CodDiv)
-		      ELSE
-		         this.CBDACTEC(CodCta , CodRef , _MES , TpoMov , -Import , -ImpUsa, CodDiv)
-		      ENDIF
-		      ** Anulamos Provisi¢n del Proveedor **
-		     *IF RMOV.CodCta=[421] .AND. RMOV.TpoMov=[H]
-		         ** Buscamos documento Provisionado
-		         IF USED('DPRO')
-			         IF SEEK(__NroMes+__CodOpe+VMOV.NroVou,"DPRO")
-			            IF RLOCK("DPRO")
-			               SELE DPRO
-			               REPLACE FLGEST WITH 'A'
-			               UNLOCK IN "DPRO"
-			               SELE RMOV
-			            ENDIF
+			IF EVALUATE(__LsFor)
+			   IF Rlock()
+			      SELECT RMOV
+			      IF ! XsCodOpe = "9"
+			         this.CBDACTCT(CodCta , CodRef , _MES , TpoMov , -Import , -ImpUsa, CodDiv)
+			      ELSE
+			         this.CBDACTEC(CodCta , CodRef , _MES , TpoMov , -Import , -ImpUsa, CodDiv)
+			      ENDIF
+			      ** Anulamos Provisi¢n del Proveedor **
+			     *IF RMOV.CodCta=[421] .AND. RMOV.TpoMov=[H]
+			         ** Buscamos documento Provisionado
+			         IF USED('DPRO')
+				         IF SEEK(__NroMes+__CodOpe+VMOV.NroVou,"DPRO")
+				            IF RLOCK("DPRO")
+				               SELE DPRO
+				               REPLACE FLGEST WITH 'A'
+				               UNLOCK IN "DPRO"
+				               SELE RMOV
+				            ENDIF
+				         ENDIF
 			         ENDIF
-		         ENDIF
-		     *ENDIF
-		      SELE RMOV
-		      DELETE
-		      UNLOCK
-		   ELSE
-		      ok = .f.
-		   ENDIF
+			     *ENDIF
+			      SELE RMOV
+			      DELETE
+			      UNLOCK
+			   ELSE
+			      ok = .f.
+			   ENDIF
+			ENDIF	   
 		   SKIP
 		ENDDO
 		SELECT VMOV
@@ -1714,6 +2093,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		RegAct = RECNO('RMOV')
 		*** Requiere crear cuentas automaticas ***
 		=SEEK(XsCodCta,"CTAS")
+		LsChkCta		=	TRIM(RMOV.ChkCta)
 		IF CTAS.GenAut <> "S"
 		   IF ! LlCreaDeta
 		      *** anulando cuentas autom ticas anteriores ***
@@ -1722,7 +2102,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		      Listar = .f.
 		      XinroItm = NroItm
 		**    DO WHILE ! EOF() .AND. &RegVal .AND. EliItm = "ú"
-		      DO WHILE ! EOF() .AND. &RegVal .AND. EliItm = "*"
+		      DO WHILE ! EOF() .AND. &RegVal AND RMOV.ChkCta==LsChkCta && .AND. EliItm = "*"
 		         Listar   = .T.
 		         Refresco = .T.
 		         DO BORRLIN IN Cbd_DiarioGeneral
@@ -1735,6 +2115,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		          ***!!!! GOTO NumRg(1)
 		      ELSE
 		         GOTO RegAct
+		         XiNroItm = NroItm  && VETT 2009-06-04 12:44pm
 		      ENDIF
 		   ENDIF
 		   RETURN
@@ -1945,6 +2326,9 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		REPLACE RMOV.EliItm WITH XcEliItm
 		REPLACE RMOV.FchAst WITH XdFchAst
 		*** REPLACE RMOV.NroVou WITH XsNroVou && Esto va en la cabecera no jodan!
+		*!*	WAIT WINDOW XsCodCta
+		*!*	WAIT WINDOW DBF('DIVF')
+		*!*	WAIT WINDOW 'DIVF.ctac70 '+DIVF.Ctac70
 		REPLACE RMOV.CodMon WITH XiCodMon
 		REPLACE RMOV.TpoCmb WITH XfTpoCmb
 		REPLACE RMOV.FchDoc WITH XdFchAst
@@ -1957,7 +2341,6 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		replace RMOV.CtaPre WITH XsCtaPre
 		replace RMOV.Afecto WITH XcAfecto
 		replace RMOV.CodCCo WITH XsCodCCo
-
 
 		IF GlInterface
 			IF Oper.Siglas='RV'
@@ -1990,6 +2373,12 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		REPLACE RMOV.CodDoc WITH XsCodDoc
 		REPLACE RMOV.NroDoc WITH XsNroDoc
 		REPLACE RMOV.NroRef WITH XsNroRef
+		** VETT  15/03/2018 03:00 PM : Campos para tipo y fecha del documento de referencia y fecha y # detraccion 
+		REPLACE RMOV.TipRef WITH IIF(VerifyVar('TipRef','','CAMPO','RMOV'),XsTipRef,'') && XsTipRef
+		REPLACE RMOV.FchRef WITH IIF(VerifyVar('FchRef','','CAMPO','RMOV'),XdFchRef,{}) && XdFchRef
+		REPLACE RMOV.NroDtr WITH XsNroDtr
+		REPLACE RMOV.FchDtr WITH XdFchDtr
+		** VETT  15/03/2018 03:00 PM : Campos para tipo y fecha del documento de referencia y fecha y # detraccion
 		REPLACE RMOV.CODFIN WITH XSCODFIN
 		REPLACE RMOV.FchDoc WITH XdFchDoc
 		REPLACE RMOV.FchVto WITH XdFchVto
@@ -2078,7 +2467,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		*
 		** ACTUALIZACION INFORMACION SUNAT
 		*
-		if inlist(xscodope,[065],[070],[072])
+		if inlist(xscodope,[065],[070],[072]) AND .F.  && Esto era para Milkito
 		   sele drmov
 		   llave = [SUNAT]+xsnromes+xscodope+xsnroast+xscodcta1+xstipdoc1+xsnroref1
 		   seek llave
@@ -2189,6 +2578,25 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 		lreturnok=This.oDatAdm.abrirtabla('ABRIR','CBDTCNFG','CNFG','CNFG01','')
 		lreturnok=This.oDatAdm.abrirtabla('ABRIR','CBDPPRES','PPRE','PPRE01','')
 		lreturnok=This.oDatAdm.abrirtabla('ABRIR','ADMTCNFG','CNFG2','CNFG01','')
+
+		** Abrimos tablas de liquidacion de cobranzas para borrar con descob VETT: 22/10/2019 7:12 am
+		Ll_Liqui_C=.F.
+		IF !USED('L_C_Cobr')
+			IF FILE(ADDBS(goentorno.TsPathcia)+'Liq_Cob.dbf')
+				SELECT 0
+				USE Liq_Cob ORDER LIQ_COB ALIAS L_C_Cobr	&& LIQUI
+				Ll_Liqui=.T.
+			ENDIF
+		ENDIF
+		Ll_Liqui_D=.F.
+		IF !USED('L_D_Cobr')
+			IF FILE(ADDBS(goentorno.TsPathcia)+'Liq_Det.dbf')
+				SELECT 0
+				USE Liq_Det ORDER CodDoc ALIAS L_D_Cobr	&& LIQUI
+				Ll_Liqui_D=.T.
+			ENDIF
+		ENDIF
+
 		RETURN lReturnOk
 	ENDPROC
 
@@ -2209,6 +2617,7 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 
 	PROCEDURE mescerrado
 		PARAMETER _FchAst
+		PRIVATE _MES
 		IF VARTYPE(_FchAst)='U'
 			_FchAst = _MES
 		ENDIF
@@ -2247,6 +2656,266 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 	ENDPROC
 
 
+	*-- Genera correlativo del asiento contable, en base al mes y operacion
+	PROCEDURE nroast2
+		PARAMETER XsNroMes,XsCodOpe,XsNroAst
+
+		LOCAL LnLen_ID as Integer , lreturnok as Boolean 
+		this.serr =''
+		IF !USED('OPER')
+			lreturnok=this.odatadm.abrirtabla('ABRIR','CBDTOPER','OPER','OPER01','')
+			IF !lReturnOk
+				this.serr='Imposible acceder al maestro de operaciones contables'
+				RETURN lReturnOk
+			ENDIF
+		ENDIF
+		IF !SEEK(XsCodOpe,'OPER','OPER01')
+			this.serr='Operacion contable no esta registrada'
+			RETURN .F.
+		ENDIF
+
+		DO CASE
+		   CASE XsNroMES = "00"
+		     iNroDoc = OPER.NDOC00
+		   CASE XsNroMES = "01"
+		     iNroDoc = OPER.NDOC01
+		   CASE XsNroMES = "02"
+		     iNroDoc = OPER.NDOC02
+		   CASE XsNroMES = "03"
+		     iNroDoc = OPER.NDOC03
+		   CASE XsNroMES = "04"
+		     iNroDoc = OPER.NDOC04
+		   CASE XsNroMES = "05"
+		     iNroDoc = OPER.NDOC05
+		   CASE XsNroMES = "06"
+		     iNroDoc = OPER.NDOC06
+		   CASE XsNroMES = "07"
+		     iNroDoc = OPER.NDOC07
+		   CASE XsNroMES = "08"
+		     iNroDoc = OPER.NDOC08
+		   CASE XsNroMES = "09"
+		     iNroDoc = OPER.NDOC09
+		   CASE XsNroMES = "10"
+		     iNroDoc = OPER.NDOC10
+		   CASE XsNroMES = "11"
+		     iNroDoc = OPER.NDOC11
+		   CASE XsNroMES = "12"
+		     iNroDoc = OPER.NDOC12
+		   CASE XsNroMES = "13"
+		     iNroDoc = OPER.NDOC13
+		   OTHER
+		     iNroDoc = OPER.NRODOC
+		ENDCASE
+		LnLen_ID = OPER.Len_ID
+		LnLen_ID_CORR = LnLen_ID - IIF(gocfgcbd.tIPO_CONSO=2 and .F.,2,0) - IIF(OPER.Origen,2,0)
+		LsPict = "@L "+REPLICATE("#",LnLen_ID)
+		LsCadPref=IIF(gocfgcbd.tIPO_CONSO=2 and .F.,TsCodDiv1,'')
+		LsCadPref=IIF(OPER.ORIGEN,LsCadPref+XsNroMes,LsCadPref)
+		*!*	IF OPER.ORIGEN
+		   iNroDoc = VAL(LsCadPref+RIGHT(TRANSF(iNroDoc,LsPict),LnLen_ID_CORR))
+		*!*	ENDIF
+		IF PARAMETER() = 1
+		   IF VAL(XsNroAst) > iNroDoc
+		     iNroDoc = VAL(XsNroAst) + 1
+		   ELSE
+		     iNroDoc = iNroDoc + 1
+		   ENDIF
+		   DO CASE
+		      CASE XsNroMES = "00"
+		        REPLACE   OPER.NDOC00 WITH iNroDoc
+		      CASE XsNroMES = "01"
+		        REPLACE   OPER.NDOC01 WITH iNroDoc
+		      CASE XsNroMES = "02"
+		        REPLACE   OPER.NDOC02 WITH iNroDoc
+		      CASE XsNroMES = "03"
+		        REPLACE   OPER.NDOC03 WITH iNroDoc
+		      CASE XsNroMES = "04"
+		        REPLACE   OPER.NDOC04 WITH iNroDoc
+		      CASE XsNroMES = "05"
+		        REPLACE   OPER.NDOC05 WITH iNroDoc
+		      CASE XsNroMES = "06"
+		        REPLACE   OPER.NDOC06 WITH iNroDoc
+		      CASE XsNroMES = "07"
+		        REPLACE   OPER.NDOC07 WITH iNroDoc
+		      CASE XsNroMES = "08"
+		        REPLACE   OPER.NDOC08 WITH iNroDoc
+		      CASE XsNroMES = "09"
+		        REPLACE   OPER.NDOC09 WITH iNroDoc
+		      CASE XsNroMES = "10"
+		        REPLACE   OPER.NDOC10 WITH iNroDoc
+		      CASE XsNroMES = "11"
+		        REPLACE   OPER.NDOC11 WITH iNroDoc
+		      CASE XsNroMES = "12"
+		        REPLACE   OPER.NDOC12 WITH iNroDoc
+		      CASE XsNroMES = "13"
+		        REPLACE   OPER.NDOC13 WITH iNroDoc
+		      OTHER
+		        REPLACE   OPER.NRODOC WITH iNroDoc
+		   ENDCASE
+		   UNLOCK IN OPER
+		ENDIF
+		RETURN  RIGHT(repli("0",LnLen_ID) + LTRIM(STR(iNroDoc)), LnLen_ID)
+	ENDPROC
+
+
+	*-- Copia un asiento a otro segun el mes y operacion especificado, el numero de asiento por defecto se autogenera.
+	PROCEDURE copiaasiento2asiento
+		PARAMETERS PsNroMes,PsCodOpe,PsNroAst,PsNewMes,PsNewOpe,PsNewAst
+
+		this.serr =''
+
+		IF !this.mescerrado(VAL(PsNewMes)) 
+			this.serr='Mes cerrado '+PsNewMes 
+			MESSAGEBOX(this.serr,16,'Atencion !! / Warning !!')
+			RETURN .F.
+		ENDIF
+
+		this.nroast2(PsNewMes,PsNewOpe,PsNewAst)
+		IF !EMPTY(this.serr) 
+			MESSAGEBOX(this.serr,16,'Atencion !! / Warning !!')
+			RETURN .f. 
+		ENDIF
+
+		IF !USED('VMOV')
+			lreturnok=this.odatadm.abrirtabla('ABRIR','cbdVmovm','VMOV','VMOV01','')
+			IF !lReturnOk
+				this.serr='Imposible acceder a cabecera de asientos'
+				RETURN lReturnOk
+			ENDIF
+		ENDIF
+		IF !USED('RMOV')
+			lreturnok=this.odatadm.abrirtabla('ABRIR','cbdRmovm','RMOV','RMOV01','')
+			IF !lReturnOk
+				this.serr='Imposible acceder a detalle de asientos'
+				RETURN lReturnOk
+			ENDIF
+		ENDIF
+
+		IF !SEEK(PsNroMes+PsCodOpe+PsNroAst,'VMOV','VMOV01')
+			this.serr='Asiento origen: '+PsNroMes+'-'+PsCodOpe+'-'+PsNroAst + ' no existe.'
+			RETURN lReturnOk
+		ENDIF
+
+		SELECT VMOV
+		** Usamos el comando nativo si es solo la cabecera, es un solo registro
+		SCATTER NAME oDatCabecera 
+		oDataCabecera.NroMes = PsNewMes
+		oDataCabecera.CodOpe = PsNewOpe
+		oDataCabecera.NroAst = PsNewAst
+		LsSetDate=SET("Date") 
+
+		SET DATE BRITISH && POR SIACA 
+
+		LsFecha = DTOC(oDataCabecera.FchAst) 
+		LsDia   = SUBSTR(LsFecha,1,3)
+		LsAno	= TRANSFORM(YEAR(oDataCabecera.FchAst),'9999')
+		IF INLIST(DAY(oDataCabecera.FchAst),31) AND INLIST(PsNewMes,'02','04','06','09','11')
+			LsDia = IIF(PsNewMes='02','28','30')
+		ENDIF
+		LsFecha=LsDia+'/'+PsNewMes+'/'+STR(_Ano,4,0)
+
+		** Aqui usamos la clase para cargar a un objeto todos los registro del detalle 
+		NClave='NroMes+CodOpe+NroAst'
+		VClave=PsNroMes+PsCodOpe+PsNroAst
+		RegVal="&NClave='"+VClave+"'"
+		*!*	oDatDetalle = this.odatadm.genobjdatos('RMOV','',RegVal,'RMOV01',VClave)   
+
+		*cAlias,cForCondition,cWhileCondition,cIndice,cLlave
+
+
+		SET DATE TO (LsSetDate) && Volvemos como estaba
+	ENDPROC
+
+
+	PROCEDURE actualiza_contabilidad_det
+		PARAMETERS aParamCbd
+		*!*  1 XsCodCta, 2 XsCodDoc, 3 XsNroDoc, 4 XsCodRef, 5 XsNroRef, 6 XdFchDoc, 7 XdFchVto, 8 XcEliItm,9 XcTpoMov, 10 XiCodMon,11 XfImport, 12 XfTpoCmb,  13 XsGloDoc, 14 XsCodAux,15 XsClfAux,16 XsNroRuc,17 XiNroItm
+		XsCodCta	=	aParamCbd[1]
+
+		*!*	WAIT WINDOW XsCodCta
+		*!*	WAIT WINDOW DBF('DIVF')
+		*!*	WAIT WINDOW 'DIVF.ctac70 '+DIVF.Ctac70
+
+		XsCodDoc	=	aParamCbd[2] && IIF(SEEK(XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
+		XsNroDoc	=	aParamCbd[3]  && oData1.NroDoc
+		XsCodRef	=	aParamCbd[4] && oData1.CodDoc
+		XsNroRef	=	aParamCbd[5]  && oData1.NroRef
+		XdFchDoc	=	aParamCbd[6]  && oData1.FchDoc
+		XdFchVto	=	aParamCbd[7]  && oData1.FchVto
+		XcEliItm		=	aParamCbd[8]
+		XcTpoMov	=	aParamCbd[9] && [H]
+		XiCodMon	=	aParamCbd[10]
+		XfImport	=	aParamCbd[11]     && IIF(oData1.CodDoc='PROF',oData1.ImpTot,oData1.ImpBto - oData1.ImpDto)   &&-GDOC->ImpInt-GDOC->ImpAdm
+		XfTpoCmb	=	aParamCbd[12]
+		XsGloDoc	=	aParamCbd[13]
+		XsCodAux 	= 	aParamCbd[14]	&& oData1.CodCli
+		XsClfAux	= 	aParamCbd[15]	&& CTAS.ClfAux
+		XsNroRuc 	= 	aParamCbd[16]	&& oData1.RucCli
+		XiNroItm	=	aParamCbd[17]
+		XcAfecto	=	aParamCbd[18]
+		aParamCbd[20]	= 'OK'
+		IF !SEEK(XsCodCta,"CTAS")
+			aParamCbd[20] = 'Cuenta contable no existe'
+			RETURN .F.
+		ENDIF
+
+		IF CTAS.PIDAUX<>"S"
+		   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+		   XsCodAux = SPACE(LEN(RMOV.CodAux))
+		   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+		ENDIF
+		IF XiCodMon = 1
+		   XfImpNac = XfImport
+		   XfImpUsa = XfImport/XfTpoCmb
+		ELSE
+		   XfImpUsa = XfImport
+		   XfImpNac = XfImport*XfTpoCmb
+		ENDIF
+		*		XsCodDoc = GDOC->CodDoc
+		IF CTAS.PidDoc<>'S'
+			XsCodDoc = []
+			XsNroDoc = []
+			XsNroRef = []
+			XdFchDoc = {}
+			XdFchVto = {}
+		ENDIF
+		XiNroItm = XiNroItm + 1
+		this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
+		aParamCbd[17] = XiNroItm
+
+
+		****** Esto va en Actualiza_Contabilidad
+		*!*				this.aLinDetCbd[1]	= PADR(TDOC.Cta70,LEN(CTAS.CodCta))   && XsCodCta  
+		*!*				this.aLinDetCbd[2]	= IIF(SEEK(XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')
+		*!*				this.aLinDetCbd[3]	= oData1.NroDoc
+		*!*				this.aLinDetCbd[4]	= oData1.CodDoc
+		*!*				this.aLinDetCbd[5]	= oData1.NroRef
+		*!*				this.aLinDetCbd[6]	= oData1.FchDoc
+		*!*				this.aLinDetCbd[7]	= oData1.FchVto
+		*!*				this.aLinDetCbd[8]	=		[ ]
+		*!*				this.aLinDetCbd[9]	=		[H]
+		*!*				this.aLinDetCbd[10]	=	XiCodMon
+		*!*				this.aLinDetCbd[11]	=	IIF(oData1.CodDoc='PROF',oData1.ImpTot,oData1.ImpBto - oData1.ImpDto)   &&-GDOC->ImpInt-GDOC->ImpAdm
+		*!*				this.aLinDetCbd[12]	=	XfTpoCmb
+		*!*				this.aLinDetCbd[13]	=	[]
+		*!*				this.aLinDetCbd[14]	=	oData1.CodCli
+		*!*				this.aLinDetCbd[15]	=	[] && CTAS.ClfAux
+		*!*				this.aLinDetCbd[16]	=	oData1.RucCli
+		*!*				this.aLinDetCbd[17]	= 	XiNroItm
+		*!*				this.aLinDetCbd[18]	= 	XcAfecto
+		*!*				this.aLinDetCbd[19]	= 	[]
+		*!*				this.aLinDetCbd[20]	= 	[]
+	ENDPROC
+
+
+	PROCEDURE Init
+		this.oentorno=CREATEOBJECT('Dosvr.Env') 
+		this.oentorno.GsCodcia = GsCodCia
+		this.odatadm=CREATEOBJECT('Dosvr.DataAdmin')
+		this.odatadm.oentorno.GsCodcia = GsCodCia
+	ENDPROC
+
+
 	PROCEDURE Error
 		LPARAMETERS nError, cMethod, nLine
 		IF SET("Development")='ON' 
@@ -2273,12 +2942,6 @@ DEFINE CLASS contabilidad AS custom OLEPUBLIC
 			RETURN CONTEXT_E_ABORTED
 
 		ENDIF
-	ENDPROC
-
-
-	PROCEDURE Init
-		this.oentorno=CREATEOBJECT('Dosvr.Env') 
-		this.odatadm=CREATEOBJECT('Dosvr.DataAdmin')
 	ENDPROC
 
 
@@ -2316,9 +2979,9 @@ ENDDEFINE
 *-- Class:        cpiplibf (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   03/03/08 03:09:04 AM
+*-- Time Stamp:   05/16/17 10:45:09 AM
 *
-DEFINE CLASS cpiplibf AS custom OLEPUBLIC
+DEFINE CLASS cpiplibf AS custom
 
 
 	entidadcorrelativo = "CPICDOCM"
@@ -3148,8 +3811,8 @@ DEFINE CLASS cpiplibf AS custom OLEPUBLIC
 		   SELE C_DO_T
 		   ZAP
 		   SELE DFPRO
-		   SEEK this.sCodPrd
-		   SCAN WHILE CodPRo = this.sCodPrd
+		   SEEK PADR(this.sCodPrd,LEN(DFPRO.codpro))
+		   SCAN WHILE CodPRo = PADR(this.sCodPrd,LEN(DFPRO.codpro))
 		        SCATTER MEMVAR
 		        SELE C_DO_T
 		        APPEND BLANK
@@ -3325,11 +3988,11 @@ ENDDEFINE
 *-- Class:        dataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   06/24/07 07:20:06 PM
+*-- Time Stamp:   10/25/19 08:25:07 AM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
-DEFINE CLASS dataadmin AS custom OLEPUBLIC
+DEFINE CLASS dataadmin AS custom
 
 
 	*-- Tabla o vista  con la que se va a trabajar
@@ -3350,6 +4013,10 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 	numberofrecords = 0
 	memocount = 0
 	fieldscount = 0
+	*-- Lista de campos que se utilizaran para generar el cursor.
+	cfieldlist = "=[]"
+	*-- XML Metadata for customizable properties
+	_memberdata = [<VFPData><memberdata name="cfieldlist" type="property" display="cFieldList"/></VFPData>]
 	Name = "dataadmin"
 
 	*-- Nombre de el cursor asignado al conjunto de datos resultante
@@ -3378,13 +4045,15 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 
 	*-- Trae un objecto a partir de una tabla o cursor cuyas propiedades son los campo de la tabla
 	PROCEDURE genobjdatos
-		LPARAMETERS _ctabla as String,_cFor as STRING , _cWhere as String
+		LPARAMETERS _ctabla as String,_cFor as STRING , _cWhere as String,_cIndicepk as String,_cLlave as String
 
 		THIS.Ctabla			= IIF(vartype(_ctabla)='U' or ISNULL(_ctabla) or EMPTY(_ctabla),'',_ctabla )
 		*this.calias			= IIF(EMPTY(_calias),SYS(2015) ,_cAlias)
 		this.cWhere			= IIF(vartype(_cWhere)='U' or ISNULL(_cWhere) or EMPTY(_cWhere),'.t.',_cWhere )
 		this.cFor			= IIF(vartype(_cFor)='U' or ISNULL(_cFor) or EMPTY(_cFor),'.t.',_cFor )
 		this.corder			= IIF(vartype(_cOrder)='U' or ISNULL(_cOrder) or EMPTY(_cOrder),'',_cOrder )
+		this.cIndicepk 		= IIF(vartype(_cIndicepk)='U' or ISNULL(_cIndicepk) or EMPTY(_cIndicepk),'',_cIndicepk )
+		this.cvalorpk 		= IIF(vartype(_cLlave)='U' or ISNULL(_cLlave) or EMPTY(_cLlave),'',_cLlave )
 		LOCAL LcRutaTabla
 		* Si ya existe el cursor o alias abierto asuminos que es de ahi de donde debemos tomar los datos
 		IF USED(this.cTabla)
@@ -3405,7 +4074,7 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 		sv_alias=alias()
 		select (cAlias)
 		oTable=CREATEOBJECT('table_parser')
-		oTable.cur2obj(cAlias,cForCondition,cWhileCondition)
+		oTable.cur2obj(cAlias,cForCondition,cWhileCondition,this.cIndicePk,this.cValorPk )
 		select (sv_alias)
 		return oTable
 	ENDPROC
@@ -3413,7 +4082,7 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 
 	*-- Trae un conjunto de registro de la tabla maestra (RecordSet)
 	PROCEDURE gencursor
-		LPARAMETERS _cAlias as String, _ctabla as String, _cIndice  as String , _cCamposPK as String ,_cValoresPK as String, _cWhere as String, _cOrder as String  
+		LPARAMETERS _cAlias as String, _ctabla as String, _cIndice  as String , _cCamposPK as String ,_cValoresPK as String, _cWhere as String, _cOrder as String  , _cFieldList as String 
 
 		LOCAL LsSql,LsSql1,LsWhere,LnNumReg
 
@@ -3424,8 +4093,10 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 		this.calias			= IIF(EMPTY(_calias),SYS(2015) ,_cAlias)
 		this.cWhere			= IIF(vartype(_cWhere)='U' or ISNULL(_cWhere) or EMPTY(_cWhere),'',_cWhere )
 		this.corder			= IIF(vartype(_cOrder)='U' or ISNULL(_cOrder) or EMPTY(_cOrder),'',_cOrder )
+		this.cFieldList		= IIF(vartype(_cFieldList)='U' or ISNULL(_cFieldList) or EMPTY(_cFieldList),' * ',_cFieldList )
 		LOCAL LcRutaTabla
 		* Si ya existe el cursor o alias abierto asuminos que es de ahi de donde debmos tomar los datos
+
 		IF USED(this.cTabla)
 			LcRutaTabla=this.cTabla
 		ELSE
@@ -3463,33 +4134,121 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 
 			DO CASE 
 				CASE goentorno.VfpDbcEntorno
-					LsSql1	=	"SELECT *,RECNO() as nroreg from " + (LcRutaTabla) 
-					IF !EMPTY(this.cCamposPK ) AND !EMPTY(this.cValorPK)
-						LsWhere =  " WHERE !DELETED() and "+ _cCamposPK +" = '"+ _cValoresPK + "' " 
-					ENDIF
-					IF !EMPTY(this.cWhere )
-						IF EMPTY(LsWhere)
-							LsWhere	=	" WHERE !DELETED() and " + this.cWhere
-						ELSE
-							LsWhere = LsWhere	+" AND " +	this.cWhere
+					LlEsUnaVista = .f.
+					IF AT('!',LcRutaTabla)>0
+						LsDatabase = LEFT(LcRutaTabla,AT('!',LcRutaTabla) - 1)
+						LsCurDB = SET("Database")
+						SET DATABASE TO (LsDatabase)
+						IF INDBC(this.ctabla,"VIEW") 
+							LlEsUnaVista = .T.
 						ENDIF
+						SET DATABASE TO (LsCurDB)
 					ENDIF
-					LsOrder = IIF(!EMPTY(this.cOrder),' ORDER BY '+this.cOrder+' ','')
+					IF EMPTY(this.cIndicepk) OR  LlEsUnaVista
+						LsSql1	=	"SELECT "+this.cFieldList+" ,RECNO() as nroreg from " + (LcRutaTabla) 
+						IF !EMPTY(this.cCamposPK ) AND !EMPTY(this.cValorPK)
+							LsWhere =  " WHERE !DELETED() and "+ _cCamposPK +" = '"+ _cValoresPK + "' " 
+						ENDIF
+						IF !EMPTY(this.cWhere )
+							IF EMPTY(LsWhere)
+								LsWhere	=	" WHERE !DELETED() and " + this.cWhere
+							ELSE
+								LsWhere = LsWhere	+" AND " +	this.cWhere
+							ENDIF
+						ENDIF
+						LsOrder = IIF(!EMPTY(this.cOrder),' ORDER BY '+this.cOrder+' ','')
 
-					LsSql	=	LsSql1	+	LsWhere	+ LsOrder +  " INTO Cursor " + this.cAlias + " READWRITE"
+						LsSql	=	LsSql1	+	LsWhere	+ LsOrder +  " INTO Cursor " + this.cAlias + " READWRITE"
+						LnNumReg = -1
+						SELECT 0
+						&LsSql.
+						LnNumReg = RECCOUNT()
+						RETURN LnNumReg 
 
-					  
+					ELSE
+						&& En VFP lo mas rapido es usar el SEEK , SCAN , con un INDICE y si es posible UNIQUE
+						LnNumReg = -1  
+						LsTagAct = ''
+						LlCierraTabla = .F.
+						IF !USED(THIS.cTabla)
+							SELECT 0
+						    USE (LcRutaTabla) ALIAS (THIS.cTabla) AGAIN
+		    				LlCierraTabla = .T.
+						ENDIF
+						select (THIS.cTabla)
+						LstagAct = ORDER(THIS.cTabla)   && Nos guardamos el tag (indice) actual en caso ya este abierta la tabla 
+						declare lcArrStru(1)
+						IF EMPTY(this.cFieldList) OR '*'$this.cFieldList
+						        =afields(lcArrStru)
+						ELSE       
+							this.chrtoarray(this.cFieldList,',', lcArrStru)
+						ENDIF
+
+				        
+						** Revisamos que campos son tipo Integer(Autoinc)
+		        		LsCmpAutoInc= ''
+						FOR k= 1 TO ALEN(lcArrStru,1)
+							IF INLIST(VARTYPE(LcArrStru(k,17)),'I','N') AND LcArrStru(k,17)>0
+								LsCmpAutoInc = LsCmpAutoInc +  LcArrStru(k,1)+IIF(K+1>ALEN(lcArrStru,1),'',',')
+							ENDIF
+						ENDFOR 
+						IF RIGHT(RTRIM(LsCmpAutoInc),1)=','
+							LsCmpAutoInc = SUBSTR(LsCmpAutoInc,1,LEN(LsCmpAutoInc)-1)
+						ENDIF
+						LsCmdGrb='GATHER MEMVAR MEMO'+IIF(!EMPTY(LsCmpAutoInc),' FIELDS EXCEPT '+LsCmpAutoInc,'')
+		        		create cursor (this.cAlias)  from array lcArrStru
+		        		SELECT (THIS.cTabla)
+				        IF !EMPTY(this.cIndicepk) AND this.verifytag(THIS.cTabla,this.cIndicepk) 
+				        	SET ORDER TO (this.cIndicepk)
+				        ENDIF
+		                LOCATE
+				        IF  !EMPTY(THIS.cCamposPK) AND !EMPTY(this.cValorPK) AND VARTYPE(this.cValorPK)='C' AND this.verifytag(THIS.cTabla,this.cIndicepk)
+				        	SEEK this.cValorPK
+					        cForCondition=IIF(EMPTY(This.cWhere),'.T.',this.cwhere)
+					        cWhileCondition=IIF(!EMPTY(THIS.cCamposPK) and !EMPTY(THIS.cValorPK),THIS.cCamposPK +" = '"+ THIS.cValorPK + "' " ,'.T.')
+						ELSE
+		                    SEEK TRIM(this.cValorPK)
+							cForCondition = IIF(EMPTY(This.cWhere),'.T.',this.cwhere) 
+							cWhileCondition = '.T.'				        
+				        ENDIF
+				        SCAN FOR &cForCondition WHILE  &cWhileCondition
+				            SCATTER MEMVAR MEMO
+			            	SELECT (this.cAlias)
+			            	APPEND BLANK
+			            	&LsCmdGrb.
+				            SELECT 	(This.cTabla)
+				        ENDSCAN
+				        IF LlCierraTabla
+				        	USE IN (This.cTabla)
+				        ELSE
+					        SELECT (This.cTabla)
+					        IF !EMPTY(LsTagAct)
+					        	SET ORDER TO (LsTagAct) 
+					        ENDIF
+					    ENDIF    
+				        SELECT 	(this.cAlias)
+						LOCATE
+						LnNumReg = RECCOUNT()
+						RETURN LnNumReg 
+					ENDIF
 				CASE goentorno.AdoEntorno 
 					LsSql = "SELECT * from " + (LcRutaTabla) + " WHERE "+ _cCamposPK +" = '"+ _cValoresPK +"' INTO Cursor " + this.cAlias 
+					LnNumReg = -1
+					SELECT 0
+					&LsSql.
+					LnNumReg = RECCOUNT()
+					RETURN LnNumReg 
+
 				CASE goentorno.SqlEntorno 
 					LsSql = "SELECT * from " + (LcRutaTabla) + " WHERE FlagEliminado=1 and "+ _cCamposPK +" = '"+ _cValoresPK +"' INTO Cursor " + this.cAlias
+					LnNumReg = -1
+					SELECT 0
+					&LsSql.
+					LnNumReg = RECCOUNT()
+					RETURN LnNumReg 
+
 			ENDCASE
 		*ENDIF
-		LnNumReg = -1
-		SELECT 0
-		&LsSql.
-		LnNumReg = RECCOUNT()
-		RETURN LnNumReg 
 	ENDPROC
 
 
@@ -3604,10 +4363,10 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 			RETURN -1
 		ENDIF
 		LsArea_Act=SELECT()
-		IF PARAMETERS()<8
+		IF PARAMETERS()<7 OR EMPTY(cCodCia)
 			cCodCia = THIS.oEntorno.GsCodCia
 		ENDIF
-		IF PARAMETERS()<7
+		IF PARAMETERS()<8 OR EMPTY(cPer)
 			cPer = LEFT(THIS.oEntorno.GsPeriodo,4)
 		ENDIF
 
@@ -3622,7 +4381,11 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 						RETURN .f.
 					ENDIF
 
+					**>>  Vo.Bo. VETT  2009/01/16 10:22:29 
+					INKEY(.1) && Para procesadores CORE 2 DUO y superiores
 					LcArcTmp = this.oentorno.tmppath +SYS(3)
+					INKEY(.1) && Para procesadores CORE 2 DUO y superiores
+
 					SELECT (cArchivo)
 					COPY STRUCTURE TO (LcArcTmp) with cdx
 					SELECT 0
@@ -3634,7 +4397,12 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 					IF !USED(cArchivo)
 						RETURN .f.
 					ENDIF
+
+					**>>  Vo.Bo. VETT  2009/01/16 10:22:29 
+					INKEY(.1) && Para procesadores CORE 2 DUO y superiores
 					LcArcTmp = this.oentorno.tmppath +SYS(3)
+					INKEY(.1) && Para procesadores CORE 2 DUO y superiores
+
 					IF VERSION(5) < 700    
 						select * from (cArchivo) where 0>1 into Cursor temporal
 						SELE Temporal
@@ -3902,7 +4670,8 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 			ELSE
 				nLen = ALEN( aArray )
 				DIMENSION aArray[nLen+1]
-				aArray[nLen+1] = ALLTRIM(UPPER(LEFT( cCadena, N - 1 )))
+			**>>  Vo.Bo. VETT  2008/11/27 17:52:55 	aArray[nLen+1] = ALLTRIM(UPPER(LEFT( cCadena, N - 1 )))
+				aArray[nLen+1] = UPPER(LEFT( cCadena, N - 1 ))
 			ENDIF
 			cCadena = ALLTRIM(RIGHT( cCadena, LEN(cCadena) - N ))
 		ENDDO
@@ -3971,8 +4740,10 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 
 	*-- Abrir_archivos segun tipo de transacción
 	PROCEDURE open_file
-		parameter _CodDoc
-
+		parameter _CodDoc,_Periodo
+		IF PARAMETERS()<2
+			_Periodo = ''
+		ENDIF
 		LlRetVal =  .T.	   && Siempre optimistas
 		DO CASE 
 			CASE _CODDOC = [G/R ]
@@ -4304,27 +5075,27 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 					*********************************************************************** FIN() *
 				* Objeto : Abrir Base de Contabilidad
 				******************************************************************************
-				IF !THIS.AbrirTabla('ABRIR','CBDMCTAS','CTAS','CTAS01','')
+				IF !THIS.AbrirTabla('ABRIR','CBDMCTAS','CTAS','CTAS01','','','',_Periodo)
 					this.close_File('VTA_CTB')
 				   RETURN .F.
 				ENDIF
 				*
-				IF !THIS.AbrirTabla('ABRIR','cbdvmovm','VMOV','vmov01','')
+				IF !THIS.AbrirTabla('ABRIR','cbdvmovm','VMOV','vmov01','','','',_Periodo)
 					this.close_File('VTA_CTB')
 				   RETURN .F.
 				ENDIF
 				*
-				IF !THIS.AbrirTabla('ABRIR','cbdrmovm','RMOV','rmov01','')
+				IF !THIS.AbrirTabla('ABRIR','cbdrmovm','RMOV','rmov01','','','',_Periodo)
 					this.close_File('VTA_CTB')
 				   RETURN .F.
 				ENDIF
 				*
-				IF !THIS.AbrirTabla('ABRIR','cbdtoper','oper','oper01','')
+				IF !THIS.AbrirTabla('ABRIR','cbdtoper','oper','oper01','','','',_Periodo)
 					this.close_File('VTA_CTB')
 				   RETURN .F.
 				ENDIF
 				*
-				IF !THIS.AbrirTabla('ABRIR','cbdacmct','acct','acct01','')
+				IF !THIS.AbrirTabla('ABRIR','cbdacmct','acct','acct01','','','',_Periodo)
 					this.close_File('VTA_CTB')
 				   RETURN .F.
 				ENDIF
@@ -4374,7 +5145,10 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 				this.closetable('RDOC')
 				this.closetable('TASG')
 				this.closetable('TABLA')
-
+				this.closetable('GDOC')
+				this.closetable('VPRO')
+				this.closetable('L_C_Cobr')
+				this.closetable('L_D_Cobr')
 			CASE cQueTransaccion=='VTA_CTB'
 				this.closetable('ACCT')
 				this.closetable('OPER')
@@ -4625,6 +5399,36 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 	ENDPROC
 
 
+	*-- Verifica si un indice tipo tag existe
+	PROCEDURE verifytag
+		*!*	******************
+		*!*	FUNCTION VerifyTAG
+		*!*	******************
+		PARAMETERS _PcTabla,_PcTag
+		LnAreaAct=SELECT()
+		SELECT (_PcTabla)
+		FOR nCount = 1 TO TAGCOUNT()
+		   IF !EMPTY(TAG(nCount))  && Checks for tags in the index
+		   	 IF TAG(nCount)==UPPER(_PcTag)
+		   	 	SELECT (LnAreaAct)
+		   	 	RETURN .T.
+		   	 ENDIF  
+		     *KEY(nCount)  && Display index expression
+		   ELSE
+		      EXIT  && Exit the loop when no more tags are found
+		   ENDIF
+		ENDFOR
+		SELECT (LnAreaAct)
+		RETURN .f.
+	ENDPROC
+
+
+	PROCEDURE Init
+		THIS.oEntorno=CREATEOBJECT('DOSVR.ENV')
+		THIS.oEntorno.gscodcia = GsCodCia
+	ENDPROC
+
+
 	PROCEDURE Error
 		LPARAMETERS nError, cMethod, nLine
 		IF SET("Development")='ON' 
@@ -4652,11 +5456,6 @@ DEFINE CLASS dataadmin AS custom OLEPUBLIC
 
 		ENDIF
 
-	ENDPROC
-
-
-	PROCEDURE Init
-		THIS.oEntorno=CREATEOBJECT('DOSVR.ENV')
 	ENDPROC
 
 
@@ -4695,9 +5494,9 @@ ENDDEFINE
 *-- Class:        aadodataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  dataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- BaseClass:    custom
-*-- Time Stamp:   02/20/03 08:50:08 PM
+*-- Time Stamp:   05/16/17 10:44:07 AM
 *
-DEFINE CLASS aadodataadmin AS dataadmin OLEPUBLIC
+DEFINE CLASS aadodataadmin AS dataadmin
 
 
 	Name = "aadodataadmin"
@@ -4713,9 +5512,9 @@ ENDDEFINE
 *-- Class:        aodbcdataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  dataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- BaseClass:    custom
-*-- Time Stamp:   02/20/03 08:51:13 PM
+*-- Time Stamp:   05/16/17 10:44:10 AM
 *
-DEFINE CLASS aodbcdataadmin AS dataadmin OLEPUBLIC
+DEFINE CLASS aodbcdataadmin AS dataadmin
 
 
 	Name = "aodbcdataadmin"
@@ -4731,9 +5530,9 @@ ENDDEFINE
 *-- Class:        avfpdataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  dataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- BaseClass:    custom
-*-- Time Stamp:   02/24/03 11:44:12 PM
+*-- Time Stamp:   05/16/17 10:44:13 AM
 *
-DEFINE CLASS avfpdataadmin AS dataadmin OLEPUBLIC
+DEFINE CLASS avfpdataadmin AS dataadmin
 
 
 	Name = "avfpdataadmin"
@@ -4754,7 +5553,7 @@ ENDDEFINE
 *-- Class:        dataejecutor (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   06/22/03 07:19:13 AM
+*-- Time Stamp:   05/16/17 10:47:02 AM
 *
 DEFINE CLASS dataejecutor AS custom
 
@@ -6909,6 +7708,30 @@ DEFINE CLASS dataejecutor AS custom
 	ENDPROC
 
 
+	PROCEDURE Destroy
+		*!*	Cierra el cursor de las columnas de criterios de seleccion
+		IF !EMPTY(THIS.cAliasColumnas) AND !ISNULL(THIS.cAliasColumnas)
+			IF USED(THIS.cAliasColumnas)
+				USE IN (THIS.cAliasColumnas)
+			ENDIF
+		ENDIF
+
+		*!*	Cierra el cursor de Atributo-Valor
+		IF !EMPTY(THIS.cAliasAtributos) AND !ISNULL(THIS.cAliasAtributos)
+			IF USED(THIS.cAliasAtributos)
+				USE IN (THIS.cAliasAtributos)
+			ENDIF
+		ENDIF
+
+		*!*	Cierra el cursor de la Consulta dinamica
+		IF !EMPTY(THIS.cAliasCursor) AND !ISNULL(THIS.cAliasCursor)
+			IF USED(THIS.cAliasCursor)
+				USE IN (THIS.cAliasCursor)
+			ENDIF
+		ENDIF
+	ENDPROC
+
+
 	PROCEDURE Init
 		WITH THIS
 			*!*	Forzar a los Metodos ASSIGN se ejecuten
@@ -6973,30 +7796,6 @@ DEFINE CLASS dataejecutor AS custom
 	ENDPROC
 
 
-	PROCEDURE Destroy
-		*!*	Cierra el cursor de las columnas de criterios de seleccion
-		IF !EMPTY(THIS.cAliasColumnas) AND !ISNULL(THIS.cAliasColumnas)
-			IF USED(THIS.cAliasColumnas)
-				USE IN (THIS.cAliasColumnas)
-			ENDIF
-		ENDIF
-
-		*!*	Cierra el cursor de Atributo-Valor
-		IF !EMPTY(THIS.cAliasAtributos) AND !ISNULL(THIS.cAliasAtributos)
-			IF USED(THIS.cAliasAtributos)
-				USE IN (THIS.cAliasAtributos)
-			ENDIF
-		ENDIF
-
-		*!*	Cierra el cursor de la Consulta dinamica
-		IF !EMPTY(THIS.cAliasCursor) AND !ISNULL(THIS.cAliasCursor)
-			IF USED(THIS.cAliasCursor)
-				USE IN (THIS.cAliasCursor)
-			ENDIF
-		ENDIF
-	ENDPROC
-
-
 	*-- Genera cadena WHERE para cSQL
 	HIDDEN PROCEDURE generarwhere
 	ENDPROC
@@ -7012,11 +7811,11 @@ ENDDEFINE
 *-- Class:        env (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   03/29/06 11:32:03 PM
+*-- Time Stamp:   05/25/18 04:20:09 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
-DEFINE CLASS env AS custom OLEPUBLIC
+DEFINE CLASS env AS custom
 
 
 	Height = 76
@@ -7171,11 +7970,11 @@ DEFINE CLASS env AS custom OLEPUBLIC
 				IF !EMPTY(this.tspathinicio)
 					SET PATH TO  (this.tspathinicio) + "," + TsPath
 				ELSE
-					SET PATH TO  TsPath
+					SET PATH TO  (TsPath)
 				ENDIF
 			ELSE
 				LsPath = SET("Path")
-				SET PATH TO lspath + "," + TsPath
+				SET PATH TO (lspath) + "," + TsPath
 			ENDIF
 		ENDIF
 	ENDPROC
@@ -7306,11 +8105,11 @@ ENDDEFINE
 *-- Class:        lineadetalle (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   12/14/06 01:29:09 AM
+*-- Time Stamp:   05/16/17 10:47:11 AM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
-DEFINE CLASS lineadetalle AS custom OLEPUBLIC
+DEFINE CLASS lineadetalle AS custom
 
 
 	Height = 17
@@ -7324,11 +8123,11 @@ DEFINE CLASS lineadetalle AS custom OLEPUBLIC
 	*-- Importe por registro del detalle
 	implin = 0
 	*-- Nro. de documento de referencia
-	nrog_r = ""
+	nrog_r = ([])
 	*-- Codigo de material
-	codmat = ""
+	codmat = ([])
 	*-- Unidad de venta
-	undvta = ""
+	undvta = ([])
 
 	*-- Descuento 1
 	d1 = .F.
@@ -7374,6 +8173,12 @@ DEFINE CLASS lineadetalle AS custom OLEPUBLIC
 
 	*-- Numero de referencia alternativa
 	nrorfb = .F.
+	undstk = .F.
+
+	*-- Cantidad del pedido, proforma o cotizacion
+	canped = .F.
+	subalm = .F.
+	prevta = .F.
 
 
 ENDDEFINE
@@ -7386,11 +8191,11 @@ ENDDEFINE
 *-- Class:        onegocios (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   09/22/08 01:48:12 PM
+*-- Time Stamp:   01/19/22 05:21:10 AM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
-DEFINE CLASS onegocios AS custom OLEPUBLIC
+DEFINE CLASS onegocios AS custom
 
 
 	Height = 42
@@ -7709,7 +8514,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 	*-- Glosa Actividad detalle
 	sgloactiitm = "=[]"
 	*-- XML Metadata for customizable properties
-	_memberdata = [<VFPData><memberdata name="sgloactiitm" type="property" display="sGloActiItm"/><memberdata name="lpidactiitm" type="property" display="lpidactiItm"/><memberdata name="sglolote" type="property" display="sGloLote"/><memberdata name="sglofase" type="property" display="sGloFase"/><memberdata name="sgloproceso" type="property" display="sGloProceso"/><memberdata name="sglocultivo" type="property" display="sGloCultivo"/><memberdata name="sgloactivid" type="property" display="sGloActivid"/><memberdata name="lpidres" type="property" display="lPidRes"/><memberdata name="lpidfre" type="property" display="LPidFre"/><memberdata name="pcargag_d" type="method" display="PCargaG_D"/><memberdata name="scodres" type="property" display="sCodRes"/><memberdata name="scodfre" type="property" display="sCodFre"/><memberdata name="pidparitm" type="property" display="PidParItm"/><memberdata name="pidactitm" type="property" display="PidActitm"/><memberdata name="lpidactitm" type="property" display="lPidActItm"/><memberdata name="lpidparitm" type="property" display="lPidParItm"/><memberdata name="pcargag_d_item" type="method" display="PCargaG_D_Item"/></VFPData>]
+	_memberdata = [<VFPData><memberdata name="sgloactiitm" type="property" display="sGloActiItm"/><memberdata name="lpidactiitm" type="property" display="lpidactiItm"/><memberdata name="sglolote" type="property" display="sGloLote"/><memberdata name="sglofase" type="property" display="sGloFase"/><memberdata name="sgloproceso" type="property" display="sGloProceso"/><memberdata name="sglocultivo" type="property" display="sGloCultivo"/><memberdata name="sgloactivid" type="property" display="sGloActivid"/><memberdata name="lpidres" type="property" display="lPidRes"/><memberdata name="lpidfre" type="property" display="LPidFre"/><memberdata name="pcargag_d" type="method" display="PCargaG_D"/><memberdata name="scodres" type="property" display="sCodRes"/><memberdata name="scodfre" type="property" display="sCodFre"/><memberdata name="pidparitm" type="property" display="PidParItm"/><memberdata name="pidactitm" type="property" display="PidActitm"/><memberdata name="lpidactitm" type="property" display="lPidActItm"/><memberdata name="lpidparitm" type="property" display="lPidParItm"/><memberdata name="pcargag_d_item" type="method" display="PCargaG_D_Item"/><memberdata name="xdes_ped_gr" type="method" display="xDes_Ped_GR"/><memberdata name="xact_ped_gr" type="method" display="xAct_Ped_GR"/><memberdata name="ruta_factura_see_sfs" type="method" display="Ruta_Factura_SEE_SFS"/><memberdata name="rutasee_sfs" type="property" display="RutaSEE_SFS"/></VFPData>]
 	*-- Pide Actividad en el detalle
 	lpidactiitm = .F.
 	*-- Descripcion del lote cabecera
@@ -7744,6 +8549,23 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 	otralm3 = ([])
 	*-- Otro almacen de facturacion alternativo
 	otralm4 = ([])
+	*-- Cursor que contiene los registros seleccionados cuando CodRef = PEDI,COTI,G/R
+	ccurseleccionados = ([])
+	*-- Cursor con cuotas seleccionadas para facturar
+	ccurcuotas = ([])
+	*-- Fecha entrega del pedido
+	xdfchent = {}
+	*-- Fecha de Pedido
+	xdfchped = {}
+	*-- Fecha Inicio de Servicio
+	xdfchini = "={}"
+	*-- Fecha fin de Servico
+	xdfchfin = {}
+	*-- Ruta de archivos Facturador -  Sunat - SEE - SFS
+	rutasee_sfs = ([])
+	xfporisc = 0
+	*-- Serie del documento
+	xsserie = ([])
 	Name = "onegocios"
 	lpidrf1 = .F.
 	lpidrf2 = .F.
@@ -7828,6 +8650,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		   OTHER
 		     RETURN [ ]
 		ENDCASE
+		** VETT  21/05/18 14:00 :  : IDUPD: _57F0U0IYR
 	ENDPROC
 
 
@@ -7950,6 +8773,8 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 	PROCEDURE capstkalm
 		LPARAMETERS sSubAlm,sCodMat,dFecha
+
+
 		PRIVATE m.CurrArea
 		if vartype(dfecha) = 'T'
 			dfecha=TTOD(dfecha)
@@ -7958,7 +8783,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		m.NroRegAct= RECNO()
 		m.OrdenAct = ORDER()
 		m.Nra_CALM = 0
-		IF m.CurrArea#[CALM]
+		IF !m.CurrArea==[CALM]
 		   m.NRA_CALM=RECNO([CALM])
 		   IF ORDER([CALM])=[CATA01]
 		      =SEEK(sSubAlm+sCodmat,[CALM])
@@ -8481,9 +9306,11 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		this.XsFmaSol = IIF(!USED('GDOC'),'',SPACE(LEN(GDOC.FmaSol)))
 		this.XiDiaVto = 0
 		this.XsCndPgo = IIF(!USED('GDOC'),'',SPACE(LEN(GDOC.CndPgo)))
-		this.XiCodMon = 2
+		this.XiCodMon = 1   &&  Moneda nacional x defecto
 		this.XfTpoCmb = 0
 		this.XfPorIgv = CFGADMIGV
+		** VETT:Actualización SFS v1.3.2 2020/07/01 09:47:16 ** 
+		this.XfPorIsc = CFGADMISC
 		this.XfPorDto = 0
 		this.XfImpBto = 0
 		this.XfImpDto = 0
@@ -8517,7 +9344,11 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		This.LPidFre = .F.
 		this.lpidActItm = .F.
 		THIS.lPidParItm = .F.
-
+		IF VARTYPE(CfgAdmLinPorFact)='N'
+			this.Cimaxele = IIF(CfgAdmLinPorFact>0,CfgAdmLinPorFact,This.Cimaxele)
+		ENDIF
+		THIS.AddProperty('XfReteMinMN',CfgAdmMinRet) 
+		THIS.AddProperty('XfPorRet',CFGADMRET)
 		RETURN
 	ENDPROC
 
@@ -8716,9 +9547,13 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		LsArea_Act = ALIAS()
 		Local LfTpoCmb
 		LfTpoCmb = 0
-
-
+		IF !USED('TCMB')
+			THIS.oDatAdm.AbrirTabla('ABRIR','ADMMTCMB','TCMB','TCMB01','')
+		ENDIF
+		SELE TCMB
+		SET ORDER TO TCMB01 DESC
 		*IF GoCfgAlm.lPidPco AND GoCfgAlm.lCtoVta && AND GoCfgAlm.Crear
+
 			IF SEEK(DTOS(_dFchDoc),"TCMB")
 				LfTpoCmb = TCMB->OfiVta
 			ELSE
@@ -8752,8 +9587,20 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		SELECT SEDES
 		SET FILTER TO !(UPPER(Nombre)=[CENTRAL]) && Central de informaci¢n
 		COUNT TO nSedes
-		DIME THIS.mSedes(nSedes,3)
-		COPY TO ARRAY THIS.mSedes FIELDS LIKE C*,N*,A*
+		STORE .F. TO LlHayCmpSunat1,LlHayCmpSunat2
+		IF VerifyVar('Cod_Sunat','','CAMPO','SEDES')
+			LlHayCmpSunat1	=	.T.
+		ENDIF
+		IF VerifyVar('Dir_Sunat','','CAMPO','SEDES')
+			LlHayCmpSunat2	=	.T.
+		ENDIF
+		IF  LlHayCmpSunat1 AND  LlHayCmpSunat2
+			DIME THIS.mSedes(nSedes,5)
+			COPY TO ARRAY THIS.mSedes FIELDS LIKE Codigo,Nombre,Activa,Cod_Sunat,Dir_Sunat
+		ELSE
+			DIME THIS.mSedes(nSedes,3)
+			COPY TO ARRAY THIS.mSedes FIELDS LIKE Codigo,Nombre,Activa
+		ENDIF
 		use in sedes
 	ENDPROC
 
@@ -8766,7 +9613,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 
 		DO CASE 
-			CASE _CODDOC = [PEDI] .or. _CODDOC = [PROF]
+			CASE _CODDOC = [PEDI] .or. _CODDOC = [PROF] .or. _CODDOC = [COTI]
 				IF !THIS.oDatAdm.AbrirTabla('ABRIR','CCTCLIEN','','','')
 				   LlRetVal =  .f.
 				ENDIF
@@ -8791,6 +9638,13 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				ENDIF
 					*
 				IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtarprof','RPRO','RPRO01','')
+				   LlRetVal =  .f.
+				ENDIF
+				IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtavCOTI','VCOT','VCOT01','')
+				   LlRetVal =  .f.
+				ENDIF
+					*
+				IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtarCOTI','RCOT','RCOT01','')
 				   LlRetVal =  .f.
 				ENDIF
 					*
@@ -8982,13 +9836,13 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				   LlRetVal =  .f.
 				ENDIF
 				*
-				IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtavprof','VPRO','VPRO01','')
-				   LlRetVal =  .f.
-				ENDIF
-					*
-				IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtarprof','RPRO','RPRO02','')
-				   LlRetVal =  .f.
-				ENDIF
+		*!* 		IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtavprof','VPRO','VPRO01','')
+		*!* 		   LlRetVal =  .f.
+		*!* 		ENDIF
+		*!* 			*
+		*!* 		IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtarprof','RPRO','RPRO02','')
+		*!* 		   LlRetVal =  .f.
+		*!* 		ENDIF
 					*
 				IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtatdocm','DOCM','DOCM01','')
 				   LlRetVal =  .f.
@@ -9204,7 +10058,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 		IF RECCOUNT('c_cdxs')=0
 			USE IN c_cdxs
-			RETURN TRANSAC_SIN_CORRE
+			RETURN INDICE_PK_NO_EXISTE
 		ENDIF
 		this.cIndice_PK	=	TRIM(c_cdxs.indice)
 		this.ccampos_PK	=	TRIM(c_cdxs.Llave) 
@@ -9216,6 +10070,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		USE IN c_dbfs
 
 		SELECT(LsArea_Act)
+		RETURN 0
 	ENDPROC
 
 
@@ -9280,6 +10135,9 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				LcDesTipFam = "En proceso"
 			CASE _Tipfam = 4
 				LcDesTipFam = "Suministro"
+			CASE _Tipfam = 5
+				LcDesTipFam = "Servicios"
+
 		ENDCASE
 		RETURN LcDesTipFam
 	ENDPROC
@@ -9291,8 +10149,10 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		cQue_Transaccion as string, ;
 		cQue_Accion AS String 
 		**PROCEDURE xGraba
-		LOCAL LnOkTrn AS Integer 
+		LOCAL LnOkTrn AS Integer , LnOk AS Integer 
+		LnOk = 0
 		LnOkTrn = S_OK		&& Definido en CONST.H , debe estar incluido en la clase o via codigo #INCLUDE CONST.H
+
 		this.que_transaccion =	cQue_Transaccion
 		** NOTA > Solo es crear y genera SIEMPRE correlativos **
 		**
@@ -9311,17 +10171,24 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						ENDIF
 					ENDIF
 					SELECT (THIS.cAliasCab)
-				   APPEND BLANK
-				   REPLACE TpoDoc WITH THIS.XsTpodoc 
-				   REPLACE CodDoc WITH this.XsCodDoc
-				   REPLACE NroDoc WITH this.XsNroDoc
-				   =this.gen_id(this.XsNroDoc)
+					APPEND BLANK
+					REPLACE TpoDoc WITH THIS.XsTpodoc 
+					REPLACE CodDoc WITH this.XsCodDoc
+					REPLACE NroDoc WITH this.XsNroDoc
+					=this.gen_id(this.XsNroDoc)
+		*!*				REPLACE 
+					IF VerifyVar('UserCrea','','CAMPO',THIS.cAliasCab)
+						REPLACE UserCrea WITH GoEntorno.User.Login
+					ENDIF
+					IF VerifyVar('FchCrea','','CAMPO',THIS.cAliasCab)
+						REPLACE FchCrea WITH DATETIME()
+					ENDIF
 				ELSE
 					SELECT (THIS.cAliasCab)
 					=SEEK(this.cValor_PK ,this.cAliasCab,this.cIndice_PK)
-				   IF ! RLOCK()
-				      RETURN -1
-				   ENDIF
+					IF ! RLOCK()
+						RETURN -1
+					ENDIF
 				ENDIF
 				**************
 				SELECT (THIS.cAliasCab)
@@ -9352,7 +10219,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				IF This.Tag='REGULA_CCB' && No afecta importes, detalle ni contabilidad
 					SELECT (THIS.cAliasCab)
 					UNLOCK 
-					RETURN
+					RETURN LnOk
 				ENDIF
 				REPLACE CodCli WITH EVALUATE(this.ccursor_c+'.CodCli')
 				REPLACE NomCli WITH EVALUATE(this.ccursor_c+'.NomCli')
@@ -9365,7 +10232,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				REPLACE PorDto WITH EVALUATE(this.ccursor_c+'.PorDto')
 				REPLACE ImpBto WITH EVALUATE(this.ccursor_c+'.ImpBto')
 				REPLACE ImpDto WITH EVALUATE(this.ccursor_c+'.ImpDto')
-				replace TpoVta	WITH EVALUATE(this.ccursor_c+'.TpoVta')
+				REPLACE TpoVta	WITH EVALUATE(this.ccursor_c+'.TpoVta')
 				REPLACE ImpInt WITH EVALUATE(this.ccursor_c+'.ImpInt')
 				REPLACE ImpGas WITH EVALUATE(this.ccursor_c+'.ImpGas')
 				REPLACE ImpFlt WITH EVALUATE(this.ccursor_c+'.ImpFlt')
@@ -9388,16 +10255,74 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				IF FIELD('AGENTE')='AGENTE'
 					replace Agente  WITH EVALUATE(this.ccursor_c+'.Agente')
 				ENDIF
+				** Cotizacion **
+				IF INLIST(this.XsCoddoc,'COTI')
+					replace CodCta   WITH EVALUATE(this.ccursor_c+'.CodCta')
+					replace Despacho WITH EVALUATE(this.ccursor_c+'.Despacho')
+					replace Validez  WITH EVALUATE(this.ccursor_c+'.Validez')
+					replace TmpEnt   WITH EVALUATE(this.ccursor_c+'.TmpEnt')
+				ENDIF
+				** VETT  24/11/2011 05:14 PM :  Orden de servicio EHOLDING ***
+				IF INLIST(this.XsCoddoc,'PEDI')	AND UPPER(GsSigCia)='EHOLDING'
+					THIS.GrbCmp2Dbf('Clie_Cent','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('Comi_Cent','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('Si_No_Cent','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('FchAprob','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('FchVta','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('FchRev','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('FteVta','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('N_Cuotas','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('Plazo','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('Nro_Contr','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('OriServ','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('TipCliServ','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('TpoVta2','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('CodFac','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('FchFin','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('FchIni','',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('CodCon','',THIS.cAliasCab,THIS.cCursor_c)
+				ENDIF
+
+				IF VerifyVar('UserModi','','CAMPO',THIS.cAliasCab)
+					REPLACE UserModi WITH GoEntorno.User.Login
+				ENDIF
+				IF VerifyVar('FchModi','','CAMPO',THIS.cAliasCab)
+					REPLACE FchModi WITH DATETIME()
+				ENDIF
 
 				this.graba_detalle_ventas(this.XsCodRef) 
 				** ACTUALIZAMOS CONTABILIDAD **
-				IF !INLIST(this.XsCoddoc,'PEDI') AND !INLIST(this.XsCoddoc,'PROF')
+				IF !INLIST(this.XsCoddoc,'PEDI','COTI')
+					SELECT  (THIS.cAliasCab)
+					SCATTER NAME oData1
+
+					*** Convertimos a objeto el cursor con el detalle del documento ***
+					oData2 = this.odatadm.genobjdatos(this.ccursor_d)    
+
 					cKeyTpoDocSN = THIS.Codsed+This.XsCodDoc+This.XsPtoVta
-					this.oContab.Actualiza_Contabilidad(cQue_transaccion,cKeyTpoDocSN)
+					LnOk=this.oContab.Actualiza_Contabilidad(cQue_transaccion,cKeyTpoDocSN,@oData1,@oData2)
+
+
+					IF LnOk = LnOkTrn && No Hay error 
+						SELECT  (THIS.cAliasCab)
+						REPLACE NroMes	WITH oData1.NroMes
+						REPLACE CodOpe	WITH oData1.CodOpe
+						REPLACE NroAst	WITH oData1.NroAst
+						REPLACE FlgCtb	WITH oData1.FlgCtb
+					 
+						** VETT  07/07/2017 07:57 PM : Llamemos a nuestro amiguito FACTURADOR SEE - SFS
+						this.envio_see_sfs_v1 && with oData1 , oData2, oData1,This.RutaSEE_SFS
+
+					ELSE
+						** VETT:Redireccionado los mensajes de error 2021/05/21 11:13:52 ** 
+
+					ENDIF
 				ENDIF
 				* * *
 				SELECT (THIS.cAliasCab)
 				UNLOCK 
+				** VETT:Respetamos la variable de control de estado de la transsacción 2021/05/21 12:12:34 ** 
+				LnOkTrn = LnOk
 			CASE cQue_transaccion = 'CJA_INGRESO_LIQ_CCB'
 				SELECT (this.caliascab)
 				LsLiqui= EVALUATE(this.ccursor_c+'.Liqui')
@@ -9446,7 +10371,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 		ENDCASE
 
-		RETURN 1
+		RETURN LnOk
 	ENDPROC
 
 
@@ -9493,18 +10418,38 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		LsPicture = "@L "+REPLI('#',Len_id)
 
 		*IF CDOC->ORIGEN
+		** VETT:Excluimos la serie si tiene letras 2022/01/18 14:20:05 ** 
+		m.LsSerLet= ''
+		m.LsSerie = ''
+		*!*	m.lcReturnToMe = "0123456789"
+		m.lcReturnToMe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 		DO CASE
 			CASE	Ant_Mes >0 
+
 				LnLenNDoc = Len_id - LEN(LcNroMes)
 				LnNroDoc = VAL(LcNroMes+RIGHT(TRANSF(LnNroDoc,LsPicture),LnLenNDoc))
+
 			CASE	Ant_Serie >0 
-				LnLenNDoc = Len_id - LEN(Serie)
-				LnNroDoc = VAL(Serie+RIGHT(TRANSF(LnNroDoc,LsPicture),LnLenNDoc))
+				m.LsSerie	= TRIM(Serie) 
+				m.LcSource	= m.LsSerie
+				m.LsSerLet	= CHRTRAN(m.lcSource, CHRTRAN(m.lcSource, m.lcReturnToMe, SPACE(0)), SPACE(0))
+				LnLenNDoc	= Len_id - LEN(m.LsSerie)
+				IF EMPTY(m.LsSerLet)
+					LnNroDoc = VAL(m.LsSerie+RIGHT(TRANSF(LnNroDoc,LsPicture),LnLenNDoc))
+				ELSE
+					LnNroDoc = VAL(RIGHT(TRANSF(LnNroDoc,LsPicture),LnLenNDoc))
+				ENDIF
 			CASE	Ant_PtoVta>0
 				LnLenNDoc = Len_id - LEN(PtoVta)
 				LnNroDoc = VAL(PtoVta+RIGHT(TRANSF(LnNroDoc,LsPicture),LnLenNDoc))
 		ENDCASE
-		m.Len_ID = Len_id
+		m.Len_ID 	= Len_id
+		m.LsSerie	= TRIM(Serie) 
+		m.LnLenSer	= LEN(Serie)
+		This.XsSerie= TRIM(m.LsSerie)
+		IF  _cValor =="SERIE"
+			RETURN This.XsSerie
+		ENDIF
 
 		IF !_cValor == '0'
 			IF VAL(_cValor) > LnNroDoc
@@ -9524,7 +10469,13 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		ENDIF
 		USE IN (LcCursor)
 
-		RETURN  RIGHT(REPLI('0',m.Len_id) + LTRIM(STR(LnNroDoc)), m.Len_id)
+		 
+		IF EMPTY(m.LsSerLet)
+
+			RETURN  RIGHT(REPLI('0',m.Len_id) + LTRIM(STR(LnNroDoc)), m.Len_id)
+		ELSE
+			RETURN  m.LsSerie+RIGHT(REPLI('0',m.Len_id-m.LnLenSer) + LTRIM(STR(LnNroDoc)), m.Len_id-m.LnLenSer)
+		ENDIF
 	ENDPROC
 
 
@@ -9546,13 +10497,14 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 		IF RECCOUNT('c_cdxs')=0
 			USE IN c_cdxs
-			RETURN TRANSAC_SIN_CORRE
+			RETURN INDICE_PK_NO_EXISTE
 		ENDIF
 		this.cIndice_id	=	TRIM(c_cdxs.indice)
 		this.ccmps_id	=	TRIM(c_cdxs.Llave) 
 		this.cvalor_id	=	EVALUATE(c_dbfs.eval_valor_pk)
 
 		this.ccampo_id	=	TRIM(c_dbfs.eval_campo_id) 
+
 		*!*	LcCursor = SYS(2015) 
 		*!*	LnResult=this.odatadm.GenCursor(LcCurSor,TcTabla,'',this.cCmps_Id,This.cValor_Id) 
 		*!*	IF LnResult <=0
@@ -9573,12 +10525,14 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		*!*	USE IN (LcCursor)
 
 		SELECT(LsArea_Act)
+		RETURN 0
 	ENDPROC
 
 
 	*-- Graba el detalle de ventas segun tipo de documento de referencia.
 	PROCEDURE graba_detalle_ventas
 		LPARAMETERS XsCodRef
+
 		DO CASE 
 			CASE INLIST(XsCodRef,'G/R','G\R','GR-','G-R','GUI')
 				** Actualizamos G/R **
@@ -9694,7 +10648,9 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				   UNLOCK
 				   i = i + 1
 				ENDDO
-			CASE XsCodRef	= 'PEDI' 	 
+			CASE XsCodRef	= 'PEDI' AND !INLIST(this.XsCodDoc ,'COTI') && !INLIST(this.XsCodDoc , 'PROF','COTI')
+			** VETT:REVISION - GRABAR VTARITEM CON RUTINA DE ACTUALIZACION DE SALDO DEL PEDIDO 2015/04/01 15:54:14 ** 
+
 				** Primero Verificamos si el Pedido tiene G/R **
 				SELE AUXI
 				IF RECCOUNT() # 0
@@ -9702,46 +10658,145 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				   this.graba_detalle_ventas('G/R') 
 				   RETURN
 				ENDIF
-				** Actualizamos PEDIDO **
-				SELE VPED
-				REPLACE FlgFac WITH [F]    && Marcamos el Pedido como FACTURADO
-				UNLOCK
 				** Grabamos Browse **
-				SELE DETA
-				PRIVATE i
-				i = 1
-				DO WHILE i <= this.GiTotItm
-				   ** Actualizamos Saldo del Pedido **
-				   SELE RPED
-				   SEEK this.XsNroPed+this.AsCodMat(i)
-				   XfCanFac = this.AfCanFac(i)
-				   IF !RLOCK()
-				      SELE VPED
-				      LOOP
-				   ENDIF
-				   this.xAct_Ped
-				   **
-				   SELE DETA
-		   		   APPEND BLANK
-				   REPLACE CodDoc WITH XsCodDoc
-				   REPLACE NroDoc WITH XsNroDoc
-				   REPLACE FchDoc WITH XdFchDoc
-				   REPLACE NroRef WITH THIS.AsNroG_R(i)
-				   REPLACE CodMat WITH THIS.AsCodMat(i)
-				   REPLACE DesMat WITH THIS.AsDesMat(i)
-				   REPLACE UndVta WITH THIS.AsUndVta(i)
-				   REPLACE PreUni WITH THIS.AfPreUni(i)
-				   REPLACE D1     WITH THIS.AnD1    (i)
-				   REPLACE D2     WITH THIS.AnD2    (i)
-				   REPLACE D3     WITH THIS.AnD3    (i)
-				   REPLACE CanFac WITH THIS.AfCanFac(i)
-				   REPLACE FacEqu WITH THIS.AfFacEqu(i)
-				   REPLACE ImpLin WITH THIS.AfImpLin(i)
-				   UNLOCK
-				   i = i + 1
-				ENDDO
+				** GoCfgAlm.xDes_Ped_GR(DTRA.NroRfb,DTRA.CodMat,DTRA.CanDes, DTRA.UndVta,DTRA.Factor)
+				SELECT(THIS.cAliasdet)  	&&DETA
+				DO CASE 
+					CASE !INLIST(this.XsCodDoc,'PROF')  && BOLE , FACT, 
 
-			CASE XsCodRef	= 'FREE'
+						SEEK this.XsCodDoc+this.XsNroDoc 
+		*!*					DELETE  REST WHILE CodDoc+NroDoc = this.XsCodDoc+this.XsNroDoc  
+						SCAN WHILE CodDoc+NroDoc = this.XsCodDoc+this.XsNroDoc  
+							SCATTER NAME oDetPed
+							IF !INLIST(this.XsCodDoc,'PEDI','COTI','PROF')
+								XfCanFac = oDetPed.CanFac
+							ELSE
+								XfCanFac = oDetPed.CanPed
+							ENDIF
+							=RLOCK()
+							DELETE
+							THIS.xDes_Ped_GR(oDetPed.NroRfb,oDetPed.CodMat,XfCanFac, oDetPed.UndVta,oDetPed.FacEqu)
+						ENDSCAN
+					OTHERWISE	 && PROF
+						SEEK this.XsNroDoc 
+		*!*					DELETE  REST WHILE NroDoc = this.XsNroDoc  
+						SCAN WHILE NroDoc = this.XsNroDoc  
+							SCATTER NAME oDetPed
+							IF !INLIST(this.XsCodDoc,'PEDI','COTI','PROF')
+								XfCanFac = oDetPed.CanFac
+							ELSE
+								XfCanFac = oDetPed.CanPed
+							ENDIF
+							=RLOCK()
+							DELETE
+							THIS.xDes_Ped_GR(oDetPed.NroRfb,oDetPed.CodMat,XfCanFac, oDetPed.UndVta,oDetPed.FacEqu)
+						ENDSCAN
+				ENDCASE
+				SELECT (this.cCursor_d)
+				SCAN 
+					SCATTER NAME oDetPed
+					IF !INLIST(this.XsCodDoc,'PEDI','COTI','PROF')
+						XfCanFac = oDetPed.CanFac
+					ELSE
+						XfCanFac = oDetPed.CanPed
+					ENDIF
+
+					SELECT(THIS.cAliasdet)  	&&DETA
+					APPEND BLANK
+					IF VerifyVar('FCHDOC','','CAMPO',THIS.cAliasdet)
+						REPLACE FchDoc		WITH	THIS.XdFchDoc
+					ENDIF
+					REPLACE TpoDoc		WITH	THIS.XsTpoDoc
+					REPLACE CodDoc		WITH	THis.XsCodDoc
+					REPLACE NroDoc		WITH	THIS.XsNroDoc
+					IF	VerifyVar('NroRef','','CAMPO',THIS.cAliasdet)
+						REPLACE NroRef		WITH	oDetPed.NroRfb && THIS.XsNroRfb 
+					ENDIF
+					REPLACE CodMat		WITH	oDetPed.CodMat
+					REPLACE DesMat		WITH	oDetPed.DesMat
+					REPLACE UndVta		WITH	oDetPed.UndVta
+					REPLACE PreVta		WITH 	oDetPed.PreVta
+					REPLACE PreUni		WITH	oDetPed.PreUni
+					REPLACE D1     		WITH	oDetPed.D1
+					REPLACE D2     		WITH	oDetPed.D2
+					REPLACE D3     		WITH	oDetPed.D3
+					IF !INLIST(this.XsCodDoc,'PEDI','COTI','PROF')
+						REPLACE CanFac		WITH	XfCanFac && oDetPed.CanFac
+					ELSE
+						REPLACE CanPed		WITH	XfCanFac && oDetPed.CanFac
+					ENDIF
+					REPLACE FacEqu		WITH	oDetPed.FacEqu
+					REPLACE ImpLin		WITH	oDetPed.ImpLin
+					IF 	VerifyVar('TpoRfb','','CAMPO',THIS.cAliasdet)
+						REPLACE TpoRfb WITH oDetPed.TpoRfb
+					ENDIF
+					IF 	VerifyVar('NroRfb','','CAMPO',THIS.cAliasdet)
+						REPLACE NroRfb WITH oDetPed.NroRfb
+					ENDIF
+					IF 	VerifyVar('SubAlm','','CAMPO',THIS.cAliasdet)
+						REPLACE SubAlm WITH oDetPed.SubAlm     && OJO: Importante para actualizar el almacen
+					ENDIF
+
+					UNLOCK
+					SELECT (this.cCursor_d)
+					** VETT  30/11/11 07:18:38 :   ** Actualizacion de Pedido segun tipo de empresa / Tipo de Mercaderia / Servicios
+					IF UPPER(GsSigCia)='EHOLDING'
+					ELSE
+						THIS.xAct_Ped_GR(oDetPed.NroRfb,oDetPed.CodMat,XfCanFac, oDetPed.UndVta,oDetPed.FacEqu)
+					ENDIF
+				ENDSCAN
+
+				** VETT  30/11/11 09:51:32 : Actualizar cuotas facturadas 
+				IF UPPER(GsSigCia)	='EHOLDING' AND !EMPTY(this.cCurCuotas )
+					IF !USED('RCUO')
+						goentorno.open_dbf1('ABRIR','VTARCUOT','RCUO','RCUO01','')
+					ENDIF
+					SELECT (this.cCurCuotas )
+					SCAN FOR Selec
+						LsNroCta = NroCta
+						SELECT RCUO
+						SEEK THIS.XsNroRfb+ LsNroCta
+						IF FOUND()
+							=RLOCK()
+							REPLACE CodRef WITH This.XsCodDoc , NroRef WITH This.XsNroDoc
+							**REPLACE FchFac WITH THIS.XdFchDoc , FlgFac WITH 'F'
+							REPLACE FlgFac WITH 'F'
+							UNLOCK
+						ENDIF
+						SELECT (this.cCurCuotas )
+					ENDSCAN
+					** Verificamos si pedido (O/Servicio) ha sido totalmente facturada
+					LcFlgEst = ''
+					SELECT RCUO
+					SEEK THIS.XsNroRfb
+					SCAN WHILE NroDoc = THIS.XsNroRfb
+						IF EMPTY(CodRef)	AND EMPTY(NroRef)
+							LcFlgEst = 'E'
+							EXIT
+						ELSE
+							LcFlgEst = 'F'
+						ENDIF
+					ENDSCAN 
+					SELECT VPED
+					SEEK This.XsNroRfb 
+					=RLOCK()
+					REPLACE  FlgEst WITH LcFlgEst
+					UNLOCK
+				ELSE
+					** Actualizamos PEDIDO **
+					SELECT VPED
+					SEEK THIS.XsNroRfb
+					REPLACE FlgFac WITH [F]    && Marcamos el Pedido como FACTURADO
+					UNLOCK
+					** VETT  13/05/2015 11:51 AM : Actualizamos el almacen 
+
+					DO Item2DTRA WITH this.cCursor_d,This.XsCodDoc,IIF(this.Crear,'I','A')
+				ENDIF
+				FLUSH IN VPED
+				FLUSH IN RPED
+				FLUSH IN (THIS.cAliasCab) 	       
+				FLUSH IN (THIS.cAliasDet ) 	       
+			CASE XsCodRef	= 'FREE' AND !INLIST(this.XsCodDoc , 'PROF','COTI')
 
 						IF THIS.CREAR 
 							SELECT (this.cCursor_d)
@@ -9780,10 +10835,10 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 							SELECT(this.caliasdet) 
 						ENDIF
 						** Actualizamos Almacen VETT 03-06-2006 , hasta que me acorde
-						DO Item2DTRA WITH this.cCursor_d,XsCodRef,''
+						DO Item2DTRA WITH this.cCursor_d,XsCodRef,IIF(this.Crear,'I','A')
 			OTHERWISE 
 				DO CASE 
-					CASE this.XsCodDoc = 'PROF'						&& Proformas
+					CASE INLIST(this.XsCodDoc , 'PROF','COTI')		&& Proformas,Cotizaciones
 						************************************************************************ FIN *
 						* Objeto : Grabacion de Informacion
 						******************************************************************************
@@ -9850,16 +10905,24 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 							ENDSCAN 
 							SELECT(this.caliasdet) 
 						ENDIF
+						** Actualizamos proformas al almacen 
+						**>>  Vo.Bo. VETT  2008/12/09 15:00:47
+						IF this.XsCodDoc = 'PROF'						&& Proformas
+							DO Item2DTRA WITH this.cCursor_d,THIS.XsCodDoc,IIF(this.Crear,'I','A')
+						ENDIF
+						**>>  Vo.Bo. VETT  2008/12/09 15:01:00 
 						SELECT(this.caliascab) 
-						DO CASE
-						   CASE Attend = 0 .AND. Totale = 0 .AND. Pendie > 0
-						      REPLACE FlgEst WITH "E"
-						   CASE Attend = 0 .AND. Totale > 0 .AND. Pendie = 0
-						      REPLACE FlgEst WITH "C"
-						   OTHER
-						      REPLACE FlgEst WITH "E"
-						ENDCASE
-					CASE this.XsCodDoc = 'P'						&& Pedidos
+		**>>  Vo.Bo. VETT  2008/11/20 17:04:04 
+		*!*					DO CASE
+		*!*					   CASE Attend = 0 .AND. Totale = 0 .AND. Pendie > 0
+		*!*					      REPLACE FlgEst WITH "E"
+		*!*					   CASE Attend = 0 .AND. Totale > 0 .AND. Pendie = 0
+		*!*					      REPLACE FlgEst WITH "C"
+		*!*					   OTHER
+		*!*					      REPLACE FlgEst WITH "E"
+		*!*					ENDCASE
+		**>>  Vo.Bo. VETT  2008/11/20 17:04:10 
+					CASE this.XsCodDoc = 'PEDI'						&& Pedidos
 						************************************************************************ FIN *
 						* Objeto : Grabacion de Informacion
 						******************************************************************************
@@ -9869,36 +10932,36 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						STORE 0 TO Attend ,	Totale,	Pendie 
 
 						IF THIS.CREAR 
-							SET STEP ON 
+
 							SELECT (this.cCursor_d)
 							SCAN
-			   				   SCATTER MEMVAR
-		 	   				   SELECT(THIS.cAliasdet)  
-							   APPEND BLANK
-					  		   GATHER MEMVAR FIELDS EXCEPT Nro_Reg  && AutoIncremental es solo de lectura
+			   				   	SCATTER MEMVAR
+		 	   				   	SELECT(THIS.cAliasdet)  
+							   	APPEND BLANK
+					  		   	GATHER MEMVAR FIELDS EXCEPT Nro_Reg  && AutoIncremental es solo de lectura
 		*!*				  		   	REPLACE FchDoc WITH THIS.XdFchDoc
 		*!*						    REPLACE TpoDoc WITH this.XsTpoDoc
-		*!*						    REPLACE CodDoc WITH THis.XsCodDoc
-					    		REPLACE NroDoc WITH THIS.XsNroDoc
+							   	REPLACE CodDoc WITH THis.XsCodDoc
+								REPLACE NroDoc WITH THIS.XsNroDoc
 								IF EMPTY(FchEnt)
 									replace FchEnt WITH EVALUATE(this.cCursor_C+'.FchVto')
 								ENDIF
 
-			   				   DO CASE
-							      CASE CanDes = 0
-							         REPLACE FlgEst WITH " "
-							         Pendie = Pendie + 1
-							      CASE CanDes < CanPed
-							         REPLACE FlgEst WITH "P"
-						    	     Attend = Attend + 1
-						      	  OTHER
-						         	REPLACE FlgEst WITH "C"
-							         Totale = Totale + 1
-							   ENDCASE
+								DO CASE
+								      CASE CanDes = 0
+								         REPLACE FlgEst WITH " "
+								         Pendie = Pendie + 1
+								      CASE CanDes < CanPed
+								         REPLACE FlgEst WITH "P"
+							    	     Attend = Attend + 1
+								OTHER
+							         	REPLACE FlgEst WITH "C"
+								         Totale = Totale + 1
+								ENDCASE
 
 							ENDSCAN
 						ELSE
-		   				   SELECT(THIS.cAliasdet)  
+							SELECT(THIS.cAliasdet)  
 							SEEK this.XsNroDoc 
 							DELETE WHILE NroDoc = this.XsNroDoc 
 							SELECT (this.cCursor_d)
@@ -9907,22 +10970,23 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 								SELECT(this.caliasdet) 
 								APPEND BLANK
 								GATHER MEMVAR FIELDS EXCEPT Nro_Reg  && AutoIncremental es solo de lectura
-					    		REPLACE NroDoc WITH THIS.XsNroDoc
+							   	REPLACE CodDoc WITH THis.XsCodDoc
+						    		REPLACE NroDoc WITH THIS.XsNroDoc
 								IF EMPTY(FchEnt)
-									replace FchEnt WITH EVALUATE(this.cCursor_C+'.FchVto')
+									REPLACE FchEnt WITH EVALUATE(this.cCursor_C+'.FchVto')
 								ENDIF
 								UNLOCK 
-				   				   DO CASE
+				   				DO CASE
 								      CASE CanDes = 0
-								         REPLACE FlgEst WITH " "
-								         Pendie = Pendie + 1
+								         	REPLACE FlgEst WITH " "
+								         	Pendie = Pendie + 1
 								      CASE CanDes < CanPed
-								         REPLACE FlgEst WITH "P"
-							    	     Attend = Attend + 1
-							      	  OTHER
-							         	REPLACE FlgEst WITH "C"
-								         Totale = Totale + 1
-								   ENDCASE
+								         	REPLACE FlgEst WITH "P"
+							    	     		Attend = Attend + 1
+							      		OTHER
+							         		REPLACE FlgEst WITH "C"
+										Totale = Totale + 1
+								ENDCASE
 								SELECT (this.cCursor_d)
 							ENDSCAN 
 							SELECT(this.caliasdet) 
@@ -10013,124 +11077,133 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		   SELE DTRA
 			LsLLave = XsCodRef+XsNroRef
 		   =SEEK(LsLLave,'DTRA','DTRA04')
-		   SCAN WHILE TpoRef+NroRef = LsLlave FOR CanDes>0 AND TipMov=this.cTipMov AND  CodMov$this.VtaCodMov
-		      THIS.GiTotItm = THIS.GiTotItm + 1
-		      DIMENSION THIS.aDetalle[THIS.GiTotItm]
-		      THIS.aDetalle(THIS.GiTotItm) = CREATEOBJECT('dosvr.Lineadetalle')
-			  this.oItem	=	THIS.aDetalle(THIS.GiTotItm)
-			  this.oitem.TpoDoc  	= this.Xstpodoc 
-			  this.oItem.CodDoc	 	= this.XsCodDoc
-			  this.oItem.NroDoc  	= this.XsNroDoc
-			  this.OItem.NroRef  	= this.XsNroRef
-			  this.oItem.FchDoc		= this.XdFchDoc
-		      this.oitem.NroG_R 	= AUXI.NroDoc
-		      this.oitem.CodMat = CodMat
-		      =SEEK(AUXI.CodDoc+AUXI.NroDoc,"GUIA")      && Guia de Remision
-		      
-		      =SEEK(THIS.oitem.CodMat,"CATG")                && Catalogo de Materiales
-		      =SEEK(this.subalm + this.oitem.CodMat,"CALM")
-		      IF SEEK(GUIA.NroPed+THIS.oitem.CodMat,"RPED")   && Materiales por Pedido
-		         THIS.oitem.DesMat = RPED.DesMat
-		      ELSE
-		         ** THIS.oitem.DesMat = CATG.DesMat
-		         THIS.oitem.DesMat = DTRA.DesMat
-		      ENDIF
-		      THIS.oitem.UndVta = IIF(EMPTY(DTRA.UndVta),CALM.UndVta,DTRA.UndVta)
-		      * Definimos la moneda y el precio unitario *
-		      IF !EMPTY(GUIA.NroPed) .AND. SEEK(GUIA.NroPed,"VPED")
-		         IF THIS.XiCodMon = VPED.CodMon
-		            *CFGADMIGV
-		            THIS.oitem.PreUni = RPED.PreUni
-		            IF this.XsCODDOC=[BOLE]
-		               THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-		            ENDIF
-		            THIS.oitem.D1    = RPED.D1
-		            THIS.oitem.D2    = RPED.D2
-		            THIS.oitem.D3    = RPED.D3
-		         ELSE
-		            IF THIS.XiCodMon = 1
-		               THIS.oitem.PreUni = ROUND(RPED.PreUni*THIS.XfTpoCmb,2)
-		               IF THIS.XsCODDOC=[BOLE]
-		                  THIS.oitem.PreUni(i) = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-		               ENDIF
-		            ELSE
-		               IF THIS.XfTpoCmb<>0
-		                  THIS.oitem.PreUni = ROUND(RPED.PreUni/THIS.XfTpoCmb,2)
-		                  IF this.XsCODDOC=[BOLE]
-		                     THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-		                  ENDIF
-		               ELSE
-		                  THIS.oitem.PreUni = RPED.PreUni
-		                  IF this.XsCODDOC=[BOLE]
-		                     THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-		                  ENDIF
-		                  THIS.oitem.D1     = RPED.D1
-		                  THIS.oitem.D2     = RPED.D2
-		                  THIS.oitem.D3     = RPED.D3
-		               ENDIF
-		            ENDIF
-		         ENDIF
-		      ELSE
-		          THIS.oitem.D1    = DTRA.D1
-		          THIS.oitem.D2    = DTRA.D2
-		          THIS.oitem.D3    = DTRA.D3
-		        ** * * * * * * *
-		         IF THIS.XiCodMon = 1
-		            IF EMPTY(DTRA.PREUNI)
-		*               THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,ROUND(CATG.PuinUS*THIS.XfTpoCmb,2))
-						THIS.oitem.PreUni = CATG.Prevn1
-		            ELSE
-		               THIS.oitem.PreUni = DTRA.PREUNI
-		            ENDIF
-		            IF this.XSCODDOC=[BOLE]
-		            	IF INLIST(GsSigCia='AROMAS','QUIMICA')
-		            	ELSE
-		            		THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
-		            	ENDIF
-		            ENDIF
-		         ELSE
-		            IF THIS.XfTpoCmb<>0
-		               IF EMPTY(DTRA.PREUNI)
-		*               		THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,CATG.PuinUS)
-							THIS.oitem.PreUni	=	CATG.Preve1
-		               ELSE
-			           		THIS.oitem.PreUni = DTRA.PREUNI
-		               ENDIF
-		               IF this.XSCODDOC=[BOLE]
-			            	IF INLIST(GsSigCia,'AROMAS','QUIMICA')
-			            	ELSE
-			            		THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
-			            	ENDIF
-		               ENDIF
-		            ELSE
-		               IF EMPTY(DTRA.PREUNI)
-		                  THIS.oitem.PreUni = CATG.PreVe1
-		               ELSE
-		                  THIS.oitem.PreUni = DTRA.PREUNI
-		               ENDIF
-		               IF this.XsCODDOC=[BOLE]
-			            	IF INLIST(GsSigCia,'AROMAS','QUIMICA')
-			            	ELSE
-			            		THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
-			            	ENDIF
-		               ENDIF
-		            ENDIF
-		         ENDIF
-		        ** * * * * * * *
-		      ENDIF
-		      THIS.oitem.CanFac = CanDes
-		      THIS.oitem.FacEqu = Factor
-		      THIS.oitem.ImpLin = ROUND(THIS.oitem.CanFac*THIS.oitem.PreUni*(1-THIS.oitem.D1/100)*(1-THIS.oitem.D2/100)*(1-THIS.oitem.D3/100),2)
-		      i = i + 1
-		      this.oitem=0  && Aqui desvinculamos el objeto detalle de el arreglo y dejamos a aDetalle intacto 
+			   SCAN WHILE TpoRef+NroRef = LsLlave FOR CanDes>0 AND TipMov=this.cTipMov AND  CodMov$this.VtaCodMov
+			            THIS.GiTotItm = THIS.GiTotItm + 1
+			            DIMENSION THIS.aDetalle[THIS.GiTotItm]       && >>  Vo.Bo. VETT  2003/12/23 15:23:32 
+			            THIS.aDetalle(THIS.GiTotItm) = CREATEOBJECT('dosvr.Lineadetalle')
+			            this.oItem	=	THIS.aDetalle(THIS.GiTotItm)
+			            this.oitem.TpoDoc  	= this.Xstpodoc 
+			            this.oItem.CodDoc	= this.XsCodDoc
+			            this.oItem.NroDoc  	= this.XsNroDoc
+			            this.OItem.NroRef  	= this.XsNroRef
+			            this.oItem.FchDoc	= this.XdFchDoc
+			            this.oitem.NroG_R 	= AUXI.NroDoc
+			            this.oitem.CodMat = CodMat
+			            =SEEK(AUXI.CodDoc+AUXI.NroDoc,"GUIA")      && Guia de Remision
+			            =SEEK(THIS.oitem.CodMat,"CATG")                && Catalogo de Materiales
+			            =SEEK(this.subalm + this.oitem.CodMat,"CALM")
+			           IF SEEK(GUIA.NroPed+THIS.oitem.CodMat,"RPED")   && Materiales por Pedido
+			                 THIS.oitem.DesMat = RPED.DesMat
+			           ELSE
+			              ** THIS.oitem.DesMat = CATG.DesMat
+			                  THIS.oitem.DesMat = DTRA.DesMat
+			           ENDIF
+			           THIS.oitem.UndVta = IIF(EMPTY(DTRA.UndVta),CALM.UndVta,DTRA.UndVta)
+			      * Definimos la moneda y el precio unitario *
+			*!*	      IF !EMPTY(GUIA.NroPed) .AND. SEEK(GUIA.NroPed,"VPED")
+				  IF TpoRfb='PEDI' AND SEEK(PADR(NroRfb,LEN(VPED.NroDoc)),"VPED")
+						 =SEEK(VPED.NroDoc+THIS.oitem.CodMat,"RPED","RPED02")		  
+						 LfPreUni = IIF(EMPTY(RPED.PreVta),IIF(THIS.XiCodMon=1,CATG.Prevn1,CATG.Preve1),RPED.PreVta)
+					         IF THIS.XiCodMon = VPED.CodMon
+						            *CFGADMIGV
+						            THIS.oitem.PreVta = LfPreUni
+						            IF this.XsCODDOC=[BOLE]
+						               		THIS.oitem.PreVta = ROUND(LfPreUni*(1+THIS.XfPorIgv/100),3)
+						            ENDIF
+						            THIS.oitem.D1    = RPED.D1
+						            THIS.oitem.D2    = RPED.D2
+						            THIS.oitem.D3    = RPED.D3
+					         ELSE
+						            IF THIS.XiCodMon = 1
+							               THIS.oitem.PreVta = ROUND(LfPreUni*THIS.XfTpoCmb,2)
+							               IF THIS.XsCODDOC=[BOLE]
+							        	          THIS.oitem.PreVta = ROUND(LfPreUni*(1+THIS.XfPorIgv/100),3)
+							               ENDIF
+						            ELSE
+							               IF THIS.XfTpoCmb<>0
+								                  THIS.oitem.PreVta = ROUND(LfPreUni/THIS.XfTpoCmb,2)
+								                  IF this.XsCODDOC=[BOLE]
+									                     THIS.oitem.PreVta = ROUND(LfPreUni*(1+THIS.XfPorIgv/100),3)
+								                  ENDIF
+							               ELSE
+								                  THIS.oitem.PreVta = LfPreUni
+								                  IF this.XsCODDOC=[BOLE]
+									                     THIS.oitem.PreVta = ROUND(LfPreUni*(1+THIS.XfPorIgv/100),3)
+								                  ENDIF
+								                  THIS.oitem.D1     = RPED.D1
+								                  THIS.oitem.D2     = RPED.D2
+								                  THIS.oitem.D3     = RPED.D3
+							               ENDIF
+						            ENDIF
+					         ENDIF
+			      ELSE
+				          THIS.oitem.D1    = DTRA.D1
+				          THIS.oitem.D2    = DTRA.D2
+				          THIS.oitem.D3    = DTRA.D3
+				        ** * * * * * * *
+				        
+				         IF THIS.XiCodMon = 1
+					            IF EMPTY(DTRA.PREUNI)
+					*               THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,ROUND(CATG.PuinUS*THIS.XfTpoCmb,2))
+								THIS.oitem.PreVta = CATG.Prevn1
+					            ELSE
+						               THIS.oitem.PreVta = DTRA.PREUNI
+					            ENDIF
+					            IF this.XSCODDOC=[BOLE]
+						            	IF INLIST(GsSigCia='AROMAS','QUIMICA')
+						            	ELSE
+						            		THIS.oitem.PreVta = ROUND(THIS.oitem.PreVta*(1+THIS.XfPorIgv/100),3)
+						            	ENDIF
+					            ENDIF
+				         ELSE
+					            IF THIS.XfTpoCmb<>0
+						               IF EMPTY(DTRA.PREUNI)
+						*               		THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,CATG.PuinUS)
+										THIS.oitem.PreVta	=	CATG.Preve1
+						               ELSE
+							           		THIS.oitem.PreVta = DTRA.PREUNI
+						               ENDIF
+						               IF this.XSCODDOC=[BOLE]
+							            	IF INLIST(GsSigCia,'AROMAS','QUIMICA')
+							            	ELSE
+							            		THIS.oitem.PreVta = ROUND(THIS.oitem.PreVta*(1+THIS.XfPorIgv/100),3)
+							            	ENDIF
+						               ENDIF
+					            ELSE
+						               IF EMPTY(DTRA.PREUNI)
+						        	          THIS.oitem.PreVta = CATG.PreVe1
+						               ELSE
+							                  THIS.oitem.PreVta = DTRA.PREUNI
+						               ENDIF
+						               IF this.XsCODDOC=[BOLE]
+							            	IF INLIST(GsSigCia,'AROMAS','QUIMICA')
+							            	ELSE
+							            		THIS.oitem.PreVta = ROUND(THIS.oitem.PreVta*(1+THIS.XfPorIgv/100),3)
+							            	ENDIF
+						               ENDIF
+					            ENDIF
+				         ENDIF
+			        ** * * * * * * *
+			      ENDIF
+			      THIS.oitem.CanFac = CanDes*IIF(CATG.UndStk<>UndVta,IIF(Factor>0,Factor,1),1)
+			      THIS.oitem.FacEqu = IIF(CATG.UndStk<>UndVta,1,Factor) 
+			      THIS.oItem.UndVta = IIF(CATG.UndStk<>UndVta,CATG.UndStk,THIS.oItem.UndVta)
+			      THIS.oItem.Preuni = ROUND(THIS.oItem.PreVta*(1-THIS.oitem.D1/100)*(1-THIS.oitem.D2/100)*(1-THIS.oitem.D3/100),3)
+			      THIS.oitem.ImpLin = ROUND(THIS.oitem.CanFac*THIS.oitem.PreUni,2)
+			      i = i + 1
+			      this.oitem=0  && Aqui desvinculamos el objeto detalle de el arreglo y dejamos a aDetalle intacto 
 
-		  ENDSCAN
+			  ENDSCAN
 		ENDSCAN
 
 		THIS.XsGloDoc = LEFT(THIS.XsGloDoc,LEN(GDOC.GloDoc))
 		*** Cargamos el arreglo a el cursor
-		SELECT (this.ccursor_d)
-		DELETE ALL
+		IF !EMPTY(this.ccursor_d)
+			SELECT (this.ccursor_d)
+			DELETE ALL IN (this.ccursor_d)
+		ELSE
+			RETURN .F.
+		ENDIF
 		this.objarr2cursor(this.adetalle,this.Gitotitm ,this.ccursor_d)   
 		*DO xRegenera
 		IF CURSORGETPROP("Buffering",this.ccursor_d) > 1
@@ -10364,6 +11437,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		******************************************************************************
 		*!*	PROCEDURE xBorrar
 		PARAMETERS cQue_transaccion 
+
 		DO CASE 
 			CASE cQue_transaccion = 'ALMACEN'
 			CASE cQue_transaccion = 'VENTAS'
@@ -10390,10 +11464,10 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						   XdFchDoc = GDOC->FchDoc
 						   IF !this.verica_cierre_contable(XdFchDoc)
 						      this.sErr = "Mes Cerrado, acceso denegado"
-						      SELE GDOC
+						      SELECT(this.cAliasCab)
 						      RETURN MES_CERRADO
 						   ENDIF
-						   SELE GDOC
+						   SELECT(this.cAliasCab)
 						ENDIF
 
 						IF !F1_RLOCK(5)
@@ -10404,7 +11478,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						   SELE VPED
 						   SEEK GDOC->NroPed
 						   IF !RLOCK()
-						      SELE GDOC
+						      SELECT(this.cAliasCab)
 						      UNLOCK
 						      RETURN REGISTRO_BLOQUEADO
 						   ENDIF
@@ -10412,16 +11486,18 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						** Anulamos de Acuerdo al Tipo de Factura
 						SELECT(this.caliascab) && GDOC
 						THIS.BOrra_registro_transaccion(GDOC.CodRef) 
-						* * * * *
+						* * 
+						SELECT(this.caliascab) && GDOC
+						SCATTER NAME oData1
 
 						IF GDOC.FlgCtb
-						   this.oContab.Actualiza_Contabilidad(cQue_transaccion+cSufijo_Transaccion)
+						   this.oContab.Actualiza_Contabilidad(cQue_transaccion+cSufijo_Transaccion, '' ,@oData1)
 						ENDIF
 
 						* * * * *
 						* anulado total
 						* * * * *
-						SELE GDOC
+						SELECT(this.caliascab)
 						IF FlgEst = "A"  && PARA QUE DESAPARESCA
 						   DELETE
 						ELSE
@@ -10430,12 +11506,71 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 							REPLACE FchAct WITH DATE()
 							REPLACE SdoDoc WITH 0
 							REPLACE ImpTOT	WITH 0
+							IF VerifyVar('UserElim','','CAMPO',THIS.cAliasCab)
+									REPLACE UserElim WITH GoEntorno.User.Login
+							ENDIF
+							IF VerifyVar('FchElim','','CAMPO',THIS.cAliasCab)
+									REPLACE FchElim WITH DATETIME()
+							ENDIF
 						ENDIF
 						UNLOCK
 						SKIP
-					CASE INLIST(this.XsCodDoc,'P')   && Pedidos
+					CASE INLIST(this.XsCodDoc,'PROF','PEDI','COTI')   && Proforma,Pedidos,Cotizacion
 						SELECT(this.caliascab) && GDOC
+						IF INLIST(THIS.XsCodDoc,'PROF','COTI')
+							IF FlgEst#"P" .AND. FlgEst# "A"
+							   **WAIT "INVALIDO REGISTRO A ANULAR" NOWAIT WINDOW
+					   			RETURN INVALIDO_REGISTRO
+							ENDIF
+
+							IF SdoDoc#ImpTot
+							   **WAIT "DOCUMENTO TIENE AMORTIZACIONES" NOWAIT WINDOW
+							   RETURN TIENE_AMORTIZACIONES
+							ENDIF
+						ENDIF
+						IF INLIST(THIS.XsCodDoc,'PEDI')
+
+						ENDIF
+						IF !F1_RLOCK(5)
+
+						    RETURN REGISTRO_BLOQUEADO
+						ENDIF
+
 						THIS.BOrra_registro_transaccion(this.XsCodRef) 
+
+						* * 
+						SELECT(this.caliascab) && GDOC
+						SCATTER NAME oData1
+
+						IF FlgCtb AND CODDOC='PROF'
+							this.oContab.Actualiza_Contabilidad(cQue_transaccion+cSufijo_Transaccion, '' ,@oData1)
+						ENDIF
+
+						SELECT(this.caliascab)
+						IF FlgEst = "A"  && PARA QUE DESAPARESCA
+							DELETE
+						ELSE
+
+							REPLACE FlgEst WITH [A]
+							REPLACE FchAct WITH DATE()
+							REPLACE SdoDoc WITH 0
+							REPLACE ImpTOT	WITH 0
+							IF VerifyVar('UserElim','','CAMPO',THIS.cAliasCab)
+									REPLACE UserElim WITH GoEntorno.User.Login
+							ENDIF
+							IF VerifyVar('FchElim','','CAMPO',THIS.cAliasCab)
+									REPLACE FchElim WITH DATETIME()
+							ENDIF
+
+						ENDIF
+						UNLOCK
+						IF !EOF()
+							SKIP
+						ELSE
+							IF !BOF()
+								SKIP -1
+							ENDIF
+						ENDIF
 
 				ENDCASE
 
@@ -10468,110 +11603,38 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 	PROCEDURE borra_registro_transaccion
 		**PROCEDURE xBorra1
 		PARAMETERS _cCodref
+
 		DO CASE 
 			CASE _cCodref = 'G/R'
-				* Buscamos G/R *
-				SELE GUIA
-				SET ORDER TO VGUI03
-				SEEK GDOC.CodDoc+GDOC.NroDoc
-				DO WHILE !EOF() .AND. CodFac+Nrofac = GDOC.CodDoc+GDOC.NroDoc
-				   IF !RLOCK()
-				      LOOP
-				   ENDIF
-				   REPLACE CodFac WITH []     && OJITO
-				   REPLACE NroFac WITH []
-				   REPLACE FlgEst WITH [E]
-				   UNLOCK
-				   SEEK GDOC->CodDoc+GDOC->NroDoc
-				ENDDO
-				SET ORDER TO VGUI01
-				** anulamos detalles **
-				SELE DETA
-				SEEK GDOC->CodDoc+GDOC->NroDoc
-				DO WHILE CodDoc+NroDoc=GDOC->CodDoc+GDOC->NroDoc .AND. ! EOF()
-				   IF ! RLOCK()
-				      LOOP
-				   ENDIF
-				   DELETE
-				   UNLOCK
-				   SKIP
-				ENDDO
-
-				RETURN
-
-		************************************************************************ FIN()
-		* Borrar Informacion
-		******************************************************************************
+				This.xBorra1 
 		**PROCEDURE xBorra2
-			CASE _cCodref = 'PEDI'
-				* Verificamos Status del Pedido *
-				SELE VPED
-				IF FlgFac = [F]      && OJO : Todo el Pedido fue Facturado
-				   ** anulamos detalles **
-				   SELE DETA
-				   SEEK GDOC->CodDoc+GDOC->NroDoc
-				   DO WHILE CodDoc+NroDoc=GDOC->CodDoc+GDOC->NroDoc .AND. ! EOF()
-				      IF ! RLOCK()
-				         LOOP
-				      ENDIF
-				      =SEEK(VPED->NroDoc+DETA->CodMat,"RPED")
-				      IF !RLOCK("RPED")
-				         LOOP
-				      ENDIF
-				      DO xDes_Ped
-				      SELE DETA
-				      DELETE
-				      UNLOCK
-				      SKIP
-				   ENDDO
-				   SELE VPED
-				   REPLACE FlgFac WITH []
-				   UNLOCK
-				ELSE
-				   ** Desmarcamos G/R **
-				   DO this.Borra_registro_transaccion(_cCodref) 
-				ENDIF
-
-				RETURN
-		************************************************************************ FIN()
-		* Borrar Informacion
-		******************************************************************************
+			CASE _cCodref = 'PEDI' 
+				This.xBorra2
 		**PROCEDURE xBorra21
 			CASE _cCodref = 'PROF'
-				* Verificamos Status de la Proforma *
-				SELE VPRO
-				IF FlgFac = [F]      && OJO : Todo la Proforma fue Facturada
-				   ** anulamos detalles **
-				   SELE DETA
-				   SEEK GDOC->CodDoc+GDOC->NroDoc
-				   DO WHILE CodDoc+NroDoc=GDOC->CodDoc+GDOC->NroDoc .AND. ! EOF()
-				      IF ! RLOCK()
-				         LOOP
-				      ENDIF
-				      =SEEK(VPRO->NroDoc+DETA->CodMat,"RPRO")
-				      IF !RLOCK("RPRO")
-				         LOOP
-				      ENDIF
-				      DO xDes_Ped
-				      SELE DETA
-				      DELETE
-				      UNLOCK
-				      SKIP
-				   ENDDO
-				   SELE VPRO
-				   REPLACE FlgFac WITH []
-				   UNLOCK
-				ELSE
-				   ** Desmarcamos G/R **
-				   DO this.Borra_registro_transaccion(_cCodref) 
-				ENDIF
+				SELECT(this.cAliasCab)
+				** anulamos detalles **
+				SELECT (this.caliasdet) && RPRO
+				SEEK    this.cvalor_pk  && VPRO->NroDoc
+				DO WHILE NroDoc=this.cvalor_pk .AND. ! EOF()
+					SCATTER NAME oDetPed
+					IF !INLIST(this.XsCodDoc,'PEDI','COTI')
+						XfCanFac = oDetPed.CanFac
+					ELSE
+						XfCanFac = oDetPed.CanPed
+					ENDIF
+					=RLOCK()
+					DELETE
+					THIS.xDes_Ped_GR(oDetPed.NroRfb,oDetPed.CodMat,XfCanFac, oDetPed.UndVta,oDetPed.FacEqu)
+					SKIP
+				ENDDO
 
 				RETURN
 		************************************************************************ FIN()
 		* Borrar Informacion
 		******************************************************************************
 		**PROCEDURE xBorra3
-			CASE _cCodref = 'FREE'
+			CASE _cCodref = 'FREE' AND !INLIST(this.XsCodDoc , 'PROF','COTI')
 				** anulamos detalles **
 				SELE DETA
 				SEEK GDOC->CodDoc+GDOC->NroDoc
@@ -10583,12 +11646,12 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				   UNLOCK
 				   SKIP
 				ENDDO
-				DO Item2DTRA WITH this.cCursor_d,_cCodref,'A'
+				DO Item2DTRA WITH this.cCursor_d,_cCodref,'E'
 				RETURN
 
 			OTHERWISE 
 				DO CASE 
-					CASE this.XsCodDoc = 'PROF'						&& Proforma
+					CASE INLIST(this.XsCodDoc , 'PROF','COTI')	&& Proforma
 
 						************************************************************************ FIN()
 						* Borrar Informacion
@@ -10603,7 +11666,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						   ENDIF
 						   SELECT(this.caliasdet) && RPRO
 						   SEEK this.cvalor_pk  && VPRO->NroDoc
-						   DO WHILE NroDoc=VPRO.NroDoc .AND. ! EOF()
+						   DO WHILE NroDoc=this.cvalor_pk .AND. ! EOF()
 						      IF RLOCK()
 						         DELETE
 						      ENDIF
@@ -10618,42 +11681,45 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						IF FlgEst = 'C'
 		*!*					   GsMsgErr = [ PROFORMA Completo ]
 		*!*					   DO lib_merr WITH 99
+							=MESSAGEBOX("Proforma Cancelada",4+32+256,'Atencion!')
 						   RETURN
 						ENDIF
-						IF FlgEst = 'P'
-						   IF MESSAGEBOX(" Proforma Parcialmente Atendido, Desea continuar? ",4+32+256,'Atencion!')=7
-						      RETURN
-						   ENDIF
-						   BORTOT = .F.
-						ENDIF
+		*!*					IF FlgEst = 'P'
+		*!*					   IF MESSAGEBOX(" Proforma Parcialmente Atendido, Desea continuar? ",4+32+256,'Atencion!')=7
+		*!*					      RETURN
+		*!*					   ENDIF
+		*!*					   BORTOT = .F.
+		*!*					ENDIF
 						* Verificamos Flags
-						SELECT(this.caliasdet)  && RPRO
-						SEEK VPRO.NroDoc
-						SCAN WHILE NroDoc = VPRO.NroDoc
-						   IF !EMPTY(FlgEst)    && Atencion Parcial o Total
-							   IF MESSAGEBOX(" Proforma Parcialmente Atendido, Desea continuar? ",4+32+256,'Atencion!')=7
-			         			   SELECT(this.caliascab)  && VPRO
-							         RETURN
-						      ENDIF
-						      BORTOT = .F.
-						      WAIT "SE PROCEDE AL CIERRE DEL PROFORMA" WINDOW NOWAIT
-						      EXIT
-						   ENDIF
-						ENDSCAN
+		**>>  Vo.Bo. VETT  2008/11/20 17:24:44 
+		*!*					SELECT(this.caliasdet)  && RPRO
+		*!*					SEEK VPRO.NroDoc
+		*!*					SCAN WHILE NroDoc = VPRO.NroDoc
+		*!*					   IF !EMPTY(FlgEst)    && Atencion Parcial o Total
+		*!*						   IF MESSAGEBOX(" Proforma Parcialmente Atendido, Desea continuar? ",4+32+256,'Atencion!')=7
+		*!*		         			   SELECT(this.caliascab)  && VPRO
+		*!*						         RETURN
+		*!*					      ENDIF
+		*!*					      BORTOT = .F.
+		*!*					      WAIT "SE PROCEDE AL CIERRE DEL PROFORMA" WINDOW NOWAIT
+		*!*					      EXIT
+		*!*					   ENDIF
+		*!*					ENDSCAN
+		**>>  Vo.Bo. VETT  2008/11/20 17:24:49 
 						SELECT(this.caliascab)  &&VPRO
 						IF ! RLOCK()
 						   RETURN
 						ENDIF
 						** anulamos detalles **
 						SELECT(this.caliasdet)   && RPRO
-						SEEK VPRO.NroDoc
-						DO WHILE NroDoc=VPRO.NroDoc .AND. ! EOF()
+						SEEK this.cvalor_pk
+						DO WHILE NroDoc=this.cvalor_pk .AND. ! EOF()
 						   IF ! RLOCK()
 						      LOOP
 						   ENDIF
-						   IF INLIST(FlgEst,[ ],[P])
-						      REPLACE FLGEST WITH "N"    && NO atendido
-						   ENDIF
+		*!*					   IF INLIST(FlgEst,[ ],[P])
+		*!*					      REPLACE FLGEST WITH "N"    && NO atendido
+		*!*					   ENDIF
 						   IF BorTot
 						      DELETE
 						   ENDIF
@@ -10669,93 +11735,116 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						   REPLACE FchAct WITH DATE()
 						ELSE
 						   *** Cierra el proforma en forma manual ***
-						   REPLACE FlgEst WITH [c]
+		*!*					   REPLACE FlgEst WITH [c]
 						ENDIF
 						UNLOCK
 						SKIP
+						IF this.XsCodDoc='PROF'
+							DO Item2DTRA WITH this.cCursor_d,this.XsCodDoc,'E'
+						ENDIF
 					CASE this.XsCodDoc = 'P'						&& Pedidos
 
 						************************************************************************ FIN()
 						* Borrar Informacion
 						******************************************************************************
 		*!*					PROCEDURE xBorrar
+					DO CASE
+						CASE UPPER(GsSigCia)='EHOLDING'
+							   SELECT(this.caliasdet) && RPED
+							   SEEK this.cvalor_pk  && VPED->NroDoc
+							   DO WHILE NroDoc=VPED.NroDoc .AND. ! EOF()
+								      IF RLOCK()
+								      		DELETE
+								      ENDIF
+								      UNLOCK
+								      SKIP
+							   ENDDO
+							 LsPathDBFCuotas	=	ADDBS(GoEntorno.pathdatacia(GsCodCia))+'VTARCUOT'
+							 DELETE FROM (LsPathDBFCuotas)  WHERE  CodDoc = this.XsCodDoc  AND NroDoc = this.XsNroDoc  
+							 LsPathDBFWebs=ADDBS(GoEntorno.pathdatacia(GsCodCia))+'VTARWEBS'
+							 DELETE FROM (LsPathDBFWebs)  WHERE  CodDoc = this.XsCodDoc  AND NroDoc = this.XsNroDoc 
 
-						SELECT(this.caliascab)  && VPED
-						BORTOT = .T.
-						IF FlgEst = 'A'
-						   IF !RLOCK()
-						      RETURN
-						   ENDIF
-						   SELECT(this.caliasdet) && RPED
-						   SEEK this.cvalor_pk  && VPED->NroDoc
-						   DO WHILE NroDoc=VPED.NroDoc .AND. ! EOF()
-						      IF RLOCK()
-						         DELETE
-						      ENDIF
-						      UNLOCK
-						      SKIP
-						   ENDDO
-						   SELECT(this.caliascab)  && VPED
-						   DELETE
-						   SKIP
-						   RETURN
-						ENDIF
-						IF FlgEst = 'C'
-		*!*					   GsMsgErr = [ Pedido Completo ]
-		*!*					   DO lib_merr WITH 99
-						   RETURN
-						ENDIF
-						IF FlgEst = 'P'
-						   IF MESSAGEBOX(" Pedido Parcialmente Atendido, Desea continuar? ",4+32+256,'Atencion!')=7
-						      RETURN
-						   ENDIF
-						   BORTOT = .F.
-						ENDIF
-						* Verificamos Flags
-						SELECT(this.caliasdet)  && RPED
-						SEEK VPED.NroDoc
-						SCAN WHILE NroDoc = VPED.NroDoc
-						   IF !EMPTY(FlgEst)    && Atencion Parcial o Total
+							  
+							  
+
+						OTHERWISE
+							SELECT(this.caliascab)  && VPED
+							BORTOT = .T.
+							IF FlgEst = 'A'
+							   IF !RLOCK()
+							      RETURN
+							   ENDIF
+							   SELECT(this.caliasdet) && RPED
+							   SEEK this.cvalor_pk  && VPED->NroDoc
+							   DO WHILE NroDoc=VPED.NroDoc .AND. ! EOF()
+							      IF RLOCK()
+							         DELETE
+							      ENDIF
+							      UNLOCK
+							      SKIP
+							   ENDDO
+							   SELECT(this.caliascab)  && VPED
+							   DELETE
+							   SKIP
+							   RETURN
+							ENDIF
+
+							IF FlgEst = 'C'
+			*!*					   GsMsgErr = [ Pedido Completo ]
+			*!*					   DO lib_merr WITH 99
+							   RETURN
+							ENDIF
+							IF FlgEst = 'P'
 							   IF MESSAGEBOX(" Pedido Parcialmente Atendido, Desea continuar? ",4+32+256,'Atencion!')=7
-			         			   SELECT(this.caliascab)  && VPED
-							         RETURN
-						      ENDIF
-						      BORTOT = .F.
-						      WAIT "SE PROCEDE AL CIERRE DEL PEDIDO" WINDOW NOWAIT
-						      EXIT
-						   ENDIF
-						ENDSCAN
-						SELECT(this.caliascab)  &&VPED
-						IF ! RLOCK()
-						   RETURN
-						ENDIF
-						** anulamos detalles **
-						SELECT(this.caliasdet)   && RPED
-						SEEK VPED.NroDoc
-						DO WHILE NroDoc=VPED.NroDoc .AND. ! EOF()
-						   IF ! RLOCK()
-						      LOOP
-						   ENDIF
-						   IF INLIST(FlgEst,[ ],[P])
-						      REPLACE FLGEST WITH "N"    && NO atendido
-						   ENDIF
-						   IF BorTot
-						      DELETE
-						   ENDIF
-						   UNLOCK
-						   SKIP
-						ENDDO
-						SELECT(this.caliascab)  && VPED
+							      RETURN
+							   ENDIF
+							   BORTOT = .F.
+							ENDIF
+							* Verificamos Flags
+							SELECT(this.caliasdet)  && RPED
+							SEEK VPED.NroDoc
+							SCAN WHILE NroDoc = VPED.NroDoc
+							   IF !EMPTY(FlgEst)    && Atencion Parcial o Total
+								   IF MESSAGEBOX(" Pedido Parcialmente Atendido, Desea continuar? ",4+32+256,'Atencion!')=7
+				         			   SELECT(this.caliascab)  && VPED
+								         RETURN
+							      ENDIF
+							      BORTOT = .F.
+							      WAIT "SE PROCEDE AL CIERRE DEL PEDIDO" WINDOW NOWAIT
+							      EXIT
+							   ENDIF
+							ENDSCAN
+							SELECT(this.caliascab)  &&VPED
+							IF ! RLOCK()
+							   RETURN
+							ENDIF
+							** anulamos detalles **
+							SELECT(this.caliasdet)   && RPED
+							SEEK VPED.NroDoc
+							DO WHILE NroDoc=VPED.NroDoc .AND. ! EOF()
+							   IF ! RLOCK()
+							      LOOP
+							   ENDIF
+							   IF INLIST(FlgEst,[ ],[P])
+							      REPLACE FLGEST WITH "N"    && NO atendido
+							   ENDIF
+							   IF BorTot
+							      DELETE
+							   ENDIF
+							   UNLOCK
+							   SKIP
+							ENDDO
+							SELECT(this.caliascab)  && VPED
 
-						IF BorTot
-						   REPLACE FlgEst WITH [A]
-						ELSE
-						   *** Cierra el pedido en forma manual ***
-						   REPLACE FlgEst WITH [c]
-						ENDIF
-						UNLOCK
-						SKIP
-
+							IF BorTot
+							   REPLACE FlgEst WITH [A]
+							ELSE
+							   *** Cierra el pedido en forma manual ***
+							   REPLACE FlgEst WITH [c]
+							ENDIF
+							UNLOCK
+							SKIP
+					ENDCASE
 
 					CASE INLIST(THIS.XsCodDoc ,'N/C','N\C','NC')	&& Nota Credito
 					CASE INLIST(THIS.XsCodDoc ,'N/D','N\D','ND')	&& Nota Debito
@@ -10779,7 +11868,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 			CASE _cQue_Transaccion = 'VENTAS'
 				DO CASE 
-					CASE !INLIST(this.XsCodDoc,'PEDI') AND !INLIST(this.XsCodDoc,'PROF')
+					CASE !INLIST(this.XsCodDoc,'PEDI') AND !INLIST(this.XsCodDoc,'PROF','COTI')
 						DO CASE
 							CASE _cFlgEst = 'A'
 								LsDescrip = 'Documento anulado'
@@ -10791,31 +11880,66 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 								LsDescrip = 'Documento facturado'
 							CASE _cFlgEst = 'T'
 								LsDescrip = 'Guia no es de ventas'
+							CASE _cFlgEst = 'I'
+								LsDescrip = 'Documento incobrable'
 							 
 						ENDCASE
-					OTHER 
-					   IF INLIST(this.XsCodDoc,'PEDI') 
+					CASE INLIST(this.XsCodDoc,'COTI')
 							DO CASE
 								CASE _cFlgEst = 'A'
-									LsDescrip = 'Pedido anulado'
+									LsDescrip = 'Cotizacion anulada'
 								CASE _cFlgEst = 'C'
-									LsDescrip = 'Pedido totalmente atendido'
+									LsDescrip = 'Cotizacion cancelada'
 								CASE _cFlgEst = 'P'
-									LsDescrip = 'Pedido parcialmente atendido'
+									LsDescrip = 'Cotizacion pendiente'
 								CASE _cFlgEst = 'c'
-									LsDescrip = 'Pedido cerrado manualmente'
+									LsDescrip = 'Cotizacion manualmente'
 								CASE _cFlgEst = 'E'
-									LsDescrip = 'Pedido emitido'
+									LsDescrip = 'Cotizacion emitida'
 								 
 							ENDCASE
+
+
+					OTHER 
+					   IF INLIST(this.XsCodDoc,'PEDI') 
+						DO CASE 
+							CASE UPPER(GsSigCia)='EHOLDING'
+								DO CASE
+									CASE _cFlgEst = 'A'
+										LsDescrip = 'Orden Servicio anulada'
+									CASE _cFlgEst = 'C'
+										LsDescrip = 'Orden Servicio atendida'
+									CASE _cFlgEst = 'P'
+										LsDescrip = 'Orden Servicio parcialmente atendido'
+									CASE _cFlgEst = 'c'
+										LsDescrip = 'Orden Servicio cerrado manualmente'
+									CASE _cFlgEst = 'E'
+										LsDescrip = 'Orden Servicio emitido'
+									 
+								ENDCASE
+							OTHERWISE
+								DO CASE
+									CASE _cFlgEst = 'A'
+										LsDescrip = 'Pedido anulado'
+									CASE _cFlgEst = 'C'
+										LsDescrip = 'Pedido totalmente atendido'
+									CASE _cFlgEst = 'P'
+										LsDescrip = 'Pedido parcialmente atendido'
+									CASE _cFlgEst = 'c'
+										LsDescrip = 'Pedido cerrado manualmente'
+									CASE _cFlgEst = 'E'
+										LsDescrip = 'Pedido emitido'
+									 
+								ENDCASE
+						ENDCASE
 						ELSE
 							DO CASE
 								CASE _cFlgEst = 'A'
 									LsDescrip = 'Proforma anulada'
 								CASE _cFlgEst = 'C'
-									LsDescrip = 'Proforma totalmente atendida'
+									LsDescrip = 'Proforma cancelada'
 								CASE _cFlgEst = 'P'
-									LsDescrip = 'Proforma parcialmente atendida'
+									LsDescrip = 'Proforma pendiente'
 								CASE _cFlgEst = 'c'
 									LsDescrip = 'Proforma cerrada manualmente'
 								CASE _cFlgEst = 'E'
@@ -10835,9 +11959,15 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		LOCAL LlReturn	,LsArea_Act,LsOrder
 		IF PARAMETERS()=0
 			PsAliasGuia		=	'GUIA'
-			PsCamposPK		=	'CodCli+FlgEst' 
-			PsValorPK		= 	PADR(THIS.XsCodCli,LEN(PsAliasGuia+'.CodCli'))+THIS.Xcflgest_ref
-			PsIndice		=	'VGUI04'  
+			IF !EMPTY(THIS.XsCodCli)
+				PsCamposPK		=	'CodCli+FlgEst' 
+				PsValorPK		= 	PADR(THIS.XsCodCli,LEN(PsAliasGuia+'.CodCli'))+THIS.Xcflgest_ref
+				PsIndice		=	'VGUI04'  
+			ELSE
+				PsCamposPK		=	'CodDoc+FlgEst' 
+				PsValorPK		= 	This.XsCodRef+THIS.Xcflgest_ref
+				PsIndice		=	'VGUI05'  
+			ENDIF
 			PsCamposFiltro	=	'CodDoc' 
 			PsValorFiltro	=	THIS.XsCodRef
 			LsCursor		=	'AUXI'
@@ -10857,7 +11987,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		SET DATASESSION TO (IdDataSession)
 		** Y si no existe el cursor ** 
 
-		**SET STEP ON 
+
 		LsArea_Act=SELECT()
 		SELE (LsCursor)
 		ZAP
@@ -10905,7 +12035,14 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 	PROCEDURE costo_almacen
 		PARAMETERS m.CodSed,m.CodMat,m.FchDocD,m.CodMon,m.Que_busca
 
-		      STORE 0 TO fStkAct, fValAct,fValIni,fStkSed
+		    STORE 0 TO fStkAct, fValAct,fValIni,fStkSed
+		    && Ahora guardamos el costo y el precio unitario en ambas monedas
+			this.AddProperty('fValAct1',0,1,'Valor en moneda nacional')
+			this.AddProperty('fValAct2',0,1,'Valor en moneda extranjera') 
+			this.AddProperty('fPreUni1',0,1,'Costo Unitario en moneda nacional')
+			this.AddProperty('fPreUni2',0,1,'Costo Unitario en moneda extranjera') 
+
+		      
 			* SALDOS INICIALES
 			SELE ALMA
 			IF !EMPTY(m.CodSed)
@@ -10920,7 +12057,9 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 			SCAN WHILE CodMat=m.CodMat FOR ALMA.CodSed=TRIM(m.CodSed)
 				fStkAct  = fStkAct + StkIni
 				fValAct  = fValAct + IIF(m.CodMon = 1, VIniMn, VIniUs)
-		*!*			fStkSed  = fStkSed + This.CapStkAlm(SubAlm,CodMat,m.FchDocH)
+				this.fvalAct1 = this.fvalAct1 + VIniMn
+				this.fvalAct2 = this.fvalAct2 + VIniUs
+				*!*			fStkSed  = fStkSed + This.CapStkAlm(SubAlm,CodMat,m.FchDocH)
 				*fStkSed  =  fStkSed + ROUND(THISFORM._Almacen.CapStkAlm(SubAlm,CodMat,m.FchDocH),2)       
 				lProCesar=.T.
 			ENDSCAN
@@ -10943,6 +12082,8 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		      IF CodSed+CodMat=m.CodSed+m.CodMat AND FchDoc <= m.FchDocD
 		         fStkAct = DTRA.StkAct
 		         fValAct = IIF(m.CodMon = 1, VCTOMN, VCTOUS)
+		   		this.fvalAct1 =   VCTOMN
+				this.fvalAct2 =   VCTOUS
 		      ENDIF
 		*!*	      SKIP
 		*!*	      IF RECNO()<>m.Reg_Ini AND m.Reg_Ini>0
@@ -10957,14 +12098,18 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		      *
 		      IF fStkAct>0
 			      fPrcPmd  = IIF(fStkAct>0,round(fValAct/fStkAct,4),0)
+			      this.fPreUni1 = round(this.fValAct1/fStkAct,4)
+			      this.fPreUni2 = round(this.fValAct2/fStkAct,4)
 		      ELSE
 		      	  fImpCto  = IIF(m.CodMon=1, DTRA.ImpNac, DTRA.ImpUsa)
 			      fCanDes  = IIF(DTRA.Factor>0,round(DTRA.CanDes*DTRA.Factor,4),DTRA.CanDes)
 		          fPreUni  = IIF(fCandes#0,round(fImpCto/fCanDes,4),fImpCto)
 		      	  fPrcPmd  = fPreuni
+		  	      this.fPreUni1 = IIF(fCandes#0,round(DTRA.ImpNac/fCanDes,4),fImpCto)
+			      this.fPreUni2 = IIF(fCandes#0,round(DTRA.ImpUsa/fCanDes,4),fImpCto)
 		      ENDIF
 		      *
-		      fValIni  = fValIni + fValAct
+		      fValIni  = fValIni + fValAct && Que esta vaina???
 
 		DO CASE 
 			CASE m.Que_busca = COSTO_UNIT_ALMACEN 
@@ -11127,6 +12272,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 	*-- Carga los items (detalle) de la guia en base a docs
 	PROCEDURE cargar_guia_detalle_enbasea_docs
 		PARAMETERS PsCodRef,PsAlias_CAB,PsAlias_DET,PsOrder_CAB,PsOrder_DET
+		 
 		IF VARTYPE(PsCodRef)<>'C'  OR EMPTY(PsCodRef)
 			RETURN .F.
 		ENDIF
@@ -11147,7 +12293,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		ENDIF
 
 		LOCAL LsValKey ,LsCmpKey AS String 
-
+		LOCAL LlReturnFlag
 		DO CASE 
 			CASE	INLIST(PsCodRef , 'G/R')
 					IF EMPTY(PsTabla_DET)
@@ -11159,193 +12305,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 					LsCmpKey='TpoRef+NroRef'
 					LsLlave ='CodDoc+NroDoc'
 
-
-					PRIVATE i,j
-					STORE 0 TO i,j    && i : cantidad de items aceptados
-					                  && j : cantidad de items por guia
-					PRIVATE XcTipMov,XsCodMov,XsNroDoc,XsNroRef
-					XcTipMov = [S]
-					STORE [] TO XsCodMov,XsNroDoc,XsNroRef
-					SELE AUXI
-					DELETE FOR !(FlgEst=[*])   && borramos los no seleccionados
-					SCAN 
-					   * barremos la 1ra. guia *
-					   XsCodRef = CodDoc
-					   XsNroRef = NroDoc
-					   SELE DTRA
-					*   LsLlave = XcTipMov+XsCodMov+XsNroDoc
-						LsLLave = XsCodRef+XsNroRef
-					   j = 0
-					   =SEEK(LsLLave,'DTRA','DTRA04')
-					   SCAN WHILE TpoRef+NroRef = LsLlave FOR CanDes>0 AND TipMov=this.cTipMov AND  CodMov$this.Vtacodmov 
-					      j = j + 1
-					   ENDSCAN
-					   IF i+j > THIS.CIMAXELE    && Sobrepaso el limite
-					      This.sErr = [A partir de la Guia ]+AUXI->NroDoc+[ no van a ser Facturados]
-						  *    DO lib_merr WITH 99
-					      * desmarcamos el resto de las guias *
-					      SELE AUXI
-					      REPLACE REST FlgEst WITH []
-					      EXIT
-					   ELSE
-					      * Los Items de la guia son aceptados *
-					      i = i + j
-					   ENDIF
-					   SELE AUXI
-					ENDSCAN
-					**************** FIN DEL CONTROL DE ITEMS POR FACTURA *****************
-					SELE GUIA
-					SET ORDER TO VGUI01
-					SELE RPED
-					SET ORDER TO RPED02
-					SELE AUXI
-					LOCATE
-					IF !EOF()
-						IF SEEK(AUXI.CodDoc+AUXI.NroDoc,'CTRA','CTRA03')
-							THIS.XsCndPgo = CTRA.CndPgo
-							THIS.Xscodcli = CTRA.Codcli
-							this.XnCodMon = CTRA.CodMon
-							this.xftpocmb = CTRA.Tpocmb
-						ENDIf
-					ENDIF
-					i = 0
-					This.GiTotItm = 0
-					this.Xsglosa2 = []
-					SCAN FOR FlgEst = [*]
-					*	this.oitem=CREATEOBJECT('dosvr.Lineadetalle')
-					   XsCodRef = CodDoc
-					   XsNroRef = NroDoc
-					   this.Xsglosa2 = THIS.Xsglosa2+XsNroRef+','
-					   SELE DTRA
-						LsLLave = XsCodRef+XsNroRef
-					   =SEEK(LsLLave,'DTRA','DTRA04')
-					   SCAN WHILE TpoRef+NroRef = LsLlave FOR CanDes>0 AND TipMov=this.cTipMov AND  CodMov$this.VtaCodMov
-					      THIS.GiTotItm = THIS.GiTotItm + 1
-					      DIMENSION THIS.aDetalle[THIS.GiTotItm]
-					      THIS.aDetalle(THIS.GiTotItm) = CREATEOBJECT('dosvr.Lineadetalle')
-						  this.oItem	=	THIS.aDetalle(THIS.GiTotItm)
-						  this.oitem.TpoDoc  	= this.Xstpodoc 
-						  this.oItem.CodDoc	 	= this.XsCodDoc
-						  this.oItem.NroDoc  	= this.XsNroDoc
-						  this.OItem.NroRef  	= this.XsNroRef
-						  this.oItem.FchDoc		= this.XdFchDoc
-					      this.oitem.NroG_R 	= AUXI.NroDoc
-					      this.oitem.CodMat = CodMat
-					      =SEEK(AUXI.CodDoc+AUXI.NroDoc,"GUIA")      && Guia de Remision
-					      
-					      =SEEK(THIS.oitem.CodMat,"CATG")                && Catalogo de Materiales
-					      =SEEK(this.subalm + this.oitem.CodMat,"CALM")
-					      IF SEEK(GUIA.NroPed+THIS.oitem.CodMat,"RPED")   && Materiales por Pedido
-					         THIS.oitem.DesMat = RPED.DesMat
-					      ELSE
-					         ** THIS.oitem.DesMat = CATG.DesMat
-					         THIS.oitem.DesMat = DTRA.DesMat
-					      ENDIF
-					      THIS.oitem.UndVta = IIF(EMPTY(DTRA.UndVta),CALM.UndVta,DTRA.UndVta)
-					      * Definimos la moneda y el precio unitario *
-					      IF !EMPTY(GUIA.NroPed) .AND. SEEK(GUIA.NroPed,"VPED")
-					         IF THIS.XiCodMon = VPED.CodMon
-					            *CFGADMIGV
-					            THIS.oitem.PreUni = RPED.PreUni
-					            IF this.XsCODDOC=[BOLE]
-					               THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-					            ENDIF
-					            THIS.oitem.D1    = RPED.D1
-					            THIS.oitem.D2    = RPED.D2
-					            THIS.oitem.D3    = RPED.D3
-					         ELSE
-					            IF THIS.XiCodMon = 1
-					               THIS.oitem.PreUni = ROUND(RPED.PreUni*THIS.XfTpoCmb,2)
-					               IF THIS.XsCODDOC=[BOLE]
-					                  THIS.oitem.PreUni(i) = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-					               ENDIF
-					            ELSE
-					               IF THIS.XfTpoCmb<>0
-					                  THIS.oitem.PreUni = ROUND(RPED.PreUni/THIS.XfTpoCmb,2)
-					                  IF this.XsCODDOC=[BOLE]
-					                     THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-					                  ENDIF
-					               ELSE
-					                  THIS.oitem.PreUni = RPED.PreUni
-					                  IF this.XsCODDOC=[BOLE]
-					                     THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
-					                  ENDIF
-					                  THIS.oitem.D1     = RPED.D1
-					                  THIS.oitem.D2     = RPED.D2
-					                  THIS.oitem.D3     = RPED.D3
-					               ENDIF
-					            ENDIF
-					         ENDIF
-					      ELSE
-					          THIS.oitem.D1    = DTRA.D1
-					          THIS.oitem.D2    = DTRA.D2
-					          THIS.oitem.D3    = DTRA.D3
-					        ** * * * * * * *
-					         IF THIS.XiCodMon = 1
-					            IF EMPTY(DTRA.PREUNI)
-					*               THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,ROUND(CATG.PuinUS*THIS.XfTpoCmb,2))
-									THIS.oitem.PreUni = CATG.Prevn1
-					            ELSE
-					               THIS.oitem.PreUni = DTRA.PREUNI
-					            ENDIF
-					            IF this.XSCODDOC=[BOLE]
-					            	IF INLIST(GsSigCia='AROMAS','QUIMICA')
-					            	ELSE
-					            		THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
-					            	ENDIF
-					            ENDIF
-					         ELSE
-					            IF THIS.XfTpoCmb<>0
-					               IF EMPTY(DTRA.PREUNI)
-					*               		THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,CATG.PuinUS)
-										THIS.oitem.PreUni	=	CATG.Preve1
-					               ELSE
-						           		THIS.oitem.PreUni = DTRA.PREUNI
-					               ENDIF
-					               IF this.XSCODDOC=[BOLE]
-						            	IF INLIST(GsSigCia,'AROMAS','QUIMICA')
-						            	ELSE
-						            		THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
-						            	ENDIF
-					               ENDIF
-					            ELSE
-					               IF EMPTY(DTRA.PREUNI)
-					                  THIS.oitem.PreUni = CATG.PreVe1
-					               ELSE
-					                  THIS.oitem.PreUni = DTRA.PREUNI
-					               ENDIF
-					               IF this.XsCODDOC=[BOLE]
-						            	IF INLIST(GsSigCia,'AROMAS','QUIMICA')
-						            	ELSE
-						            		THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
-						            	ENDIF
-					               ENDIF
-					            ENDIF
-					         ENDIF
-					        ** * * * * * * *
-					      ENDIF
-					      THIS.oitem.CanFac = CanDes
-					      THIS.oitem.FacEqu = Factor
-					      THIS.oitem.ImpLin = ROUND(THIS.oitem.CanFac*THIS.oitem.PreUni*(1-THIS.oitem.D1/100)*(1-THIS.oitem.D2/100)*(1-THIS.oitem.D3/100),2)
-					      i = i + 1
-					      this.oitem=0  && Aqui desvinculamos el objeto detalle de el arreglo y dejamos a aDetalle intacto 
-
-					  ENDSCAN
-					ENDSCAN
-
-					THIS.XsGloDoc = LEFT(THIS.XsGloDoc,LEN(GDOC.GloDoc))
-					*** Cargamos el arreglo a el cursor
-					SELECT (this.ccursor_d)
-					DELETE ALL
-					this.objarr2cursor(this.adetalle,this.Gitotitm ,this.ccursor_d)   
-					*DO xRegenera
-					IF CURSORGETPROP("Buffering",this.ccursor_d) > 1
-						LlOk=TABLEUPDATE(1,.F.,this.ccursor_d)
-						IF !Llok
-							TABLEREVERT(.T.,this.ccursor_d)
-						ENDIF
-					ENDIF
-					RETURN LlOk
+					LlReturnFlag=this.traer_items_guias 
 
 			CASE	INLIST(PsCodRef , 'FACT' ,'BOLE')
 					** Verificamos parametros , si estan en blanco algo esta mal pero forzamos la situación
@@ -11445,12 +12405,12 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 					      THIS.aDetalle(THIS.GiTotItm) = CREATEOBJECT('dosvr.Lineadetalle')
 						  this.oItem	=	THIS.aDetalle(THIS.GiTotItm)
 						  this.oitem.TpoRef  	= &PsAlias_DET..CodDoc
-						  this.oItem.CodDoc	 	= this.XsCodDoc
+						  this.oItem.CodDoc	= this.XsCodDoc
 						  this.oItem.NroDoc  	= this.XsNroDoc
 						  this.OItem.NroRef  	= &PsAlias_DET..NroDoc
 						  this.oItem.FchDoc		= this.XdFchDoc
-					      this.oitem.NroG_R 	= ''
-					      this.oitem.CodMat 	= CodMat
+					         this.oitem.NroG_R 	= ''
+					         this.oitem.CodMat 	= CodMat
 						  this.oitem.TpoRfb		= this.XsTpoRfb		&& VETT 2006-12-14 
 						  this.oitem.NroRfb		= this.XsNroRfb		&& VETT 2006-12-14 
 						  
@@ -11558,19 +12518,23 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 					THIS.XsGloDoc = LEFT(THIS.XsGloDoc,LEN(&PsAlias_CAB..GloDoc))
 					*** Cargamos el arreglo a el cursor
-					SELECT (this.ccursor_d)
-					DELETE ALL
+					IF !EMPTY(this.ccursor_d)
+						SELECT (this.ccursor_d)
+						DELETE ALL
+					ELSE
+						RETURN .F.
+					ENDIF
 					this.objarr2cursor(this.adetalle,this.Gitotitm ,this.ccursor_d)   
 					*DO xRegenera
 					IF CURSORGETPROP("Buffering",this.ccursor_d) > 1
-						LlOk=TABLEUPDATE(1,.F.,this.ccursor_d)
-						IF !Llok
+						LlReturnFlag=TABLEUPDATE(1,.F.,this.ccursor_d)
+						IF !LlReturnFlag
 							TABLEREVERT(.T.,this.ccursor_d)
 						ENDIF
 					ELSE
-						Llok = .t. && Forzado 
+						LlReturnFlag = .t. && Forzado 
 					ENDIF
-					RETURN LlOk
+		*			RETURN LlReturnFlag
 
 
 			CASE INLIST(PsCodRef , 'PEDI' )
@@ -11669,39 +12633,40 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						this.oItem.FchDoc = this.XdFchDoc
 						this.oitem.NroG_R = ''
 						this.oitem.CodMat = CodMat
+						THIS.oItem.SubAlm = SubAlm
 						=SEEK(LsLLave,PsAlias_CAB) && Posicionado en la cabecera
 						THIS.XiCodMon = &PsAlias_CAB..CodMon			      
 						=SEEK(THIS.oitem.CodMat,"CATG") && Catalogo de Materiales
-						=SEEK(this.subalm + this.oitem.CodMat,"CALM")
+						=SEEK(this.oItem.SubAlm + this.oitem.CodMat,"CALM")
 						THIS.oitem.DesMat = &PsAlias_DET..DesMat
 						THIS.oitem.UndVta = IIF(EMPTY(&PsAlias_DET..UndVta),CALM.UndVta,&PsAlias_DET..UndVta)
 						*!*	Definimos la moneda y el precio unitario
-						IF !EMPTY(&PsAlias_CAB..NroPed) AND SEEK(&PsAlias_CAB..NroPed,"VPED")
+						IF !EMPTY(&PsAlias_CAB..NroDoc) AND SEEK(&PsAlias_CAB..NroDoc,"VPED")
 							IF THIS.XiCodMon = VPED.CodMon
 								*CFGADMIGV
-								THIS.oitem.PreUni = RPED.PreUni
+								THIS.oitem.PreVta = RPED.PreVta
 								IF this.XsCODDOC=[BOLE]
-									THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
+									THIS.oitem.Prevta = ROUND(RPED.PreVta*(1+THIS.XfPorIgv/100),3)
 								ENDIF
 								THIS.oitem.D1    = RPED.D1
 								THIS.oitem.D2    = RPED.D2
 								THIS.oitem.D3    = RPED.D3
 							ELSE
 								IF THIS.XiCodMon = 1
-									THIS.oitem.PreUni = ROUND(RPED.PreUni*THIS.XfTpoCmb,2)
+									THIS.oitem.PreVta = ROUND(RPED.PreVta*THIS.XfTpoCmb,2)
 									IF THIS.XsCODDOC=[BOLE]
-										THIS.oitem.PreUni(i) = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
+										THIS.oitem.PreVta = ROUND(RPED.PreVta*(1+THIS.XfPorIgv/100),3)
 									ENDIF
 								ELSE
 									IF THIS.XfTpoCmb<>0
-										THIS.oitem.PreUni = ROUND(RPED.PreUni/THIS.XfTpoCmb,2)
+										THIS.oitem.PreVta = ROUND(RPED.PreVta/THIS.XfTpoCmb,2)
 										IF this.XsCODDOC=[BOLE]
-											THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
+											THIS.oitem.PreVta = ROUND(RPED.PreVta*(1+THIS.XfPorIgv/100),3)
 										ENDIF
 									ELSE
-										THIS.oitem.PreUni = RPED.PreUni
+										THIS.oitem.PreVta = RPED.PreVta
 										IF this.XsCODDOC=[BOLE]
-											THIS.oitem.PreUni = ROUND(RPED.PreUni*(1+THIS.XfPorIgv/100),3)
+											THIS.oitem.PreVta = ROUND(RPED.PreVta*(1+THIS.XfPorIgv/100),3)
 										ENDIF
 										THIS.oitem.D1 = RPED.D1
 										THIS.oitem.D2 = RPED.D2
@@ -11716,50 +12681,67 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 							IF THIS.XiCodMon = 1
 								IF EMPTY(&PsAlias_DET..PREUNI)
 									*!*	THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,ROUND(CATG.PuinUS*THIS.XfTpoCmb,2))
-									THIS.oitem.PreUni = CATG.Prevn1
+									THIS.oitem.PreVta = CATG.Prevn1
 								ELSE
-									THIS.oitem.PreUni = &PsAlias_DET..PREUNI
+									THIS.oitem.PreVta = &PsAlias_DET..PREUNI
 								ENDIF
 								IF this.XSCODDOC=[BOLE]
 									IF INLIST(GsSigCia='AROMAS','QUIMICA')
 									ELSE
-										THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
+										THIS.oitem.PreVta = ROUND(THIS.oitem.PreVta*(1+THIS.XfPorIgv/100),3)
 									ENDIF
 								ENDIF
 							ELSE
 								IF THIS.XfTpoCmb<>0
 									IF EMPTY(&PsAlias_DET..PREUNI)
 										*!*	THIS.oitem.PreUni = IIF(CATG.CodMon=1,CATG.PuinMN,CATG.PuinUS)
-										THIS.oitem.PreUni	=	CATG.Preve1
+										THIS.oitem.PreVta	=	CATG.Preve1
 									ELSE
-										THIS.oitem.PreUni = &PsAlias_DET..PREUNI
+										THIS.oitem.PreVta = &PsAlias_DET..PREUNI
 									ENDIF
 									IF this.XSCODDOC=[BOLE]
 										IF INLIST(GsSigCia,'AROMAS','QUIMICA')
 										ELSE
-											THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
+											THIS.oitem.PreVta = ROUND(THIS.oitem.PreVta*(1+THIS.XfPorIgv/100),3)
 										ENDIF
 									ENDIF
 								ELSE
 									IF EMPTY(&PsAlias_DET..PREUNI)
-										THIS.oitem.PreUni = CATG.PreVe1
+										THIS.oitem.PreVta = CATG.PreVe1
 									ELSE
-										THIS.oitem.PreUni = &PsAlias_DET..PREUNI
+										THIS.oitem.PreVta = &PsAlias_DET..PREUNI
 									ENDIF
 									IF this.XsCODDOC=[BOLE]
 										IF INLIST(GsSigCia,'AROMAS','QUIMICA')
 										ELSE
-											THIS.oitem.PreUni = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
+											THIS.oitem.PreVta = ROUND(THIS.oitem.PreUni*(1+THIS.XfPorIgv/100),3)
 										ENDIF
 									ENDIF
 								ENDIF
 							ENDIF
 						ENDIF
-						THIS.oitem.CanDes = &PsAlias_DET..CanPed
-						THIS.oitem.CanFac = &PsAlias_DET..CanPed
-						THIS.oitem.Factor = &PsAlias_DET..FacEqu
-						THIS.oitem.ImpCto = ROUND(THIS.oitem.CanDes*THIS.oitem.PreUni*(1-THIS.oitem.D1/100)*(1-THIS.oitem.D2/100)*(1-THIS.oitem.D3/100),2)
-						THIS.oitem.ImpLin = ROUND(THIS.oitem.CanDes*THIS.oitem.PreUni*(1-THIS.oitem.D1/100)*(1-THIS.oitem.D2/100)*(1-THIS.oitem.D3/100),2)
+						** INI:VETT 2009-04-17 12:53
+						THIS.oitem.CanFac 	= &PsAlias_DET..CanPed
+						THIS.oitem.CanPed 	= &PsAlias_DET..CanPed
+						THIS.oitem.Factor    	= &PsAlias_DET..FacEqu
+						** INI:VETT 2009-08-31 13:29
+						THIS.oItem.Preuni = ROUND(this.oItem.PreVta *(1-THIS.oitem.D1/100)*(1-THIS.oitem.D2/100)*(1-THIS.oitem.D3/100),3)
+		      			       ** FIN:VETT 2009-08-31 13:35
+						IF    THIS.XsCodDoc  = 'PROF' AND GsSigCia = 'CAUCHO'
+							THIS.oitem.FacEqu	=	&PsAlias_DET..FacEqu
+							THIS.oitem.ImpCto	=	ROUND(THIS.oitem.CanPed*THIS.oitem.PreUni*THIS.oitem.FacEqu,2)
+							THIS.oitem.ImpLin	=	ROUND(THIS.oitem.CanPed*THIS.oitem.PreUni*THIS.oitem.FacEqu,2)
+
+						ELSE
+							THIS.oitem.CanPed		= CanPed*IIF(CATG.UndStk<>UndVta,IIF(FacEqu>0,FacEqu,1),1)
+							THIS.oitem.CanFac		= CanPed*IIF(CATG.UndStk<>UndVta,IIF(FacEqu>0,FacEqu,1),1)
+						       THIS.oitem.FacEqu		= IIF(CATG.UndStk<>UndVta,1,FacEqu) 
+			      			       THIS.oItem.UndVta		= IIF(CATG.UndStk<>UndVta,CATG.UndStk,THIS.oItem.UndVta)
+						       *** para proformas NO debe ejecutar las 4 lineas de codigo anteriores
+			      			        ** FIN:VETT 2009-04-17 12:54
+							THIS.oitem.ImpCto = ROUND(THIS.oitem.CanPed*THIS.oitem.PreUni,2)
+							THIS.oitem.ImpLin = ROUND(THIS.oitem.CanPed*THIS.oitem.PreUni,2)
+						ENDIF
 						i = i + 1
 						this.oitem=0  && Aqui desvinculamos el objeto detalle de el arreglo y dejamos a aDetalle intacto 
 					ENDSCAN
@@ -11771,14 +12753,14 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 				this.objarr2cursor(this.adetalle,this.Gitotitm ,this.ccursor_d)   
 				*!*	DO xRegenera
 				IF CURSORGETPROP("Buffering",this.ccursor_d) > 1
-					LlOk=TABLEUPDATE(1,.F.,this.ccursor_d)
-					IF !Llok
+					LlReturnFlag=TABLEUPDATE(1,.F.,this.ccursor_d)
+					IF !LlReturnFlag
 						TABLEREVERT(.T.,this.ccursor_d)
 					ENDIF
 				ELSE
-					Llok = .t. && Forzado 
+					LlReturnFlag = .t. && Forzado 
 				ENDIF
-				RETURN LlOk
+		*		RETURN LlReturnFlag
 		ENDCASE 
 
 		IF !USED('PsAlias_DET')
@@ -11789,6 +12771,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 		ENDIF
 		**
+		RETURN LlReturnFlag
 	ENDPROC
 
 
@@ -11962,7 +12945,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 		SELECT 0 
 		** USE ALMCFTRA IN 0 ORDER CFTR02 ALIAS CFTR
-		SET STEP ON 
+
 		IF !THIS.oDatAdm.AbrirTabla('ABRIR','almCFTRA','CFTR','CFTR02','')
 		   LlRetVal =  .f.
 		ENDIF     
@@ -12271,7 +13254,7 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 		lSaldo = .T. && Utilizar para controlar saldos pendientes
 
-		IF !EMPTY(PsAliasTablaCabecera) AND !EMPTY(PsIndiceCabacera) AND !LHaySeleccionados
+		IF !EMPTY(PsAliasTablaCabecera) AND !EMPTY(PsIndiceCabacera) && AND !LHaySeleccionados
 			SELECT (PsAliasTablaCabecera)
 			SET ORDER TO (PsIndiceCabacera)
 			SEEK PADR(PsValorPk,LnLonNroDoc)
@@ -12301,19 +13284,35 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 		ENDIF
 		*** Agregar esta propiedades en la clase 
 		*** 
-		SELECT(PsCursor)
-		DELETE ALL
-
+		this.Xsglosa2 = ''
+		IF !EMPTY(PsCursor)
+			SELECT(PsCursor)
+			DELETE ALL IN (PsCursor)
+		ELSE
+			THIS.serr = [NO hay acceso al cursor ]
+			RETURN .F.
+		ENDIF
+		LsCadRef = ''
 		IF LHaySeleccionados
 			SELECT (PsAliasSeleccionados)
 			SCAN
 				LsValorPK = PsValorPKSeleccionados+EVALUATE(PsCampoCursorSeleccionado)
 				this.PCargaG_D_Item(PsAliasTabla,PsIndice,PsCamposSeleccionados,LsValorPk,LsFor,PsCursor)
 				SELECT (PsAliasSeleccionados)
+				LsCadRef = LsCadRef + EVALUATE(PsCampoCursorSeleccionado)+';'
+				this.Xsglosa2 = this.Xsglosa2 + EVALUATE(PsCampoCursorSeleccionado)+';'
 			ENDSCAN
 		ELSE
 			this.PCargaG_D_Item(PsAliasTabla,PsIndice,PsCamposPK,PsValorPk,LsFor,PsCursor) 
-
+			this.XsGlosa2 = This.XsNroRfb 
+		ENDIF
+		IF CURSORGETPROP("Buffering",PsCursor) > 1
+			LlReturnFlag=TABLEUPDATE(1,.F.,PsCursor)
+			IF !LlReturnFlag
+				TABLEREVERT(.T.,PsCursor)
+			ENDIF
+		ELSE
+			LlReturnFlag = .t. && Forzado 
 		ENDIF
 
 		IF !lSaldo
@@ -12344,7 +13343,9 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 					CASE PsAliasTablaCabecera='VPED'
 						this.scodcli = VPED.CodCli
 						this.nCodMon = VPED.COdMon
-						this.sObserv = [REFER:]+VPED.NroDoc
+		*!*					this.sObserv = this.xstporfb+':'+LsCadRef
+						this.XsGlosa2	=	this.xstporfb+':'+LsCadRef
+						This.sObserv	=	VPED.GloDoc	 
 						IF THIS.lPidPro
 							THIS.sClfAux = GsClfPro
 						ENDIF
@@ -12353,6 +13354,11 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 						ENDIF
 						this.fTpocmb = VPED.TpoCmb
 						this.Xscndpgo = VPED.CndPgo
+						This.XdFchPed	= VPED.FchDoc
+						This.XdFchEnt	=	IIF(VerifyVar('FchEnt','','CAMPO','VPED'),VPED.FchEnt,{})
+						This.XdFchIni	=	IIF(VerifyVar('FchIni','','CAMPO','VPED'),VPED.FchIni,{})
+						This.XdFchFin	=	IIF(VerifyVar('FchFin','','CAMPO','VPED'),VPED.FchFin,{})
+
 
 					*!*	   =SEEK(THIS.sClfAux+THIS.sCodAux,"AUXI")
 					*!*	   m.NomAux = AUXI.NomAux
@@ -12395,28 +13401,190 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 
 	*-- Cargar items de guia de despacho
 	PROCEDURE pcargag_d_item
-		PARAMETERS PsAlias,PsIndice,PsCamposPK,PsValorPk,LsFor,PsCursor
+		PARAMETERS PsAlias,PsIndice,PsCamposPK,PsValorPK,PsFor,PsCursor
+
+		** VETT:Controlamos valores de los parametros - 2015/05/08 16:19:00 ** 
+		PsAlias			= IIF(vartype(PsAlias)='U' or ISNULL(PsAlias) or EMPTY(PsAlias),'',PsAlias )
+		PsIndice		= IIF(vartype(PsIndice)='U' or ISNULL(PsIndice) or EMPTY(PsIndice),'',PsIndice )
+		PsCamposPK		= IIF(vartype(PsCamposPK)='U' or ISNULL(PsCamposPK) or EMPTY(PsCamposPK),'',PsCamposPK )
+		PsValorPK 		= IIF(vartype(PsValorPK)='U' or ISNULL(PsValorPK) or EMPTY(PsValorPK),'',PsValorPK ) 
+		PsCursor		= IIF(vartype(PsCursor)='U' or ISNULL(PsCursor) or EMPTY(PsCursor),'',PsCursor )
+		PsFor			= IIF(vartype(PsFor)='U' or ISNULL(PsFor) or EMPTY(PsFor),'.T.',PsFor)
+		cWhileCondition = IIF(!EMPTY(PsCamposPK) and !EMPTY(PsValorPK),PsCamposPK +" = '"+ PsValorPK + "' " ,'.T.')
+
+		** VETT:Asumimos por ahora que el cursor de destino ya esta creado, posteriormente agregaremos rutina para 
+		** crear el cursor segun estructura de tabla origen (PsAlias) - 2015/05/08 16:07:34 ** 
 
 		SELECT(PsAlias)
+		LOCATE
 		*** Verificamos existencia de campos ***
 		LlhayCmpSubAlm=VARTYPE(SUBALM)='C'
 
-		SET ORDER TO (PsIndice)
-		SEEK PsValorPk
 
-		SCAN WHILE EVAL(PsCamposPK) = PsValorPK FOR &LsFor.
+		IF !EMPTY(PsIndice)
+			SET ORDER TO (PsIndice)
+		ENDIF
+		IF !EMPTY(PsValorPK)
+			SEEK PsValorPK 
+		ENDIF
+
+		SCAN WHILE &cWhileCondition FOR &PsFor.
 			SCATTER MEMVAR
 			SELECT(PsCursor)
 			DO CASE 
+				CASE PsAlias	= 'Lista_Precios'
+					APPEND BLANK
+					REPLACE CodMat WITH Lista_Precios.CodMat
+					REPLACE DesMat WITH Lista_Precios.DesMat
+					REPLACE UndVta WITH Lista_Precios.UndVta
+					LsCmpGrb = IIF(!INLIST(THIS.XsCodDoc,'PEDI','COTI'),"CanFac","CanPed")
+		            		REPLACE (LsCmpGrb) 	WITH Lista_Precios.Cantidad
+					REPLACE FacEqu		WITH Lista_Precios.FacEqu
+					LfPreUni = 0
+					LfImpLin = 0
+					** VETT:Capturamos modo de ingreso de precio CONIGV o SINIGV 2016/04/27 12:30:55 ** 
+					XsPreUniGrd =Lista_Precios.TipPre
+					SELECT TABL
+					=SEEK(TRIM(GsClfPre)+XsPreUniGrd ,'TABL')
+					LsCodIng_TP	= CodIng
+					LfPorIgv 	=	GoSvrCbd.XfPorIgv
+					SELECT(PsCursor)
+							** VETT  13/04/16 17:13 : Configurar el valor de la variable de la linea anterior en variables globales de ventas 
+					LnCodMon= Lista_Precios.CodMon
+					LsCmpPVTA	= ICASE(LnCodMon=2 AND XsPreUniGrd = "1",'PreVe1',LnCodMon=1 AND XsPreUniGrd = "1",'PreVn1',;
+									LnCodMon=2 AND XsPreUniGrd = "2",'PreVe2',LnCodMon=1 AND XsPreUniGrd = "2",'PreVn2',;
+									LnCodMon=2 AND XsPreUniGrd = "3",'PreVe3',LnCodMon=1 AND XsPreUniGrd = "3",'PreVn3')
+
+					LfPreVta	=	EVALUATE(LsCmpPVTA)
+					IF INLIST(THIS.XsCodDoc,'BOLE','PROF') 
+					 	LfPreUni =	ICASE(LsCodIng_TP='SINIGV',ROUND(LfPreVta*(1+LfPorIgv/100),3),LsCodIng_TP='CONIGV',LfPreVta,LfPreVta )
+					ELSE
+						LfPreUni =	ICASE(LsCodIng_TP='SINIGV',LfPreVta,LsCodIng_TP='CONIGV',ROUND(LfPreVta/(1+LfPorIgv/100),3),LfPreVta ) && LfPreVta      && CURVAL(LsCmpPVTA,thisform.c_validitem)
+					ENDIF
+					REPLACE PreVta WITH LfPreUni
+					REPLACE PreUni WITH LfPreUni
+					LfImpLin = ROUND(Lista_Precios.Cantidad*Lista_Precios.FacEqu*LfPreUni,2)
+					REPLACE ImpLin WITH LfImpLin
+
+					** VETT:Y EL ALMACEN?? 2016/04/29 13:25:40 ** 
+		*!*				Parameters LcCodMat,LcSubAlm,LfCandes,LdFecha ,LcCursor,LcTipMov,LlStkNeg,LcLote, LnError
+
+					LcCodMat	=	PADR(Lista_Precios.CodMat,LEN(CATG.CodMat))
+					LcSubAlm	=	This.SubAlm
+					LdFecha	=	This.XdFchdoc 
+					LfCandes	=	Lista_Precios.Cantidad*Lista_Precios.FacEqu   && OJO FALTA VALIDAR CALCULO DE FACTOR DE EQUIVALENCIA
+					LcLote		=	IIF(!INLIST(This.XsCodDoc,'PEDI','PROF','COTI'),'','')   && OJO FALTA VALIDAR ESTE DATO
+					LcTipMov	=	This.cTipMov
+					LlStkNeg	=	This.lStkNeg
+					LcCursor	=	'C_CodMat'+SYS(2015)
+					LnError		= 0
+					m.err=This.ValidItem(LcCodMat,LcSubAlm,LfCandes,LdFecha ,LcCursor,LcTipMov,LlStkNeg,LcLote, LnError)
+					SELECT(PsCursor)
+					IF m.Err<0
+					ELSE
+						IF LlHayCmpSubAlm
+							LsSubAlm=CURVAL('SUBALM',LcCursor )
+							REPLACE SubAlm WITH LsSubAlm
+						ENDIF
+					ENDIF
+					** VETT:Fin captura de datos de almacen 2016/04/29 14:28:11 ** 
+
+					REPLACE PreVta WITH LfPreUni
+
+					LnNroReg = RECNO(PsAlias)
+
 				CASE PsAlias = 'RPED'
 					APPEND BLANK
-					REPLACE TpoRfb	WITH RPED.CodDoc
-					REPLACE NroRfb	WITH RPED.NroDoc
-					REPLACE CodMat  WITH RPED.CodMat
-					REPLACE DesMat  WITH RPED.DesMat
-					REPLACE CanDes	WITH RPED.CanPed
-					REPLACE UndVta  WITH RPED.UndVta
-					REPLACE Factor  WITH RPED.FacEqu  && Ojo para los tramos , VETT 2008-08-06
+					IF TYPE(PsCurSor+'.FchDoc') = 'D'
+						REPLACE FchDoc	 WITH THIS.XdFchDoc
+					ENDIF
+					IF TYPE(PsCurSor+'.TpoRfb') = 'C'
+						REPLACE TpoRfb	 WITH RPED.CodDoc
+					ENDIF
+					IF TYPE(PsCurSor+'.NroRfb') = 'C' 
+						REPLACE NroRfb	 WITH RPED.NroDoc
+					ENDIF
+					IF TYPE(PsCurSor+'.NroDoc') = 'C' AND  INLIST(THIS.XsCodDoc , 'PROF','PEDI','COTI','FACT','BOLE')
+						REPLACE NroDoc	 WITH THIS.XsNroDoc
+					ENDIF
+					IF TYPE(PsCurSor+'.CodDoc') = 'C' AND  INLIST(THIS.XsCodDoc , 'PROF','PEDI','COTI','FACT','BOLE')
+						REPLACE CodDoc	 WITH THIS.XsCodDoc
+					ENDIF
+					REPLACE CodMat   WITH RPED.CodMat
+					REPLACE DesMat    WITH RPED.DesMat
+					IF TYPE(PsCurSor+'.CanDes')='N' AND INLIST(THIS.XsCodDoc , 'G/R')
+						RfCantidad = RPED.CanPed - RPED.Candes
+						REPLACE CanDes	 WITH RfCantidad &&RPED.CanPed - RPED.Candes
+					ENDIF
+					REPLACE UndVta    WITH RPED.UndVta
+					RfCantidad=0
+					IF TYPE(PsCurSor+'.CanFac')='N' AND INLIST(THIS.XsCodDoc , 'FACT','BOLE')
+						RfCantidad = RPED.CanPed - RPED.Candes
+						REPLACE CanFac	 WITH RfCantidad &&RPED.CanPed - RPED.Candes
+
+					ENDIF
+					IF TYPE(PsCurSor+'.CanPed')='N' AND INLIST(THIS.XsCodDoc , 'PROF')
+						RfCantidad = RPED.CanPed - RPED.Candes
+						REPLACE CanPed	 WITH RfCantidad &&RPED.CanPed - RPED.Candes
+					ENDIF
+					IF TYPE(PsCurSor+'.Factor') = 'N' 
+						REPLACE Factor      WITH RPED.FacEqu 			 && Ojo para los tramos , VETT 2008-08-06
+					ENDIF
+					IF TYPE(PsCurSor+'.FacEqu') = 'N' 
+						REPLACE FacEqu      WITH RPED.FacEqu 			 && Ojo para los tramos , VETT 2008-08-06
+					ENDIF
+					=SEEK(CODMAT,[CATG],'CATG01')
+					IF TYPE(PsCurSor+'.UndStk')='C'
+						REPLACE UndStk WITH CATG.UndStk
+					ENDIF
+					IF TYPE(PsCurSor+'.UndStk') = 'C' AND ;
+					 	TYPE(PsCurSor+'.UndVta')='C' AND TYPE(PsCurSor+'.Factor')='N'
+						IF UndStk=UndVta AND Factor = 0
+							REPLACE Factor WITH 1
+						ENDIF
+					ENDIF
+					IF TYPE(PsCurSor+'.D1')='N'
+						REPLACE D1 WITH RPED.D1 
+					ENDIF
+					IF TYPE(PsCurSor+'.D2')='N'
+						REPLACE D2 WITH RPED.D2 
+					ENDIF
+					** VETT:Para boleta y proforma el precio va incluido IGV en el detalle 2022/01/19 04:25:07 **
+
+					LfPorIgv 	=	GoSvrCbd.XfPorIgv
+					LfPreVta	=	RPED.PreVta
+					LfPreUni	=	RPED.PreUni
+					IF TYPE(PsCurSor+'.PreVta')='N'
+						REPLACE PreVta WITH IIF(INLIST(THIS.XsCodDoc,'BOLE','PROF'),ROUND(LfPreVta*(1+LfPorIgv/100),3),LfPreVta) 
+					ENDIF
+					IF TYPE(PsCurSor+'.PreUni')='N'
+						REPLACE PreUni WITH IIF(INLIST(THIS.XsCodDoc,'BOLE','PROF'),ROUND(LfPreUni*(1+LfPorIgv/100),3),LfPreUni)
+					ENDIF
+
+					RfPreUni	= &PsCurSor..PreUni 
+					RfFacEqu	= &PsCurSor..FacEqu
+					RfImpLin = ROUND(RfCantidad*RfFacEqu*RfPreUni,2)
+					IF TYPE(PsCurSor+'.ImpLin')='N'
+						REPLACE ImpLin WITH RfImpLin &&RPED.ImpLin 
+					ENDIF
+
+					IF    INLIST(THIS.XsCodDoc, 'PROF','G/R','G\R','G-R')  OR ( INLIST(THIS.XsCodDoc, 'FACT','BOLE') AND INLIST(THIS.XsCodRef, 'PEDI','FREE') )  AND GsSigCia = 'CAUCHO'
+					ELSE
+						** VETT  12/05/2015 10:29 AM : Controlando calculo de saldo de pedidos segun codigo de documento CODDOC  - INI
+
+						REPLACE FacEqu	WITH IIF(CATG.UndStk<>RPED.UndVta,1,RPED.FacEqu) 
+						REPLACE UndVta	WITH IIF(CATG.UndStk<>RPED.UndVta,CATG.UndStk,RPED.UndVta)
+			      		IF TYPE(PsCurSor+'.CanPed')='N' AND INLIST(THIS.XsCodDoc , 'PROF')
+							REPLACE CanPed	WITH RPED.CanPed*IIF(CATG.UndStk<>RPED.UndVta,IIF(RPED.FacEqu>0,RPED.FacEqu,1),1)
+						ENDIF
+						IF TYPE(PsCurSor+'.CanFac')='N' AND INLIST(THIS.XsCodDoc , 'FACT','BOLE')
+							REPLACE CanFac	WITH (RPED.CanPed - RPED.Candes)*IIF(CATG.UndStk<>RPED.UndVta,IIF(RPED.FacEqu>0,RPED.FacEqu,1),1)
+						ENDIF
+						 ** VETT  12/05/2015 10:29 AM : Controlando calculo de saldo de pedidos segun codigo de documento CODDOC  - FIN     
+			      			        ** FIN:VETT 2009-04-17 12:54
+		*!*						THIS.oitem.ImpCto = ROUND(THIS.oitem.CanPed*THIS.oitem.PreUni,2)
+		*!*						THIS.oitem.ImpLin = ROUND(THIS.oitem.CanPed*THIS.oitem.PreUni,2)
+					ENDIF
 		*!*			    IF FacEqu>0
 		*!*			       LfCanDes = CanFor*FacEqu
 		*!*			       REPLACE CanFor WITH LfCandes
@@ -12424,6 +13592,14 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 					IF LlHayCmpSubAlm
 						REPLACE SUBALM WITH RPED.SubAlm
 					ENDIF
+					**>>  Vo.Bo. VETT  2008/12/23 15:23:32 
+					IF TYPE(PsCurSor+'.TipMov')='C'
+						REPLACE TipMov WITH This.cTipMov && Si esta en blanco renunciamos
+					ENDIF
+					IF TYPE(PsCurSor+'.CodMov')='C'
+						REPLACE CodMov WITH This.sCodMov && Si los dos estan en blanco jubilamos sin derecho a pension.
+					ENDIF
+					**>>  Vo.Bo. VETT  2008/12/23 15:24:25
 					LnNroReg = RECNO(PsAlias)
 				OTHERWISE
 					** Datos para la llave de almacen
@@ -12483,11 +13659,632 @@ DEFINE CLASS onegocios AS custom OLEPUBLIC
 	ENDPROC
 
 
+	*-- Correlativo de documentos de Logistica de Compras
+	PROCEDURE corr_o_c
+		PARAMETERS PsXcTpoO_C,PsXcTipo,PsXsCodDoN,PsXsCodDoI,PsXsNroMes,Pn_Ano,PlCfgCorr_U_LOG,PsNroOrd
+		LOCAL LnLen_ID,iNroDoc
+		SELECT DOCM
+				DO CASE 
+					CASE PsXcTpoO_C = [C]	&& Orden de Compra
+						IF PsXcTipo =[N]	&& Nacional
+							xKey_Doc = IIF(PlCfgCorr_U_LOG ,PsXsCodDoN,PsXsCodDoN+STR(Pn_Ano,4,0))
+						ELSE				&& Importación
+							xKey_Doc = IIF(PlCfgCorr_U_LOG, PsXsCodDoI,PsXsCodDoI+STR(Pn_Ano,4,0))
+						ENDIF 
+					CASE PsXcTpoO_C = [K]	&& Cotización
+						xKey_Doc = IIF(PlCfgCorr_U_LOG,[COTI],[COTI]+STR(Pn_Ano,4,0))
+					CASE PsXcTpoO_C = [S]   && Servicios
+						xKey_Doc = IIF(PlCfgCorr_U_LOG,[SERV],[SERV]+STR(Pn_Ano,4,0))
+
+					CASE PsXcTpoO_C = [P]	&& Precosteo
+						xKey_Doc = IIF(PlCfgCorr_U_LOG,[PREC],[PREC]+STR(Pn_Ano,4,0))
+
+					CASE PsXcTpoO_C = [R]   && Requisiciones 
+						xKey_Doc = IIF(PlCfgCorr_U_LOG,GsClfReq,GsClfReq+STR(Pn_Ano,4,0))
+					OTHERWISE 
+						xKey_Doc = [*]
+				ENDCASE 
+
+		SEEK xKey_Doc
+		IF FOUND()
+
+			LnLen_ID = DOCM.Len_ID
+			LnLen_ID_CORR = LnLen_ID - IIF(!PlCfgCorr_U_LOG,2,0) - LEN(ALLTRIM(docm.siglas)) - IIF(PsXcTpoO_C = [R],0,1)
+			LsPict = "@L "+REPLICATE("#",LnLen_ID_CORR)
+
+			LcCia = ALLTRIM(docm.siglas)
+			LsCmpCorr = IIF(PlCfgCorr_U_LOG,'DOCM.NroDoc','DOCM.MES'+PsXsNroMes)
+			iNroDoc   = &LsCmpCorr
+			LsNroOrd = LcCia+PsXcTipo+IIF(PlCfgCorr_U_LOG,'',PsXsNroMes)+TRANSFORM(&LsCmpCorr,LsPict)
+			IF PARAMETERS()=8	&& 
+				=RLOCK()
+				LsNroOrd_SP = RIGHT(PsNroOrd,LnLen_ID_CORR)
+				IF VAL(LsNroOrd_SP) > iNroDoc
+					iNroDoc = VAL(LsNroOrd_SP) + 1
+				ELSE
+					iNroDoc = iNroDoc + 1
+				ENDIF
+				REPLACE &LsCmpCorr WITH iNroDoc IN DOCM
+				UNLOCK IN DOCM
+				LsNroOrd = LcCia+PsXcTipo+IIF(PlCfgCorr_U_LOG,'',PsXsNroMes)+TRANSFORM(iNroDoc,LsPict)
+			ENDIF
+			RETURN LsNroOrd
+		ELSE
+		*	MESSAGEBOX("No se encuentra numero de correlativo",0+16+256,"Error")
+			RETURN '-1'
+		ENDIF 
+	ENDPROC
+
+
+	*-- Graba campo en tabla DBF
+	PROCEDURE grbcmp2dbf
+		PARAMETERS cCampo ,cValor, cTabla,cCursor
+		IF PARAMETERS()<4
+			cCursor = ''
+		ENDIF
+		IF PARAMETERS()<3
+			cTabla = ''
+		ENDIF
+		IF PARAMETERS()<2
+			cValor  = ''
+		ENDIF 
+		IF EMPTY(cValor)
+			cValor = cCampo
+		ENDIF
+
+		IF VerifyVar(cCampo,'','CAMPO',cTabla)
+			DO CASE
+				CASE  !EMPTY(cTabla) AND !EMPTY(cCursor)
+					REPLACE (cCampo) WITH EVALUATE(cCursor+'.'+cValor) IN (cTabla)
+				CASE  EMPTY(cTabla) AND !EMPTY(cCursor)
+					REPLACE (cCampo) WITH EVALUATE(cCursor+'.'+cValor) 
+				CASE  !EMPTY(cTabla) AND EMPTY(cCursor)
+					REPLACE (cCampo) WITH EVALUATE(cValor)  IN (cTabla)
+				CASE  EMPTY(cTabla) AND EMPTY(cCursor)
+					REPLACE (cCampo) WITH EVALUATE(cValor)
+			ENDCASE
+		ELSE
+
+		ENDIF
+	ENDPROC
+
+
+	*-- Descuenta cantidad de pedido
+	PROCEDURE xdes_ped
+		*********************************************************************** FIN() *
+		* Objeto : Desactualiza Pedidos
+		******************************************************************************
+		*!*	PROCEDURE xDes_Ped
+		PARAMETERS PcNroPed,PcCodMat,PfCanFac
+		=SEEK(PcNroPed+PcCodMat,"RPED")
+		SELE RPED
+		IF !RLOCK("RPED")
+			RETURN .F.
+		ENDIF
+		REPLACE RPED->CanFac WITH RPED->CanFac - PfCanFac
+		IF RPED->CanPed-RPED->CanFac<=0
+		   REPLACE RPED->FlgFac WITH [C]
+		ELSE
+		   IF RPED->CanFac > 0
+		      REPLACE RPED->FlgFac WITH [P]    && Atencion Parcial
+		   ELSE
+		      REPLACE RPED->FlgFac WITH []
+		   ENDIF
+		ENDIF
+		UNLOCK
+		RETURN
+	ENDPROC
+
+
+	*-- Actualiza cantidades atendidas del pedido
+	PROCEDURE xact_ped
+		* Objeto : Actualiza Pedidos
+		******************************************************************************
+		*!*	PROCEDURE xAct_Ped
+		PARAMETERS PcNroPed,PcCodMat,PfCanFac
+		SELE RPED
+		=SEEK(PcNroPed+PcCodMat,"RPED")
+		IF !RLOCK("RPED")
+			RETURN .F.
+		ENDIF
+		REPLACE CanFac WITH CanFac + PfCanFac
+		IF CanPed-CanFac<=0
+		   REPLACE FlgFac WITH [C]
+		ELSE
+		   IF CanFac > 0
+		      REPLACE FlgFac WITH [P]    && Atencion Parcial
+		   ELSE
+		      REPLACE FlgFac WITH []
+		   ENDIF
+		ENDIF
+		UNLOCK
+		RETURN
+	ENDPROC
+
+
+	*-- Borra item de venta en base a G/R
+	PROCEDURE xborra1
+		* Buscamos G/R *
+		SELE GUIA
+		SET ORDER TO VGUI03
+		SEEK GDOC.CodDoc+LEFT(GDOC.NroDoc,LEN(NroFac))
+		DO WHILE !EOF() .AND. CodFac+Nrofac = GDOC.CodDoc+LEFT(GDOC.NroDoc,LEN(NroFac))
+			IF !RLOCK()
+				LOOP
+			ENDIF
+			REPLACE CodFac WITH []     && OJITO
+			REPLACE NroFac WITH []
+			REPLACE FlgEst WITH [E]
+			UNLOCK
+			SEEK GDOC->CodDoc+LEFT(GDOC.NroDoc,LEN(NroFac))
+		ENDDO
+		SET ORDER TO VGUI01
+		** anulamos detalles **
+		SELE DETA
+		SEEK GDOC->CodDoc+GDOC->NroDoc
+		DO WHILE CodDoc+NroDoc=GDOC->CodDoc+GDOC->NroDoc .AND. ! EOF()
+			IF ! RLOCK()
+				LOOP
+			ENDIF
+			DELETE
+			UNLOCK
+			SKIP
+		ENDDO
+
+		RETURN
+		************************************************************************ FIN()
+		* Borrar Informacion
+		******************************************************************************
+	ENDPROC
+
+
+	*-- Borra item de venta en base a CodRef PEDI
+	PROCEDURE xborra2
+		* Verificamos Status del Pedido *
+		DO CASE 
+			CASE INLIST(UPPER(GsSigCia),'EHOLDING') 
+				BorTot = .T.
+				SELECT VPED
+				=SEEK(GDOC.NroPed,'VPED')
+				SELECT(this.caliascab) 
+				IF ! RLOCK()
+				   RETURN
+				ENDIF
+				** anulamos detalles **
+				SELECT(this.caliasdet)  
+				SEEK	 GDOC.CodDoc+GDOC.NroDoc		&& this.cvalor_pk
+				SCAN WHILE CodDoc+NroDoc=GDOC.CodDoc+GDOC.NroDoc  AND  ! EOF()
+					   IF ! RLOCK()
+					   	LOOP
+					   ENDIF
+					   IF BorTot
+					   	DELETE
+					   ENDIF
+					   UNLOCK
+				ENDSCAN
+				** Liberamos las cuotas facturadas
+				LcFlgEst = ''
+				SELECT RCUO
+				=SEEK(VPED.NroDoc, 'RCUO')
+				SCAN	WHILE NroDoc = VPED.NroDoc
+					IF CodRef+NroRef = GDOC.CodDoc+GDOC.NroDoc
+						=RLOCK()
+						REPLACE CodRef	WITH	''
+						REPLACE NroRef	WITH	''
+						REPLACE FlgFac	WITH	''
+						UNLOCK
+						LcFlgEst	=	'E'
+					ENDIF
+				ENDSCAN
+				FLUSH IN RCUO
+				IF !EMPTY(LcFlgEst)
+					SELECT VPED
+					=RLOCK()
+					REPLACE FlgEst	WITH	LcFlgEst 
+					UNLOCK 
+					FLUSH IN VPED
+				ENDIF
+				SELECT(this.caliascab)  && VPRO
+
+			OTHERWISE 
+				DO CASE 
+					CASE UPPER(this.caliascab)='GDOC'
+						SELECT(this.cAliasCab)
+						** anulamos detalles **
+						** VETT  13/05/2015 01:02 PM : Falta configurar que se arme en tiempo de diseño 
+						**                                                        la llave de la tabla detalle por ahora lo hacemos a la antigua 
+						LsLlave= CodDoc+NroDoc
+						SELECT (this.caliasdet) && 
+						SEEK     LsLlave && this.cvalor_pk  && 
+						DO WHILE CodDoc+NroDoc=   LsLlave .AND. ! EOF()  && this.cvalor_pk .AND. ! EOF()
+							SCATTER NAME oDetPed
+							IF !INLIST(this.XsCodDoc,'PEDI','COTI')
+								XfCanFac = oDetPed.CanFac
+							ELSE
+								XfCanFac = oDetPed.CanPed
+							ENDIF
+							=RLOCK()
+							DELETE
+							THIS.xDes_Ped_GR(oDetPed.NroRfb,oDetPed.CodMat,XfCanFac, oDetPed.UndVta,oDetPed.FacEqu)
+							SKIP
+						ENDDO
+						** VETT  13/05/2015 11:51 AM : Actualizamos el almacen 
+						DO Item2DTRA WITH this.cCursor_d,this.XsCodDoc,'E'
+					CASE 	UPPER(this.caliascab)='VPRO'
+						SELECT(this.cAliasCab)
+						** anulamos detalles **
+						SELECT (this.caliasdet) && RPRO
+						SEEK this.cvalor_pk  && VPRO->NroDoc
+						DO WHILE NroDoc=this.cvalor_pk .AND. ! EOF()
+							SCATTER NAME oDetPed
+							IF !INLIST(this.XsCodDoc,'PEDI','COTI','PROF')
+								XfCanFac = oDetPed.CanFac
+							ELSE
+								XfCanFac = oDetPed.CanPed
+							ENDIF
+							=RLOCK()
+							DELETE
+							THIS.xDes_Ped_GR(oDetPed.NroRfb,oDetPed.CodMat,XfCanFac, oDetPed.UndVta,oDetPed.FacEqu)
+							SKIP
+						ENDDO
+						** VETT  13/05/2015 11:51 AM : Actualizamos el almacen 
+
+						DO Item2DTRA WITH this.cCursor_d,this.XsCodDoc,'E'
+				ENDCASE
+			ENDCASE
+		RETURN
+		************************************************************************ FIN()
+		* Borrar Informacion
+		******************************************************************************
+	ENDPROC
+
+
+	*-- Desactualiza pedido en base a G/R
+	PROCEDURE xdes_ped_gr
+		* Objeto : Desactualiza Pedidos
+		******************************************************************************
+		*!*	PROCEDURE xDes_Ped
+		PARAMETERS PcNroPed as Character,PcCodMat as Character,PfCanDes as Number,PsUndVta as Character ,PfFactor as Number
+		*** PsUndVta =  DTRA.UndVta
+		*** PfFactor		=	DTRA.Factor
+
+		PRIVATE Llave,LfCanDes,RegAct1,RegAct2,XfFacEqu
+		LnAreaAct	=SELECT()
+		LsTagAct	=ORDER()
+		LlRetVal = .T.
+		IF !USED('RPED')
+		*!*		IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtavpedi','VPED','VPED01','')
+		*!*		   LlRetVal =  .f.
+		*!*		ENDIF
+				*
+			IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtarpedi','RPED','RPED02','')
+			   LlRetVal =  .f.
+			ENDIF
+		ELSE
+			SELECT RPED 
+			SET ORDER TO RPED02		&& NRODOC+CODMAT+DTOC(FCHENT,1)
+		ENDIF
+
+		PcNroPed=PADR(PcNroPed,LEN(RPED.NroDoc))
+		SELE RPED
+		Llave = PcNroPed+PcCodMat  && VMOV->NroPed+RMOV->CodMat
+		SEEK Llave
+		* 1ro. vamos al ultimo registro *
+		SCAN WHILE NroDoc+CodMat=Llave
+		ENDSCAN
+		SKIP -1
+		* 2do. desactualizamos desde el ultimo registro *
+		LfCanDes  = PfCanDes		&& DTRA->CanDes
+		XfFacEqu  = PfFactor		&& DTRA->FACTOR
+		DO WHILE !BOF() .AND. NroDoc+CodMat=Llave
+			LfCanEqu = LfCanDes
+			IF UndVta <> PsUndVta && DTRA.UndVta		&&	RMOV->UndVta
+				LfCanEqu = LfCanDes*XfFacEqu/FacEqu
+			ENDIF
+			IF LfCanEqu >= CanDes
+				LfCanEqu = LfCanEqu - CanDes
+				REPLACE CanDes WITH 0
+			ELSE
+				REPLACE CanDes WITH CanDes - LfCanEqu
+				LfCanEqu = 0
+			ENDIF
+			LfCanDes = LfCanEqu
+			IF UndVta <>  PsUndVta    &&DTRA.UndVta		&& RMOV->UndVta
+				IF LfCanEqu <= 0
+			        	LfCanDes = 0
+				ELSE
+					LfCanDes = LfCanEqu*FacEqu/XfFacEqu
+				ENDIF
+			ENDIF
+			IF CanPed-CanDes<=0
+				REPLACE FlgEst WITH [C]
+			ELSE
+				IF CanDes > 0
+					REPLACE FlgEst WITH [P]    && Atencion Parcial
+				ELSE
+					REPLACE FlgEst WITH []
+				ENDIF
+			ENDIF
+			UNLOCK
+			SKIP -1
+			IF LfCanDes <= 0
+				EXIT
+			ENDIF
+		ENDDO
+		SELECT (LnAreaAct)
+		IF !EMPTY(LsTagAct)
+			SET ORDER TO (LsTagAct)
+		ENDIF
+		RETURN
+	ENDPROC
+
+
+	*-- Actualiza pedido en base a G/R
+	PROCEDURE xact_ped_gr
+		* Objeto : Actualiza Pedidos
+		******************************************************************************
+		*!*	PROCEDURE xAct_Ped
+		PARAMETERS PcNroPed as Character,PcCodMat as Character,PfCanDes as Number,PsUndVta as Character ,PfFactor as Number
+		*** PsUndVta =  DTRA.UndVta
+		*** PfFactor		=	DTRA.Factor
+		LnAreaAct	=SELECT()
+		LsTagAct	=ORDER()
+		LlRetVal = .T.
+
+		IF !USED('RPED')
+		*!*		IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtavpedi','VPED','VPED01','')
+		*!*		   LlRetVal =  .f.
+		*!*		ENDIF
+				*
+			IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtarpedi','RPED','RPED02','')
+			   LlRetVal =  .f.
+			ENDIF
+		ELSE
+			SELECT RPED 
+			SET ORDER TO RPED02		&& NRODOC+CODMAT+DTOC(FCHENT,1)
+		ENDIF
+		PRIVATE Llave,LfCanDes,RegAct1,RegAct2
+		PcNroPed=PADR(PcNroPed,LEN(RPED.NroDoc))
+		SELE RPED
+		Llave = PcNroPed+PcCodMat
+		SEEK Llave
+		LfCanDes  = PfCanDes     && Cantidad atendida en UndVta de Facturacion (FACT,BOLE,G/R,PROF)
+		RegAct1   = 0
+		RegAct2   = 0
+		DO WHILE NroDoc+CodMat = Llave .AND. ! EOF()
+			DO CASE
+				CASE CanPed-CanDes<=0
+					REPLACE FlgEst WITH [C]
+					RegAct2   = RECNO()
+		      		OTHER
+					LfDirDes = (CanPed-CanDes)     && Saldo x Atender en UndVta del Pedido
+		         		IF UndVta <> PsUndVta
+		            			LfDirDes = (CanPed-CanDes)*FacEqu/PfFactor
+		         		ENDIF
+		         		IF LfCandes > LfDirDes
+		            			LfCandes = LfCanDes - LfDirDes
+		            			REPLACE CanDes WITH CanPed
+		         		ELSE
+		*!*	            		REPLACE CanDes WITH CanDes + LfCanDes       &&  (Antes)
+						** VETT  13/05/2015 09:50 AM : se debe operar en la misma unidad de venta del pedido 
+			        		REPLACE CanDes WITH CanDes + LfCanDes * IIF( UndVta <> PsUndVta, PfFactor/FacEqu,1)
+		         			LfCanDes = 0
+		         		ENDIF
+		         		RegAct1   = RECNO()
+		         		IF CanPed-CanDes<=0
+		            			REPLACE FlgEst WITH [C]
+		         		ELSE
+		            			IF CanDes > 0
+		               				REPLACE FlgEst WITH [P]    && Atencion Parcial
+		            			ELSE
+		               				REPLACE FlgEst WITH []
+		            			ENDIF
+		         		ENDIF
+		  	ENDCASE
+		   	UNLOCK
+		   	SKIP
+		   	IF LfCanDes <= 0
+		      		EXIT
+		   	ENDIF
+		ENDDO
+		IF LfCanDes > 0
+			IF RegAct1 > 0
+				GOTO RegAct1
+				REPLACE CanDes WITH CanDes + LfCanDes * IIF( UndVta <> PsUndVta, PfFactor/FacEqu,1)
+			ELSE
+				IF RegAct2 > 0
+			        	GOTO RegAct2
+			        	REPLACE CanDes WITH CanDes + LfCanDes * IIF( UndVta <> PsUndVta, PfFactor/FacEqu,1)
+				ENDIF
+			ENDIF
+		ENDIF
+		SELECT (LnAreaAct)
+		IF !EMPTY(LsTagAct)
+			SET ORDER TO (LsTagAct)
+		ENDIF
+		RETURN
+		************************************************************************ FIN()
+	ENDPROC
+
+
+	*-- Actualiza estado de la cabecera del pedido
+	PROCEDURE xact_ped_gr_cab
+		PARAMETERS PcTpoRfb,PcNroPed
+		** actualiza cabecera de pedidos **
+		** 1ero. Verificamos tipo de referencia. Solo Pedidos PEDI
+		IF VARTYPE(PcTpoRfb)<>'C'
+			PcTpoRfb=''
+		ENDIF
+		IF VARTYPE(PcNroPed)<>'C'
+			PcNroPed=''
+		ENDIF
+
+		IF PcTpoRfb<>'PEDI'
+			RETURN 0
+		ENDIF
+		IF EMPTY(PcNroPed)
+			RETURN 0
+		ENDIF
+		LnAreaAct	=SELECT()
+		LsTagAct	=ORDER()
+		LlRetVal = .T.
+		IF !USED('VPED')
+		*!*		IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtavpedi','VPED','VPED01','')
+		*!*		   LlRetVal =  .f.
+		*!*		ENDIF
+				*
+			IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtaVpedi','VPED','VPED01','')
+			   LlRetVal =  .f.
+			ENDIF
+		ELSE
+			SELECT VPED
+			SET ORDER TO VPED01		&& NRODOC
+		ENDIF
+
+		IF !USED('RPED')
+		*!*		IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtavpedi','VPED','VPED01','')
+		*!*		   LlRetVal =  .f.
+		*!*		ENDIF
+				*
+			IF !THIS.oDatAdm.AbrirTabla('ABRIR','vtarpedi','RPED','RPED02','')
+			   LlRetVal =  .f.
+			ENDIF
+		ELSE
+			SELECT RPED 
+			SET ORDER TO RPED02		&& NRODOC+CODMAT+DTOC(FCHENT,1)
+		ENDIF
+		IF !LlRetval
+			RETURN -1	&& No se pudieron acceder a tablas de pedido
+		ENDIF
+		PcNroPed=PADR(PcNroPed,LEN(RPED.NroDoc))
+		SELECT VPED
+		SEEK PcNroPed
+		IF !FOUND()
+			RETURN -2  && Nro. de Pedido no existe
+		ENDIF
+		IF FlgEst='A'
+			RETURN -3  && Pedido anulado
+		ENDIF
+		=RLOCK()
+		SELE RPED
+		SEEK PcNroPed
+		LcFlgEst = [C]
+		LlPaso = .F.
+		SCAN WHILE NroDoc=PcNroPed
+		   LlPaso = .T.
+		   IF FlgEst # [C]      && Atencion Parcial
+		      LcFlgEst = [E]
+		      EXIT
+		   ENDIF
+		ENDSCAN
+		IF LlPaso
+			SELE VPED
+			REPLACE VPED->FlgEst WITH LcFlgEst
+			UNLOCK IN VPED
+		ELSE
+			RETURN -4  && Pedido no Tiene detalle de items 
+		ENDIF
+		SELECT (LnAreaAct)
+		IF !EMPTY(LsTagAct)
+			SET ORDER TO (LsTagAct)
+		ENDIF
+		RETURN 1
+	ENDPROC
+
+
+	*-- Validar Item de almacen segun clase ValidaDatos
+	PROCEDURE validitem
+		Parameters LcCodMat,LcSubAlm,LfCandes,LdFecha ,LcCursor,LcTipMov,LlStkNeg,LcLote, LnError
+
+		*!*			LcCodMat	=	PADR(THISform.PGfDetalle.PAge3.TXtCodmat.Value,LEN(CATG.CodMat))
+		*!*			LcSubAlm	=	IIF(!EMPTY(thisform.PgfDetalle.Page3.CmdHelpCodMat.cValoresfiltro),thisform.objreftran.SubAlm,'')
+		*!*			LdFecha		=	THISform.PGfDetalle.PAge1.txtFchDoc.Value
+		*!*			LfCandes	=	THISform.PGfDetalle.PAge3.TxtCandes.Value
+		*!*			LcLote		=	IIF(!INLIST(thisform.objreftran.XsCodDoc,'PEDI','PROF','COTI'),THISform.PGfDetalle.PAGE3.TxtLote.Value,'')
+		*!*			LcTipMov	=	thisform.objreftran.cTipMov
+		*!*			LlStkNeg	=	thisform.objreftran.lStkNeg
+		*!*			LcCursor	=	IIF(EMPTY(this.c_validitem),'C_CodMat',this.c_validitem)
+
+				IF This.Transf AND LcTipMov='S' 
+					IF !SEEK(This.AlmTrf+LcCodMat,'CALM','CATA01')
+						RETURN ITEM_NO_ESTA_ALM_DESTINO
+					ENDIF
+				ENDIF
+
+				ov=CREATEOBJECT('Dosvr.validadatos')
+				LnError=ov.validacodigoalmacen(LcCodMat,LcSubAlm,goCfgAlm.CodSed,LcTipMov,LlStkNeg,LcLote,LfCandes,LdFecha,LcCursor)
+
+				RELEASE ov
+				RETURN LnError
+	ENDPROC
+
+
+	*-- Configura ruta para grabar los archivos a ser usados por el FACTURADOR SEE - SFS - SUNAT
+	PROCEDURE ruta_factura_see_sfs
+		LsDirIntf = ADDBS(JUSTPATH(JUSTPATH(goentorno.tspathadm)))+'Interface'
+		LsDirIntf = IIF(":"$LsDirIntf,LsDirIntf,SYS(5)+LsDirIntf)
+		*!*	LsDirIntf = SYS(5)+'\o-Negocios\Interface'
+		IF !DIRECTORY(LsDirIntf)
+			MD(LsDirIntf)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsDirIntf+ ;
+			'  Este directorio se usara para buscar los archivos de .txt o .csv necesarios para realizar la interface de datos',64,'ATENCION !!' )
+		ENDIF
+
+		*!*	CD(thisform.cDirInterface)
+
+		LsRutaSEE_SFS= ADDBS(LsDirIntf)+'Facturador\cia_'+IIF(GsSigCia='OLTURSA',RIGHT(GsCodCia,2),GsCodCia)  && RIGHT(GsCodCia,2)
+
+		IF !DIRECTORY(LsRutaSEE_SFS)
+			MD(LsRutaSEE_SFS)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsRutaSEE_SFS+ ;
+			'  Este directorio se usara para guardar los archivos de .txt o .csv o .xls necesarios para generar los Libros Electronicos',64,'ATENCION !!' )
+		ENDIF
+		this.RutaSEE_SFS = LsRutaSEE_SFS
+		RETURN	 LsRutaSEE_SFS
+	ENDPROC
+
+
+	*-- Prepara envio de archivos TXT a SFS v1.2 UBL 2.1
+	PROCEDURE envio_see_sfs_v1
+		IF EMPTY(This.RutaSEE_SFS) 
+			This.RutaSEE_SFS	=	THIS.Ruta_Factura_SEE_SFS() 
+		ENDIF
+		DO Vta_Genera_Archivos_SEE-SFS_v1 WITH oData1 , oData2, oData1,This.RutaSEE_SFS
+	ENDPROC
+
+
+	*-- Retorna el valor del correlativo sin incluir la serie
+	PROCEDURE correlativo_sin_serie
+		PARAMETERS PsNroDoc,PsSerie
+		IF VARTYPE(PsNroDoc)<>"C"
+			PsNroDoc = ""
+		ENDIF
+		IF EMPTY(PsNroDoc)
+			RETURN ""
+		ENDIF
+		IF VARTYPE(PsSerie)<>"C"
+			PsSerie = ""
+		ENDIF
+		IF EMPTY(PsSerie)
+			RETURN ""
+		ENDIF
+
+		m.lcSource = RIGHT(PsNroDoc,LEN(PsNroDoc)-LEN(PsSerie))
+		m.lcReturnToMe = "0123456789"
+		m.lcCorrelativo = CHRTRAN(m.lcSource, CHRTRAN(m.lcSource, m.lcReturnToMe, SPACE(0)), SPACE(0))
+
+		RETURN 	m.lcCorrelativo
+	ENDPROC
+
+
 	PROCEDURE Init
 		this.oEntorno=CREATEOBJECT('Dosvr.Env')
-		this.odatadm=CREATEOBJECT('Dosvr.DataAdmin')
+		this.oEntorno.GsCodCia = GsCodCia
+		this.oDatAdm=CREATEOBJECT('Dosvr.DataAdmin')
+		this.odatadm.oEntorno.GsCodCia = GsCodCia
 		this.oItem=CREATEOBJECT('Dosvr.LineaDetalle')
 		this.oContab=CREATEOBJECT('Dosvr.Contabilidad')
+		this.oContab.oDatAdm.oEntorno.GsCodCia = GsCodCia
 	ENDPROC
 
 
@@ -12537,14 +14334,745 @@ ENDDEFINE
 
 
 **************************************************
+*-- Class:        planillas (k:\aplvfp\classgen\vcxs\dosvr.vcx)
+*-- ParentClass:  custom
+*-- BaseClass:    custom
+*-- Time Stamp:   05/16/17 10:48:02 AM
+*
+DEFINE CLASS planillas AS custom
+
+
+	oentorno = .NULL.
+	odatadm = .F.
+	Name = "planillas"
+
+
+	PROCEDURE valcal
+		PARAMETER Var,xPer,xMoneda
+		PRIVATE WKnVal
+		IF TYPE('Var') <> 'C'
+			RETURN 0
+		ENDIF
+		xNroPer = TRIM(XsNroPer)
+		IF TYPE('xPer') = 'N'
+			IF xPer > 0
+				xNroPer = TRANSFORM(xPer,"@L ##")
+			ENDIF
+		ENDIF
+		*!*	Planillas expresada en Dolares
+		IF TYPE('xMoneda') # 'N' AND TYPE('XnMonPln') = 'N'
+			xMoneda = XnMonPln
+		ENDIF
+		WKnVal = 0
+		DO CASE
+			CASE Var = 'A'		&& Con lo nuevo esto no va a funcionar MAAV Variable A por meses
+				xLlave = XsCodPln + xNroPer + SPACE(LEN(DMOV.CodPer))
+				=SEEK(xLlave+Var,'DMOV')
+				WKnVaL = DMOV.ValCal
+		   OTHER
+				xLlave = XsCodPln + xNroPer + PERS.CodPer + Var
+				m.CurSel = SELECT()
+				SELECT DMOV
+				SEEK xLlave
+				DO WHILE CodPln + NroPer + CodPer + CodMov = xLlave AND !EOF()
+					WKnVaL = WKnVaL + DMOV.ValCal
+					SKIP
+				ENDDO
+				SELECT (m.cursel)
+		ENDCASE
+		IF TYPE('xMoneda') = 'N'
+			IF xMoneda = 2 AND TYPE('XfTpoCmb') = 'N'
+				WKnVal = IIF(XfTpoCmb<=0,WknVal,ROUND(WKnVal/XfTpoCmb,2))
+			ENDIF
+		ENDIF
+		RETURN WKnVal
+	ENDPROC
+
+
+	PROCEDURE sexper
+		=SEEK(PsSexPer+PERS.SexPer,'TABL')
+		nSexPer = ALLTRIM(TABL.Nombre)
+		RETURN nSexPer
+	ENDPROC
+
+
+	PROCEDURE sitper
+		=SEEK(PsSitPer+STR(This.Valcal('@SIT'),1,0),'TABL')
+		nSitPer = ALLTRIM(TABL.Nombre)
+		RETURN nSitPer
+	ENDPROC
+
+
+	PROCEDURE edad
+		IF !EMPTY(PERS.FchNac)
+			RETURN INT((VAL(DTOC(GdFecha,1))-VAL(DTOC(PERS.FchNac,1)))/10000)
+		ELSE
+			RETURN 0
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE estcvl
+		=SEEK(PsEstCvl+PERS.EstCvl,'TABL')
+		nEstCvl = ALLTRIM(TABL.Nombre)
+		RETURN nEstCvl
+	ENDPROC
+
+
+	PROCEDURE valant
+		PARAMETER Var
+		PRIVATE WKnVal
+		IF TYPE('Var') <> 'C'
+			RETURN 0
+		ENDIF
+		xNroPer = VAL(XsNroPer) - 1
+		xNroPer = TRANSFORM(xNroPer,'@L ##')
+		WKnVal = 0
+		DO CASE
+			CASE Var = 'A'
+				xLlave = SPACE(1+Len(DMOV.NroPer))+SPACE(LEN(DMOV.CodPer))
+				=SEEK(xLlave+Var,'DMOV')
+				WKnVaL = DMOV.ValCal
+			OTHER
+				xLlave = XsCodPln + xNroPer + PERS.CodPer + Var
+				m.cursel = SELECT()
+				SELECT DMOV
+				SEEK xLlave
+				DO WHILE CodPln + NroPer + CodPer + CodMov = xLlave .AND. ! EOF()
+					WKnVaL = WKnVaL + DMOV.ValCal
+					SKIP
+				ENDDO
+				SELECT (m.cursel)
+		ENDCASE
+		RETURN WKnVal
+	ENDPROC
+
+
+	PROCEDURE valacm
+		PARAMETER Var,xPer		&& Donde xPer son los periodos que acumulará
+		PRIVATE WKnVal,xNroPer
+		IF TYPE('Var') <> 'C'
+			RETURN 0
+		ENDIF
+		WKnVal = 0
+		xNroPer = VAL(XsNroPer)
+		IF TYPE('xPer') = 'N'
+			xNroPer = xPer
+		ENDIF
+		FOR I = 1 TO xNroPer
+			LsNroPer = TRANSFORM(I,'@L ##')
+			=SEEK(XsCodPln+LsNroPer+PERS.CodPer+Var,'DMOV')
+			WKnVaL = WKnVaL + DMOV.ValCal
+		ENDFOR
+		RETURN WKnVal
+	ENDPROC
+
+
+	PROCEDURE sumant
+		PARAMETER Var
+		PRIVATE WKnVal
+		IF TYPE('Var') <> 'C'
+			RETURN 0
+		ENDIF
+		WKnVal = 0
+		FOR I = 1 to VAL(XsNroPer) - 1
+			LsNroPer = TRANSFORM(I,'@L ##')
+			=SEEK(XsCodPln+LsNroPer+PERS.CodPer+Var,'DMOV')
+			WKnVaL = WKnVaL + DMOV->ValCal
+		ENDFOR
+		RETURN WKnVal
+	ENDPROC
+
+
+	PROCEDURE horas
+		PARAMETERS WKnVal
+		RETURN (INT(WknVal)*60+(WknVal-INT(WknVal))*100 )/60
+	ENDPROC
+
+
+	PROCEDURE afp
+		RETURN VAL(PERS.CodAfp)
+	ENDPROC
+
+
+	PROCEDURE nhijos
+		RETURN PERS.NHijos
+	ENDPROC
+
+
+	PROCEDURE codpln
+		RETURN VAL(PERS.CodPln)
+	ENDPROC
+
+
+	PROCEDURE valantn
+		PARAMETER Var,N		&& Donde N es el número que le restara al periodo Actual
+		PRIVATE WKnVal
+		IF TYPE('Var') <> 'C'
+			RETURN 0
+		ENDIF
+		xNroPer = VAL(XsNroPer) - N
+		xNroPer = TRANSFORM(xNroPer,'@L ##')
+		WKnVal = 0
+		DO CASE
+			CASE Var = 'A'
+				xLlave = SPACE(1+LEN(DMOV.NroPer))+SPACE(LEN(DMOV.CodPer))
+				=SEEK(xLlave+Var,'DMOV')
+				WKnVaL = DMOV.ValCal
+			OTHER
+				xLlave = XsCodPln + xNroPer + PERS.CodPer + Var
+				m.cursel = SELECT()
+				SELECT DMOV
+				SEEK xLlave
+				DO WHILE CodPln + NroPer + CodPer + CodMov = xLlave AND !EOF()
+					WKnVaL = WKnVaL + DMOV.ValCal
+					SKIP
+				ENDDO
+				SELECT (m.cursel)
+		ENDCASE
+		RETURN WKnVal
+	ENDPROC
+
+
+	PROCEDURE diasgrat
+		PRIVATE XFECHA,DD
+		IF VALCAL('@SIT') = 5
+			RETURN (0)
+		ENDI
+		DO CASE
+			CASE VAL(xsnromes) = 7
+				xFecha = CTOD('30/06/'+ STR(YEAR(DATE()),4,0))
+				dAdi = IIF(INLIST(MONTH(PERS.FchIng),02,06),1,0)
+			CASE VAL(xsnromes) = 12
+				xFecha = CTOD('31/12/'+ STR(YEAR(DATE()),4,0))
+				dAdi = IIF(INLIST(MONTH(PERS.FchIng),12),1,0)
+		ENDCASE
+		DD = xFecha - PERS.FchIng
+		DD = DD + dAdi
+		IF DD>179
+			DD=180
+		ENDIF
+		RETURN (DD)
+	ENDPROC
+
+
+	PROCEDURE sumgra
+		PARAMETER Var
+		PRIVATE WKnVal
+		IF TYPE('Var') <> 'C'
+			RETURN (0)
+		ENDIF
+		WKnVal = 0
+		PRIVATE Xconta
+		Xconta = 0
+		FOR I = XsIniGra to XsFinGra
+			LsNroPer = TRANSFORM(I,'@L ##')
+			=SEEK(XsCodPln+LsNroPer+PERS.CodPer+Var,'DMOV')
+			WKnVaL = WKnVaL + DMOV.ValCal
+			IF FOUN('DMOV')
+				Xconta = Xconta + 1
+			ENDI
+		ENDFOR
+		IF Xconta >0
+			RETURN (WKnVal/Xconta)
+		ENDI
+		RETURN (0)
+	ENDPROC
+
+
+	PROCEDURE sumvac
+		PARAMETER Var
+		PRIVATE WKnVal
+		IF TYPE('Var') <> 'C'
+			RETURN (0)
+		ENDIF
+		WKnVal = 0
+		PRIVATE xConta
+		xConta = 0
+		PRIVATE XsIniGra,XsFinGra
+		XsIniGra = 0
+		IF XsCodPln = '1'
+			XsIniGra = XsNroPer - 6
+		ELSE
+			XsIniGra = XsNroPer - (6*4)
+		ENDIF
+		FOR I = XsIniGra TO XsFinGra
+			LsNroPer = TRANSFORM(I,'@L ##')
+			=SEEK(XsCodPln+LsNroPer+PERS.CodPer+Var,'DMOV')
+			WKnVaL = WKnVaL + DMOV.ValCal
+			IF FOUND('DMOV')
+				xConta = xConta + 1
+			ENDIF
+		ENDFOR
+		IF xConta >0
+		   RETURN (WKnVal/xConta)
+		ENDIF
+		RETURN (0)
+	ENDPROC
+
+
+	PROCEDURE tmpmes
+		PRIVATE Mesi,Serv,Dias,Mese
+		Mesi = 0
+		IF EMPTY(PERS.FchIng)
+			RETURN (0)
+		ENDI
+		Serv = INT( ( VAL(DTOC(DATE(),1))-VAL(DTOC(PERS.FchIng,1)) )/10000 )
+		IF DAY(DATE())>DAY(PERS.FchIng)
+			Dias = DAY(DATE()) - DAY(PERS.FchIng)
+			Mese = MONTH(DATE())
+		ELSE
+			Dias = DAY(DATE() - DAY(DATE())) + DAY(DATE()) - DAY(PERS.FchIng)
+			Mese = MONTH(DATE()) - 1
+		ENDIF
+		IF Mese>=MONTH(PERS.FchIng)
+			Mesi = Mese - MONTH(PERS.FchIng)
+		ELSE
+			Mesi = Mese - MONTH(PERS.FchIng) + 12
+		ENDIF
+		RETURN ((SERV*12)+MESI)
+	ENDPROC
+
+
+	PROCEDURE prmvarx
+		PARAMETER Var
+		PRIVATE WKnVal,NroProm,wRecord,SaveComp,mCurrArea
+		IF TYPE('Var') <> 'C'
+			RETURN 0
+		ENDIF
+		IF SET('COMPATIBLE') = 'ON'
+			SET COMPATIBLE OFF
+			SaveComp = 'ON'
+		ELSE
+			SaveComp = 'OFF'
+		ENDIF
+		SET COMPATIBLE OFF
+		mCurrArea = SELECT()
+		STORE 0 TO WKnVal,NroProm,I
+		xNroPer = VAL(XsNroPer) - 6
+		IF xNroPer <= 0
+			xNroPer = 12 - ABS(xNroPer)
+			LsCodCia = "CIA"+GsCodCia
+			LsMovtCia = PathDef+"\"+LsCodCia+"\C"+LTRIM(STR(PlnNroAno-1))+"\PLNDMOVT.DBF"
+			IF FILE(LsMovtCia)
+				SELECT 0
+				USE &LsMovtCia ORDER DMOV01 ALIAS TMPDMOV
+				SELECT TMPDMOV
+				FOR I = XNroPer TO 12
+					XlPeri = TRANSFORM(I,"@L ##")
+					xLlave = XsCodPln+XlPeri+PERS.CodPer+Var
+					SEEK xLlave
+					IF FOUND()
+						WKnVal = WKnVal+ValCal
+						NroProm = NroProm + IIF(ValCal>0,1,0)
+					ENDIF
+				ENDFOR
+				USE
+				IF XNroPer > 7
+					SELECT DMOV
+					FOR I = 1 TO XNroPer - 7
+						XlPeri=TRANSFORM(I,"@L ##")
+						xLlave = XsCodPln+XlPeri+PERS.CodPer+Var
+						SEEK xLlave
+						IF FOUND()
+							WKnVal = WKnVal + ValCal
+							NroProm = NroProm + IIF(ValCal>0,1,0)
+						ENDIF
+					ENDFOR
+				ENDIF
+				WKnVal = IIF(NroProm>0,ROUND(WKnVal/NroProm,2),0)
+			ENDIF
+		ELSE
+			SELECT DMOV
+			wRecord = RECNO()
+			FOR I = XNroPer TO XNroPer + 5
+				XlPeri=TRANSFORM(IIF(I>12,I-12,I),"@L ##")
+				xLlave = XsCodPln+XlPeri+PERS.CodPer+Var
+				SEEK xLlave
+				IF FOUND()
+					WKnVal = WKnVal + ValCal
+					NroProm = NroProm + IIF(ValCal>0,1,0)
+				ENDIF
+			ENDFOR
+			WKnVal = IIF(NroProm>0,ROUND(WKnVal/NroProm,2),0)
+			IF BETWEEN(wRecord,1,RECCOUNT())
+				GO wRecord
+			ENDIF
+		ENDIF
+		SELECT (mCurrArea)
+		SET COMPATIBLE &SaveComp
+		RETURN WKnVal
+	ENDPROC
+
+
+	PROCEDURE f_valcal
+		PARAMETER Var,xPer,sArea
+		PRIVATE WKnVal
+		IF TYPE('Var') <> 'C'
+			RETURN 0
+		ENDIF
+		xNroPer =XsNroPer
+		IF TYPE('xPer') = 'N'
+			xNroPer = TRANSFORM(xPer,'@L ##')
+		ENDIF
+		WKnVal = 0
+		DO CASE
+			CASE Var = 'A'
+				xLlave = SPACE(1+LEN(&sArea..NroPer))+SPACE(LEN(&sArea..CodPer))
+				=SEEK(xLlave+Var,sArea)
+				WKnVaL = &sArea..ValCal
+			OTHER
+				xLlave = XsCodPln+xNroPer+PERS->CodPer+Var
+				m.cursel = SELECT()
+				SELECT (sArea)
+				SEEK xLlave
+				DO WHILE CodPln+NroPer+CodPer+CodMov = xLlave .AND. ! EOF()
+					WKnVaL = WKnVaL + &sArea..ValCal
+					SKIP
+				ENDDO
+				SELECT (m.cursel)
+		ENDCASE
+		RETURN WKnVal
+	ENDPROC
+
+
+	PROCEDURE prmsal
+		PARAMETER nPerIni,nPerFin,xVar
+		Prm = 0
+		FOR K = nPerIni TO nPerFin
+			Prm = Prm + This.Valcal(XVAR,K)
+		ENDFOR
+		RETURN PRM
+	ENDPROC
+
+
+	PROCEDURE semgra
+		PRIVATE Xfecha1,DD1
+		IF This.Valcal('@SIT') = 5 
+		   RETURN (0)
+		ENDIF
+		DO CASE
+			CASE VAL(xsnromes) = 7
+				xFECHA1 = CTOD('30/06/'+ STR(YEAR(DATE()),4,0))
+				dAdi1 = IIF(INLIST(MONTH(PERS.FchIng),02,06),1,0)
+			CASE VAL(xsnromes) = 12
+		        xFECHA1 = CTOD('31/12/'+ STR(YEAR(DATE()),4,0))
+		        dAdi1 = IIF(INLIST(MONTH(PERS.FchIng),12),1,0)
+		ENDCASE
+		Dd1 = Xfecha1-PERS.FchIng &&FCHING
+		DD1 = DD1 +dAdi1
+		IF DD1>179
+			DD1=180
+		ENDIF
+		DDS = DD1/7
+		N = 31
+		XsCodMov = [RD01]
+		NROSEM = 0
+		FOR M=1 TO INT(DDS)
+			SELECT DMOV
+			LLAVE_S = XsCodPln + TRANS(N,[@L ##])+PERS.CODPER+XSCODMOV
+			SEEK LLAVE_S
+			IF FOUND()
+				NROSEM=NROSEM+1
+			ENDIF
+			N=N+1
+		ENDFOR
+		RETU(NROSEM)
+	ENDPROC
+
+
+	PROCEDURE tmpamd
+		PARAMETERS xOpc,XvFecIni,XcFecFin
+		*!*	OPC = 1  DEVUELVE EL NUMERO DE ANOS
+		*!*	OPC = 2  DEVUELVE EL NUMERO DE MESES
+		*!*	OPC = 3  DEVUELVE EL NUMERO DE DIAS
+		PRIVATE Mesi,Mese,Serv,Dias,Xfecha
+		Mesi = 0
+		IF EMPTY(XvFecIni)
+			RETURN (0)
+		ENDIF
+		Serv = INT((VAL(DTOC(XvFecFin,1))-VAL(DTOC(XcFecIni,1)))/10000)
+		IF DAY(XvFecFin)>DAY(XvFecIni)
+			Dias = DAY(XvFecFin) - DAY(XvFecIni)
+			Mese = MONTH(XvFecFin)
+		ELSE
+			Dias = DAY(XvFecFin - DAY(XvFecFin)) + DAY(XvFecFin) - DAY(XvFecIni)
+			Mese = MONTH(XvFecFin) - 1
+		ENDIF
+		IF Mese >= MONTH(XvFecIni)
+			Mesi = Mese - MONTH(XvFecIni)
+		ELSE
+			Mesi = Mese - MONTH(XvFecIni) + 12
+		ENDIF
+		IF Dias >= 30
+			Dias = 0
+			Mesi = Mesi + 1
+			IF Mesi >= 12
+				Mesi = 0
+				Serv = Serv + 1
+			ENDIF
+		ENDIF
+		IF Mesi >= 12
+			Mesi = 0
+			Serv = Serv + 1
+		ENDIF
+		DO CASE
+			CASE xOpc = 1
+				RETURN Serv
+			CASE xOpc = 2
+				RETURN Mesi
+			CASE xOpc = 3
+				RETURN Dias
+		ENDCASE
+		RETURN 0
+	ENDPROC
+
+
+	*-- Diferencia entre 2 fechas y/o 2 horas
+	PROCEDURE timediff
+		*(**********************************************************************************************
+		*(
+		*(	TIMEDIFF.PRG
+		*(
+		*(	Parameters 	[1] From date					compulsory
+		*(				[2] To date						compulsory
+		*(				[3] From time					compulsory
+		*(				[4] To time						compulsory
+		*(				[5] Include Weekends			optional, defaults to .F.
+		*(				[6] Validate working hours		optional, defaults to .F.
+		*(				[7] Starting time				optional, defaults to blank
+		*(				[8] Ending time					optional, defaults to blank
+		*(				[9] Return value				optional, defaults to hours 		'D'=days 'H'=hours 'M'=minutes 'S'=seconds
+		*(
+		*( 	The purpose of this program is to take 2 dates/times and return the difference between them in hours.
+		*(	This would be typically be used for calculating the duration of a task or event, usually based around production
+		*(	and scheduling of work or the completion of work.
+		*(
+		*(	Stephen Weeks Nov 2004
+		*(
+		*(**********************************************************************************************
+
+		PARAMETERS FD,TD,FT,TT,IW,VH,VS,VE,RV
+
+		*(
+		*( First make sure we have all the parameters we need
+		*(
+		IF EMPTY(FD)
+			RETURN 0.00
+		ENDIF
+		IF EMPTY(TD)
+			RETURN 0.00
+		ENDIF
+		IF EMPTY(FT)
+			RETURN 0.00
+		ENDIF
+		IF EMPTY(TT)
+			RETURN 0.00
+		ENDIF
+
+		*(
+		*( Apply defaults for missing values
+		*(
+		IF PARAMETERS()<9
+			RV='H'
+		ENDIF
+		IF PARAMETERS()<8
+			VE=''
+		ENDIF
+		IF PARAMETERS()<7
+			VS=''
+		ENDIF
+		IF PARAMETERS()<6
+			VH=.F.
+		ENDIF
+		IF PARAMETERS()<5
+			IW=.F.
+		ENDIF
+
+		*(
+		*( Set up public variables and assign values to them from the parameters
+		*(
+		PUBLIC FROM_DATE
+		FROM_DATE=FD
+		PUBLIC TO_DATE
+		TO_DATE=TD
+		PUBLIC FROM_TIME
+		FROM_TIME=FT
+		PUBLIC TO_TIME
+		TO_TIME=TT
+		PUBLIC INCLUDE_WEEKENDS
+		INCLUDE_WEEKENDS=IW
+		PUBLIC VALIDATE_WORKING_HOURS
+		VALIDATE_WORKING_HOURS=VH
+		PUBLIC VALID_STARTING_TIME
+		VALID_STARTING_TIME=VS
+		PUBLIC VALID_ENDING_TIME
+		VALID_ENDING_TIME=VE
+		PUBLIC WORKING_HOURS_PER_DAY
+		WORKING_HOURS_PER_DAY=24
+		PUBLIC WORKING_SECONDS_PER_DAY
+		PUBLIC WORKING_MINUTES_PER_DAY
+
+		*(
+		*( Look at the inclusion of weekends or not, if not move the dates on by one or two days
+		*(
+		IF !INCLUDE_WEEKENDS
+			*( Sunday...add 1 day to avoid weekends
+			IF DOW(FROM_DATE)=1
+				FROM_DATE=FROM_DATE+1
+			ENDIF
+			*( Saturday...add 2 days to avoid weekends
+			IF DOW(FROM_DATE)=7
+				FROM_DATE=FROM_DATE+2
+			ENDIF
+			*( Sunday...add 1 day to avoid weekends
+			IF DOW(TO_DATE)=1
+				TO_DATE=TO_DATE+1
+			ENDIF
+			*( Saturday...add 2 days to avoid weekends
+			IF DOW(TO_DATE)=7
+				TO_DATE=TO_DATE+2
+			ENDIF
+		ENDIF
+
+		*(
+		*( Check the times and ensure that they fall within the working hours if this is required
+		*(
+		IF VALIDATE_WORKING_HOURS
+			WHFS=this.TIME2SEC(VALID_STARTING_TIME)
+			WHFE=this.TIME2SEC(VALID_ENDING_TIME)
+			WORKING_SECONDS_PER_DAY=WHFE-WHFS
+			WORKING_MINUTES_PER_DAY=WORKING_SECONDS_PER_DAY/60
+			WORKING_HOURS_PER_DAY=WORKING_MINUTES_PER_DAY/60
+			IF this.TIME2SEC(FROM_TIME)<TIME2SEC(VALID_STARTING_TIME)
+				FROM_TIME=VALID_STARTING_TIME
+			ENDIF
+			IF this.TIME2SEC(TO_TIME)>TIME2SEC(VALID_ENDING_TIME)
+				TO_TIME=VALID_ENDING_TIME
+			ENDIF
+		ELSE
+			WORKING_SECONDS_PER_DAY=86400
+			WORKING_MINUTES_PER_DAY=WORKING_SECONDS_PER_DAY/60
+			WORKING_HOURS_PER_DAY=WORKING_MINUTES_PER_DAY/60
+		ENDIF
+
+		*(
+		*( Reduce everything down to the lowest common denominator - seconds, and the back to minutes,hours etc
+		*(
+		DURATION_DAYS=0.000
+		DURATION_HOURS=0.000
+		DURATION_MINUTES=0.000
+		DURATION_SECONDS=0.000
+		DO CASE
+			CASE FROM_DATE < TO_DATE		&& if the TO date is greater then the FROM date in other words its not 2 times on the same day.
+				FROM_SECONDS=this.TIME2SEC(FROM_TIME)
+				TO_SECONDS=0
+				CYCLE_DATE=FROM_DATE
+				DO WHILE .T.
+					IF !INCLUDE_WEEKENDS
+						IF !INLIST(DOW(CYCLE_DATE),1,7)
+							TO_SECONDS=TO_SECONDS+WORKING_SECONDS_PER_DAY
+						ENDIF
+					ELSE
+						TO_SECONDS=TO_SECONDS+WORKING_SECONDS_PER_DAY
+					ENDIF
+					CYCLE_DATE=CYCLE_DATE+1
+					IF CYCLE_DATE=TO_DATE
+						EXIT
+					ENDIF
+				ENDDO
+				TO_SECONDS=TO_SECONDS+this.TIME2SEC(TO_TIME)
+			OTHERWISE		&& if both TO and FROM dates are the same we are dealing with a simple conversion
+				FROM_SECONDS=this.TIME2SEC(FROM_TIME)
+				TO_SECONDS=this.TIME2SEC(TO_TIME)
+		ENDCASE
+
+		IF !INCLUDE_WEEKENDS
+			IF DOW(FROM_DATE)=1
+				FROM_DATE=FROM_DATE+1
+			ENDIF
+			IF DOW(FROM_DATE)=7
+				FROM_DATE=FROM_DATE+2
+			ENDIF
+		ENDIF
+
+		DURATION_SECONDS = ROUND(TO_SECONDS-FROM_SECONDS,0)
+		DURATION_MINUTES = ROUND(DURATION_SECONDS/60,0)
+		DURATION_HOURS   = ROUND(DURATION_MINUTES/60,2)
+		DURATION_DAYS    = ROUND(DURATION_HOURS/WORKING_HOURS_PER_DAY,2)
+
+		DO CASE
+			CASE RV='D'
+				RETVAL=DURATION_DAYS
+			CASE RV='H'
+				RETVAL=DURATION_HOURS
+			CASE RV='M'
+				RETVAL=DURATION_MINUTES
+			CASE RV='S'
+				RETVAL=DURATION_SECONDS
+		ENDCASE
+
+		RETURN RETVAL
+	ENDPROC
+
+
+	PROCEDURE time2sec
+		*(
+		*( Procedure to convert a time string into seconds
+		*(
+		PARAMETER TIMESTRING
+			TIMESTRINGHOURS=VAL(SUBSTR(TIMESTRING,1,2))
+			TIMESTRINGMINUTES=VAL(SUBSTR(TIMESTRING,4,2))
+			TIMESTRINGSECONDS=( (TIMESTRINGMINUTES+(TIMESTRINGHOURS*60) )*60)
+		RETURN TIMESTRINGSECONDS
+	ENDPROC
+
+
+	PROCEDURE Error
+		LPARAMETERS nError,cMethod,nLine
+		IF SET('Development') = 'ON'
+			LnRpta=MESSAGEBOX(cMethod+" "+TTOC(DATETIME())+CRLF+;
+					"Error: "+TRANSFORM(nError)+", Linea:"+TRANSFORM(nLine)+CRLF+ ;
+					"  "+MESSAGE()+CRLF,2+16+256,'Ha ocurrido un error en el sistema')
+			DO CASE
+				CASE LnRpta = 3
+					SUSPEND
+				CASE LnRpta = 4
+					SET STEP ON
+				CASE LnRpta = 5
+					RETRY
+			ENDCASE
+			RETURN CONTEXT_E_ABORTED
+		ELSE
+			STRTOFILE(cMethod+" "+TTOC(DATETIME())+CRLF,ERRLOGFILE,.T.)
+			STRTOFILE("Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF,ERRLOGFILE,.T.)
+			STRTOFILE("  "+MESSAGE()+CRLF,ERRLOGFILE,.T.)
+			RETURN CONTEXT_E_ABORTED
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE Init
+		This.oentorno = CREATEOBJECT('Dosvr.Env') 
+		This.odatadm = CREATEOBJECT('Dosvr.DataAdmin')
+	ENDPROC
+
+
+ENDDEFINE
+*
+*-- EndDefine: planillas
+**************************************************
+
+
+**************************************************
 *-- Class:        validadatos (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   11/22/07 01:37:12 AM
+*-- Time Stamp:   05/23/18 09:22:08 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
-DEFINE CLASS validadatos AS custom OLEPUBLIC
+DEFINE CLASS validadatos AS custom
 
 
 	Height = 23
@@ -12600,11 +15128,14 @@ DEFINE CLASS validadatos AS custom OLEPUBLIC
 
 	*-- Valida codigo de material de almacen
 	PROCEDURE validacodigoalmacen
-		LPARAMETERS XsCodMat,XsSubAlm,XsCodSed,XcTipMov,XlStkNeg,XsLote,XfCanDes,XdFchDoc,XsCurSor
+		LPARAMETERS XsCodMat,XsSubAlm,XsCodSed,XcTipMov,XlStkNeg,XsLote,XfCanDes,XdFchDoc,XsCurSor,PsCodCli
 		LlCerrarCursor = .f.
 		IF VARTYPE(XsCurSor)='U'
 			XsCurSor = SYS(2015)
 			LlCerrarCursor = .t.
+		ENDIF
+		IF VARTYPE(PsCodCli)<>'C'
+			PsCodCli=''
 		ENDIF
 		LOCAL LoDatAdm as DataAdmin OF DoSvr
 		LodatAdm=createobject('dosvr.dataadmin')
@@ -12612,13 +15143,29 @@ DEFINE CLASS validadatos AS custom OLEPUBLIC
 		LOCAL aProdStock,nErrCode,oMtx,oContext,lDataNotOpened,LnControl
 		DIMENSION aProdStock[1]
 		nErrCode = S_OK
-
 		XfStock = 0
-		IF EMPTY(XsSubAlm)
-			LnControl=LoDatAdm.GenCursor(XsCurSor,'V_materiales_sin_almacen','Catg01','CodMat',XsCodMat)
-		ELSE
-			LnControl=LoDatAdm.GenCursor(XsCurSor,'V_materiales_x_almacen_3','Catg01',[_SubAlm:_CodMat],XsSubAlm+":"+XsCodMat,[CodSed=']+XsCodSed+['])
-		ENDIF
+		DO CASE 
+			CASE GoEntorno.VfpDbcEntorno  && Falta colocar la opcion de hacer un SEEK directo como alternativa a generar un cursor y luego validar
+					IF EMPTY(XsSubAlm)
+						LnControl=LoDatAdm.GenCursor(XsCurSor,'CALM','CATA02','CodMat',XsCodMat,[CodSed=']+XsCodSed+['])
+					ELSE
+						LnControl=LoDatAdm.GenCursor(XsCurSor,'CALM','CATA01',[SubAlm+CodMat],XsSubAlm+XsCodMat,[CodSed=']+XsCodSed+['])
+					ENDIF
+			CASE GoEntorno.AdoEntorno 
+					IF EMPTY(XsSubAlm)
+						LnControl=LoDatAdm.GenCursor(XsCurSor,'V_materiales_sin_almacen','Catg01','CodMat',XsCodMat,[CodSed=']+XsCodSed+['])
+					ELSE
+						LnControl=LoDatAdm.GenCursor(XsCurSor,'V_materiales_x_almacen_3','Catg01',[_SubAlm:_CodMat],XsSubAlm+":"+XsCodMat,[CodSed=']+XsCodSed+['])
+					ENDIF
+			CASE GoEntorno.SqlEntorno 
+					IF EMPTY(XsSubAlm)
+						LnControl=LoDatAdm.GenCursor(XsCurSor,'V_materiales_sin_almacen','Catg01','CodMat',XsCodMat,[CodSed=']+XsCodSed+['])
+					ELSE
+						LnControl=LoDatAdm.GenCursor(XsCurSor,'V_materiales_x_almacen_3','Catg01',[_SubAlm:_CodMat],XsSubAlm+":"+XsCodMat,[CodSed=']+XsCodSed+['])
+					ENDIF
+
+		ENDCASE
+
 		IF LnControl<0
 			RETURN SIN_ACCESO_TABLA
 
@@ -12627,7 +15174,6 @@ DEFINE CLASS validadatos AS custom OLEPUBLIC
 
 		SELECT (XsCurSor)
 		** Veamos si podemos valernos de Curval y OldVal para manejar mejor los datos del cursor
-		CURSORSETPROP("Buffering",5 ) 
 		LOCATE
 		DO CASE
 
@@ -12656,14 +15202,52 @@ DEFINE CLASS validadatos AS custom OLEPUBLIC
 		IF LlCerrarCursor
 			USE IN (XsCurSor)
 		ELSE
+			SELECT (XsCurSor)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','Stk_Alm','N',12,4)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','UNDSTK','C',3)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','DesMat','C',100)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','PreVn1','N',12,4)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','PreVn2','N',12,4)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','PreVn3','N',12,4)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','PreVe1','N',12,4)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','PreVe2','N',12,4)
+			LoDatAdm.Mod_str_tabla(XsCurSor,'Agregar','PreVe3','N',12,4)
+			=SEEK(CodMat,'CATG','CATG01')
+			LsCodMat = CodMat
+			LlPrexCli=.F.
+			IF !EMPTY(PsCodCli)
+				IF !USED('PXCLI')
+					goentorno.open_dbf1('ABRIR','ALMCATG2','PXCLI','PXCLI01','')
+				ENDIF
+				LlPrexCli=SEEK(PsCodCli+LsCodMat,'PXCLI','PXCLI02')
+			ENDIF
+			SELECT (XsCurSor)  
+			IF 	LlPrexCli
+				replace ALL Desmat WITH IIF(FOUND('CATG'),CATG.DesMat,'Sin descripcion'),;
+							UndStk WITH IIF(FOUND('CATG'),CATG.UndStk,'') ,;
+				 			PreVn1 WITH PXCLI.PreVn1 , PreVn2 WITH PXCLI.PreVn2,PreVn3 WITH PXCLI.PreVn3, ;
+			 	        	PreVe1 WITH PXCLI.PreVe1 , PreVe2 WITH PXCLI.PreVe2,PreVe3 WITH PXCLI.PreVe3
+
+			ELSE
+				replace ALL Desmat WITH IIF(FOUND('CATG'),CATG.DesMat,'Sin descripcion'),;
+							UndStk WITH IIF(FOUND('CATG'),CATG.UndStk,'') ,;
+				 			PreVn1 WITH CATG.PreVn1 , PreVn2 WITH CATG.PreVn2,PreVn3 WITH CATG.PreVn3, ;
+				 	        PreVe1 WITH CATG.PreVe1 , PreVe2 WITH CATG.PreVe2,PreVe3 WITH CATG.PreVe3
+			ENDIF 	        
+			LOCATE 
 			IF VARTYPE(Stk_alm) = 'N'
 				replace Stk_alm WITH XfStock
 			ENDIF
+			CURSORSETPROP("Buffering",5 ) 
 		ENDIF
 		IF EMPTY(XsSubAlm)
-			USE IN V_materiales_sin_almacen
+			IF USED('V_materiales_sin_almacen')
+				USE IN V_materiales_sin_almacen
+			ENDIF
 		ELSE
-			USE IN V_materiales_x_almacen_3
+			IF USED('V_materiales_x_almacen_3')
+				USE IN V_materiales_x_almacen_3
+			ENDIF
 		ENDIF
 
 		RELEASE LoDatAdm

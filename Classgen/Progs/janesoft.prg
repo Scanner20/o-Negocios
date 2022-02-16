@@ -7939,6 +7939,8 @@ ELSE
    ENDIF
    SELECT CTRA
 ENDIF
+&& GoCfgAlm.Usuario ,; ** VETT:Usuario del sistema 2022/02/16 00:32:13 **
+LsUser=GoEntorno.user.login
 UPDATE CTRA SET  ;
 		FchDoc   = C_CTRA.FchDoc ,;				
        	NroRf2   = C_CTRA.NroRf2 ,;
@@ -7952,7 +7954,7 @@ UPDATE CTRA SET  ;
        	TpoCmb   = C_CTRA.TpoCmb ,;
        	Observ   = C_CTRA.Observ ,;
        	FBatch   = C_CTRA.fBatch ,;
-       	User     = GoCfgAlm.Usuario ,;
+       	User     = LsUser ,; 
        	CodTra	 = C_CTRA.CodTra , ;
     	NomTra   = C_CTRA.NomTra ,;
     	DirTra   = C_CTRA.DirTra ,;
@@ -7964,7 +7966,7 @@ UPDATE CTRA SET  ;
     	PorIgv   = C_CTRA.PorIgv ,;
     	ImpIgv   = C_CTRA.ImpIgv ,;
     	ImpTot   = C_CTRA.ImpTot ,;
-    	CodUser  = GoCfgAlm.Usuario ,;
+    	CodUser  = LsUser ,; 
     	CodActiv = C_CTRA.CodActiv,;
     	CodProcs = C_CTRA.CodProcs,;
     	CodFase  = C_CTRA.CodFase,;
@@ -7988,6 +7990,30 @@ WHERE    Subalm = m.cSubAlm AND ;
    	CodMov = m.sCodMov AND  ;
    	NroDoc = m.sNroDoc
 
+** VETT:Log de usuario 2022/02/16 04:34:38 ** 
+IF GoCfgAlm.Crear
+	IF VerifyVar('UserCrea','','CAMPO','CTRA') AND VerifyVar('FchCrea','','CAMPO','CTRA')
+		UPDATE CTRA SET  ;
+	     	usercrea = LsUser, ;
+	     	fchcrea  = DATETIME() ;
+		WHERE    Subalm = m.cSubAlm AND ;
+			TipMov = m.cTipMov AND ; 			  	     	
+		   	CodMov = m.sCodMov AND  ;
+		   	NroDoc = m.sNroDoc
+	ENDIF
+ELSE
+	IF VerifyVar('UserModi','','CAMPO','CTRA') AND VerifyVar('FchModi','','CAMPO','CTRA')
+		UPDATE CTRA SET  ;
+	     	usermodi = LsUser ,;
+	     	fchmodi  = DATETIME() ;
+	    WHERE    Subalm = m.cSubAlm AND ;
+			TipMov = m.cTipMov AND ; 			  	     	
+		   	CodMov = m.sCodMov AND  ;
+		   	NroDoc = m.sNroDoc
+	ENDIF   	
+ENDIF
+** VETT: 2022/02/16 04:34:38 **
+ 
 *** Campos para construccion **** VETT 2007-03-13
 SELECT CTRA
 =SEEK(goCfgAlm.SubAlm + gocfgalm.cTipMov + goCfgAlm.sCodMov + goCfgAlm.sNroDoc ,'CTRA','CTRA01')  
@@ -11078,6 +11104,20 @@ IF FlgEst = [A] AND m.cAnular = 'E'
 			return -1
 		ENDIF
 	ENDIF
+	** VETT:Log de usuario 2022/02/16 04:34:38 ** 
+	IF VerifyVar('UserElim','','CAMPO','CTRA') AND VerifyVar('FchElim','','CAMPO','CTRA')
+		LsUser = goentorno.user.login
+*!*	*!*			UPDATE CTRA SET  ;
+*!*	*!*		     	userelim = LsUser ,;
+*!*	*!*		     	fchelim  = DATETIME() ;
+*!*	*!*		    WHERE    Subalm = m.cSubAlm AND ;
+*!*	*!*					TipMov = m.cTipMov AND ; 			  	     	
+*!*	*!*				   	CodMov = m.sCodMov AND  ;
+*!*	*!*				   	NroDoc = m.sNroDoc 	
+		REPLACE userelim WITH goentorno.user.login 
+		REPLACE fchelim  WITH DATETIME() 
+	ENDIF
+	** VETT: 2022/02/16 04:34:38 **
 	DELETE
 	UNLOCK
 	IF !LlTieneDetalleSinCabecera 
@@ -11111,6 +11151,20 @@ DO WHILE ! EOF() .AND.  OK .AND. ;
 		SELE CALM
 		SEEK m.cSubAlm + DTRA->CodMat
 		SELECT DTRA
+		** VETT:Log de usuario 2022/02/16 04:34:38 ** 
+		IF VerifyVar('UserElim','','CAMPO','DTRA') AND VerifyVar('FchElim','','CAMPO','DTRA')
+			LsUser = goentorno.user.login
+	*!*	*!*			UPDATE CTRA SET  ;
+	*!*	*!*		     	userelim = LsUser , ;
+	*!*	*!*		     	fchelim  = DATETIME() ;
+	*!*	*!*		    WHERE    Subalm = m.cSubAlm AND ;
+	*!*	*!*					TipMov = m.cTipMov AND ; 			  	     	
+	*!*	*!*				   	CodMov = m.sCodMov AND  ;
+	*!*	*!*				   	NroDoc = m.sNroDoc 	
+			REPLACE userelim WITH goentorno.user.login 
+			REPLACE fchelim  WITH DATETIME() 
+		ENDIF
+		** VETT:  2022/02/16 04:34:38 **
 		DELETE
 		DO CASE 
 			CASE GoCfgAlm.cTipMov='I'
@@ -11155,6 +11209,21 @@ IF Ok AND m.cAnular = 'E'
 		=ChkEstO_C(EVALUATE("ctra."+gocfgalm.cmpref))
 	ENDIF 
   **
+  	** VETT:Log de usuario 2022/02/16 04:34:38 ** 
+	IF VerifyVar('UserElim','','CAMPO','CTRA') AND VerifyVar('FchElim','','CAMPO','CTRA')
+		LsUser = goentorno.user.login
+*!*	*!*			UPDATE CTRA SET  ;
+*!*	*!*		     	userelim = LsUser , ;
+*!*	*!*		     	fchelim  = DATETIME() ;
+*!*	*!*		    WHERE    Subalm = m.cSubAlm AND ;
+*!*	*!*					TipMov = m.cTipMov AND ; 			  	     	
+*!*	*!*				   	CodMov = m.sCodMov AND  ;
+*!*	*!*				   	NroDoc = m.sNroDoc 	
+		REPLACE userelim WITH goentorno.user.login 
+		REPLACE fchelim  WITH DATETIME() 
+	ENDIF
+	** VETT: 2022/02/16 04:34:38 **
+
 ENDIF
 =F1QEH("OK")
 SELE CTRA

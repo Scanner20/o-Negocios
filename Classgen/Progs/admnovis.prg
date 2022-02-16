@@ -398,7 +398,7 @@ ENDDEFINE
 *-- Class:        base_grid (k:\aplvfp\classgen\vcxs\admnovis.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   04/04/07 02:34:07 PM
+*-- Time Stamp:   05/09/18 03:10:05 PM
 *
 DEFINE CLASS base_grid AS custom
 
@@ -465,9 +465,13 @@ DEFINE CLASS base_grid AS custom
 	corderby = ""
 	*-- Contiene expresion para la clausula HAVING
 	lhaving = .F.
+	*-- XML Metadata for customizable properties
 	_memberdata = [<VFPData><memberdata name="lhaving" type="property" display="lHaving"/><memberdata name="chavingsql" type="property" display="cHavingSql"/><memberdata name="chavingsql_assign" type="property" display="cHavingSql_Assign"/></VFPData>]
 	*-- Expresion a utilizar en la clausula HAVING
 	chavingsql = ([])
+	lservidor = .F.
+	*-- Filtro inicial (Where , WhereSql , HavingSql)
+	cwheresql_ini = ([])
 	Name = "base_grid"
 
 	*-- Indica que se debe de respetar la configuración de la Grilla hecha en tiempo de Diseño para la Grilla de Consulta
@@ -665,6 +669,8 @@ DEFINE CLASS base_grid AS custom
 							IF !ISNUL(CodigoEntidadCampo) OR !EMPTY(CodigoEntidadCampo)
 								.COLUMNS(i).CONTROLS(j).CAPTION = ALLTRIM(DescCabeceraVisualizacion)
 							ENDIF
+							.COLUMNS(i).CONTROLS(j).Wordwrap = .T.
+							.COLUMNS(i).CONTROLS(j).Alignment = 2
 						ENDIF
 					ENDIF
 					IF	.COLUMNS(i).CONTROLS(j).BASECLASS == 'Textbox'
@@ -692,6 +698,19 @@ DEFINE CLASS base_grid AS custom
 			.VISIBLE = .T.
 			.INIT()
 		ENDWITH
+		*** Actualizamos el ancho del formulario contenendor **
+		LnTotAncho=0
+		IF THIS.PARENT.Baseclass=="Form"
+			FOR I=1 TO THIS.oGrid.COLUMNCOUNT
+				LnTotAncho = LnTotAncho +	THIS.oGrid.COLUMNS(I).WIDTH 
+			ENDFOR
+			IF LnTotAncho>0 AND LnTotAncho>This.Parent.Width 
+				This.Parent.Width = LnTotAncho + 20
+			ENDIF
+		ENDIF
+
+		***
+
 		RETURN .T.
 	ENDPROC
 
@@ -800,6 +819,9 @@ DEFINE CLASS base_grid AS custom
 	PROCEDURE generarcursor
 		*!*	Consulta al Servidor, y crea el cursor en el Cliente
 		LPARAMETERS tcWhere
+		** VETT: 2018/05/09 15:05:32 ** 
+		this.cwheresql_ini = []
+		** VETT: 2018/05/09 15:05:32 **
 
 		LOCAL lcControlSource , lcValorField, LcCadenaSql
 
@@ -815,17 +837,22 @@ DEFINE CLASS base_grid AS custom
 			tcWhere = ""
 		ELSE
 			tcWhere =  " AND (" + ALLTRIM( STRTRAN(tcWhere,'"',"'") ) +")"
+			** VETT: 2018/05/09 15:10:13 **
+			this.cwheresql_ini = TcWhere
 		ENDIF
 
 		THIS.oGrid.RECORDSOURCE = ""
 		THIS.oGrid.RECORDSOURCETYPE = 4
-		IF GoEntorno.SqlEntorno
+		IF GoEntorno.SqlEntorno AND  THIS.lServidor
 			goConexion.cSQL = THIS.cSQL + tcWhere + " " + THIS.cWhereSQL + " " + THIS.cHavingSql +  ; 
 			 " ORDER BY " + IIF(ISNULL(THIS.cOrderBy) OR EMPTY(THIS.cOrderBy),"2",THIS.cOrderBy)
 		ELSE
 			LcCadenaSql 	= THIS.cSQL + tcWhere + " " + THIS.cWhereSQL + " " + THIS.cHavingSql +  ;
 			" ORDER BY " + IIF(ISNULL(THIS.cOrderBy) OR EMPTY(THIS.cOrderBy),"2",THIS.cOrderBy)
 		ENDIF
+		** VETT: 2018/05/09 15:09:47 **
+		this.cwheresql_ini  = this.cwheresql_ini + " " + THIS.cWhereSQL 
+		 
 		*!*	=strtofile(goConexion.cSQL,"c:\windows\escritorio\sql.txt")
 
 		IF EMPTY(THIS.cAliasCursor) OR ISNULL(THIS.cAliasCursor)
@@ -836,7 +863,7 @@ DEFINE CLASS base_grid AS custom
 			USE IN (THIS.cAliasCursor)
 		ENDIF
 		*=MESSAGEBOX(goConexion.cSQL)
-		IF GoEntorno.SqlEntorno
+		IF GoEntorno.SqlEntorno  AND this.lServidor
 			goConexion.cCursor = THIS.cAliasCursor
 			lReturn = ( goConexion.DoSQL(THISFORM.DATASESSIONID) > 0 )
 		ELSE
@@ -846,15 +873,15 @@ DEFINE CLASS base_grid AS custom
 		ENDIF
 		IF lReturn	AND USED(THIS.cAliasCursor)	&& Ejecutó correctamente la Sentencia
 			THIS.oGrid.RECORDSOURCETYPE = 1  && Alias
-			THIS.oGrid.RECORDSOURCE 	= THIS.cAliasCursor
+			THIS.oGrid.RECORDSOURCE 		= THIS.cAliasCursor
 			SELECT(THIS.cAliasCursor)
 			FOR I=1 TO THIS.oGrid.COLUMNCOUNT
 				lcValorField	= EVAL(FIELD(I))
 				DO CASE
-				CASE VARTYPE(lcValorField) == "T"
-					lcControlSource	= "TTOD(" + THIS.cAliasCursor + "." + FIELD(I) + ")"
-				OTHERWISE
-					lcControlSource	= THIS.cAliasCursor + "." + FIELD(I)
+					CASE VARTYPE(lcValorField) == "T"
+						lcControlSource	= "TTOD(" + THIS.cAliasCursor + "." + FIELD(I) + ")"
+					OTHERWISE
+						lcControlSource	= THIS.cAliasCursor + "." + FIELD(I)
 				ENDCASE
 				THIS.oGrid.COLUMNS(I).CONTROLSOURCE	= lcControlSource
 			ENDFOR
@@ -1031,7 +1058,7 @@ DEFINE CLASS base_grid AS custom
 			cSQL = cSQL + cColumn
 			cSQL = LEFT(cSQL,LEN(cSQL)-3)
 		ENDIF
-		IF GOENTORNO.SqlEntorno
+		IF GOENTORNO.SqlEntorno AND this.lServidor
 			cSQL = cSQL + " FROM " + THIS.cNombreEntidad + " T000 " + ;
 				" WHERE T000.FlagEliminado = 0 "
 		else
@@ -2565,27 +2592,20 @@ DEFINE CLASS base_grid AS custom
 	ENDPROC
 
 
-	PROCEDURE Destroy
-		*!*	Cierra el cursor de las columnas de criterios de seleccion
-		IF !EMPTY(THIS.cAliasColumnas) AND !ISNULL(THIS.cAliasColumnas)
-			IF USED(THIS.cAliasColumnas)
-				USE IN (THIS.cAliasColumnas)
-			ENDIF
+	PROCEDURE chavingsql_assign
+		lparameters tuNewValue
+		IF VARTYPE(tuNewValue)<>"C"
+			tuNewValue = ""
+		ELSE
+			tuNewValue = ALLTRIM(tuNewValue)
 		ENDIF
+		This.cHavingSql = tuNewValue
+	ENDPROC
 
-		*!*	Cierra el cursor de Atributo-Valor
-		IF !EMPTY(THIS.cAliasAtributos) AND !ISNULL(THIS.cAliasAtributos)
-			IF USED(THIS.cAliasAtributos)
-				USE IN (THIS.cAliasAtributos)
-			ENDIF
-		ENDIF
 
-		*!*	Cierra el cursor de la Consulta dinamica
-		IF !EMPTY(THIS.cAliasCursor) AND !ISNULL(THIS.cAliasCursor)
-			IF USED(THIS.cAliasCursor)
-				USE IN (THIS.cAliasCursor)
-			ENDIF
-		ENDIF
+	PROCEDURE lservidor_assign
+		lparameters tuNewValue
+This.lservidor = tuNewValue
 	ENDPROC
 
 
@@ -2618,34 +2638,35 @@ DEFINE CLASS base_grid AS custom
 			.cValoresClaveDestino		= IIF(EMPTY(.cValoresClaveDestino),.cValoresClaveOrigen,.cValoresClaveDestino)
 
 
-			.cAtributosDefault			= IIF(VARTYPE(.cAtributosDefault)<>"C","",.cAtributosDefault)
+			.cAtributosDefault		= IIF(VARTYPE(.cAtributosDefault)<>"C","",.cAtributosDefault)
 			.cValoresDefault			= IIF(VARTYPE(.cValoresDefault)<>"C","",.cValoresDefault)
 
 			.cTipoDatoCamposEdicion		= IIF(VARTYPE(.cTipoDatoCamposEdicion)<>"C","",.cTipoDatoCamposEdicion)
-			.cWhereSQL					= .cWhereSQL
-			.cHavingSql 				= .cHavingSql 
+			.cWhereSQL			= .cWhereSQL
+			.cHavingSql 		= .cHavingSql 
 
 			*!*	Inicializar propiedades con valores por defecto
 
-			.cAliasAtributos			= IIF(VARTYPE(.cAliasAtributos)<>"C",SYS(2015),ALLTRIM(.cAliasAtributos))
-			.cAliasColumnas				= IIF(VARTYPE(.cAliasColumnas)<>"C" ,SYS(2015),ALLTRIM(.cAliasColumnas))
-			.cAliasCursor				= IIF(VARTYPE(.cAliasCursor)<>"C"   ,SYS(2015),ALLTRIM(.cAliasCursor))
+			.cAliasAtributos		= IIF(VARTYPE(.cAliasAtributos)<>"C",SYS(2015),ALLTRIM(.cAliasAtributos))
+			.cAliasColumnas	= IIF(VARTYPE(.cAliasColumnas)<>"C" ,SYS(2015),ALLTRIM(.cAliasColumnas))
+			.cAliasCursor		= IIF(VARTYPE(.cAliasCursor)<>"C"   ,SYS(2015),ALLTRIM(.cAliasCursor))
 
-			.cClavePlantilla			= IIF(VARTYPE(.cClavePlantilla)<>"C","",ALLTRIM(.cClavePlantilla))
+			.cClavePlantilla		= IIF(VARTYPE(.cClavePlantilla)<>"C","",ALLTRIM(.cClavePlantilla))
 
-			.cCodigoEntidad				= IIF(VARTYPE(.cCodigoEntidad)<>"C"			 ,"",ALLTRIM(.cCodigoEntidad))
-			.cNombreEntidad				= IIF(VARTYPE(.cNombreEntidad)<>"C"			 ,"",ALLTRIM(.cNombreEntidad))
+			.cCodigoEntidad	= IIF(VARTYPE(.cCodigoEntidad)<>"C"			 ,"",ALLTRIM(.cCodigoEntidad))
+			.cNombreEntidad	= IIF(VARTYPE(.cNombreEntidad)<>"C"			 ,"",ALLTRIM(.cNombreEntidad))
 
-			.cSQL	= IIF(VARTYPE(.cSQL)<>"C"  ,"",ALLTRIM(.cSQL))
-			.cWhere	= IIF(VARTYPE(.cWhere)<>"C","",ALLTRIM(.cWhere))
+			.cSQL				= IIF(VARTYPE(.cSQL)<>"C"  ,"",ALLTRIM(.cSQL))
+			.cWhere				= IIF(VARTYPE(.cWhere)<>"C","",ALLTRIM(.cWhere))
 
-			.lMultiSelect	= IIF(VARTYPE(.lMultiSelect)<>"L",.F.,.lMultiSelect)
-			.lDinamicGrid	= IIF(VARTYPE(.lDinamicGrid)<>"L",.F.,.lDinamicGrid)
-			.lDistinct		= IIF(VARTYPE(.lDistinct)<>"L"    ,.F.,.lDistinct)
-			.lHaving 		= IIF(VARTYPE(.lHaving)<>"L"    ,.F.,.lHaving)
+			.lMultiSelect			= IIF(VARTYPE(.lMultiSelect)<>"L",.F.,.lMultiSelect)
+			.lDinamicGrid		= IIF(VARTYPE(.lDinamicGrid)<>"L",.F.,.lDinamicGrid)
+			.lDistinct			= IIF(VARTYPE(.lDistinct)<>"L"    ,.F.,.lDistinct)
+			.lHaving 			= IIF(VARTYPE(.lHaving)<>"L"    ,.F.,.lHaving)
+			.lServidor 			= IIF(VARTYPE(.lServidor)<>"L"    ,.F.,.lServidor)
 
 			.cLiteralAtributos	= IIF(VARTYPE(.cLiteralAtributos)<>"C","",ALLTRIM(.cLiteralAtributos))
-			.cLiteralCriterios	= IIF(VARTYPE(.cLiteralCriterios)<>"C","",ALLTRIM(.cLiteralCriterios))
+			.cLiteralCriterios		= IIF(VARTYPE(.cLiteralCriterios)<>"C","",ALLTRIM(.cLiteralCriterios))
 
 			.nRegistros	= 0
 			.nCriterios	= 0
@@ -2654,14 +2675,27 @@ DEFINE CLASS base_grid AS custom
 	ENDPROC
 
 
-	PROCEDURE chavingsql_assign
-		lparameters tuNewValue
-		IF VARTYPE(tuNewValue)<>"C"
-			tuNewValue = ""
-		ELSE
-			tuNewValue = ALLTRIM(tuNewValue)
+	PROCEDURE Destroy
+		*!*	Cierra el cursor de las columnas de criterios de seleccion
+		IF !EMPTY(THIS.cAliasColumnas) AND !ISNULL(THIS.cAliasColumnas)
+			IF USED(THIS.cAliasColumnas)
+				USE IN (THIS.cAliasColumnas)
+			ENDIF
 		ENDIF
-		This.cHavingSql = tuNewValue
+
+		*!*	Cierra el cursor de Atributo-Valor
+		IF !EMPTY(THIS.cAliasAtributos) AND !ISNULL(THIS.cAliasAtributos)
+			IF USED(THIS.cAliasAtributos)
+				USE IN (THIS.cAliasAtributos)
+			ENDIF
+		ENDIF
+
+		*!*	Cierra el cursor de la Consulta dinamica
+		IF !EMPTY(THIS.cAliasCursor) AND !ISNULL(THIS.cAliasCursor)
+			IF USED(THIS.cAliasCursor)
+				USE IN (THIS.cAliasCursor)
+			ENDIF
+		ENDIF
 	ENDPROC
 
 
@@ -3064,13 +3098,57 @@ ENDDEFINE
 *-- Class:        cnxgen_odbc (k:\aplvfp\classgen\vcxs\admnovis.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   05/19/03 12:43:00 PM
+*-- Time Stamp:   12/29/15 10:52:02 PM
 *
 DEFINE CLASS cnxgen_odbc AS custom
 
 
 	Height = 27
 	Width = 34
+	*-- XML Metadata for customizable properties
+	_memberdata = [<VFPData><memberdata name="cbakcend" type="property" display="cBakcEnd"/><memberdata name="cport" type="property" display="cPort"/><memberdata name="gencadena2" type="method" display="GenCadena2"/><memberdata name="gencadena3" type="method" display="GenCadena3"/><memberdata name="cstringcnx2" type="property" display="cStringCnx2"/><memberdata name="cstringcnx3" type="property" display="cStringCnx3"/><memberdata name="cargaparmscadcnxarcini" type="method" display="CargaParmsCadCnxArcIni"/><memberdata name="csourceodbc2" type="property" display="cSourceODBC2"/><memberdata name="cserver2" type="property" display="cServer2"/><memberdata name="cdatabase2" type="property" display="cDataBase2"/><memberdata name="cuser2" type="property" display="cUser2"/><memberdata name="cestacion2" type="property" display="cEstacion2"/><memberdata name="cpassword2" type="property" display="cPassword2"/><memberdata name="cparams2" type="property" display="cParams2"/><memberdata name="nidconexion2" type="property" display="nIDConexion2"/><memberdata name="ldatos2" type="property" display="lDatos2"/><memberdata name="csql2" type="property" display="cSQL2"/><memberdata name="csp2" type="property" display="cSP2"/><memberdata name="ccursor2" type="property" display="cCursor2"/><memberdata name="lconectado2" type="property" display="lConectado2"/><memberdata name="csourceodbc3" type="property" display="cSourceODBC3"/><memberdata name="cserver3" type="property" display="cServer3"/><memberdata name="cdatabase3" type="property" display="cDataBase3"/><memberdata name="cuser3" type="property" display="cUser3"/><memberdata name="cestacion3" type="property" display="cEstacion3"/><memberdata name="cpassword3" type="property" display="cPassword3"/><memberdata name="cparams3" type="property" display="cParams3"/><memberdata name="nidconexion3" type="property" display="nIDConexion3"/><memberdata name="ldatos3" type="property" display="lDatos3"/><memberdata name="csql3" type="property" display="cSQL3"/><memberdata name="csp3" type="property" display="cSP3"/><memberdata name="ccursor3" type="property" display="cCursor3"/><memberdata name="lconectado3" type="property" display="lConectado3"/><memberdata name="cbackend2" type="property" display="cBackEnd2"/><memberdata name="cbackend3" type="property" display="cBackEnd3"/><memberdata name="nport2" type="property" display="nPort2"/><memberdata name="nport3" type="property" display="nPort3"/><memberdata name="cport" type="property" display="cPort"/><memberdata name="nport" type="property" display="nPort"/><memberdata name="cdriver2" type="property" display="cDriver2"/><memberdata name="cdriver3" type="property" display="cDriver3"/></VFPData>]
+	*-- Origen de datos : VFPDBC ; Data Base Conteiner Visual Foxpro , ODBC ; Open Database Connectivity for relational database, Sql Server Oracle, DB2, MySql, Postgres,etc
+	cbackend = ([])
+	*-- Almacena la cadena de conexión ODBC 2
+	cstringcnx2 = "=[]"
+	*-- Almacena la cadena de conexión ODBC 3
+	cstringcnx3 = ([])
+	csourceodbc2 = "=[]"
+	cserver2 = "=[]"
+	cdatabase2 = "=[]"
+	cuser2 = "=[]"
+	cestacion2 = "=[]"
+	cpassword2 = "=[]"
+	cparams2 = "=[]"
+	nidconexion2 = 0
+	ldatos2 = .F.
+	csql2 = "=[]"
+	csp2 = "=[]"
+	ccursor2 = "=[]"
+	lconectado2 = .F.
+	csourceodbc3 = "=[]"
+	cserver3 = ([])
+	cdatabase3 = ([])
+	cuser3 = "=[]"
+	cestacion3 = "=[]"
+	cpassword3 = ([])
+	cparams3 = "=[]"
+	nidconexion3 = 0
+	ldatos3 = .F.
+	csql3 = "=[]"
+	csp3 = "=[]"
+	ccursor3 = "=[]"
+	lconectado3 = .F.
+	cbackend2 = "=[]"
+	cbackend3 = ([])
+	nport2 = 0
+	nport3 = 0
+	nport = 0
+	cdriver2 = "=[]"
+	cdriver3 = ([])
+	*-- Parametro para tablas dentro de un esquema en la base de datos , sirve para asignar el valor a variable SCHEME en cadena de conexion.
+	cscheme = ([])
+	cstringcnxnew = ([])
 	Name = "cnxgen_odbc"
 
 	*-- Es el nombre del DSN configurado en el ODBC del Cliente
@@ -3089,7 +3167,7 @@ DEFINE CLASS cnxgen_odbc AS custom
 	cpassword = .F.
 
 	*-- Contiene la cadena de conexión ODBC
-	HIDDEN cstringcnx
+	cstringcnx = .F.
 
 	*-- Es la cadena que se genera al procesar la matriz de parámetros que se transmitirá al SP
 	HIDDEN cparams
@@ -3175,7 +3253,7 @@ DEFINE CLASS cnxgen_odbc AS custom
 	HIDDEN PROCEDURE gencadena
 		*!*	**********************************************************************************
 		*!*	Procedimiento para generar la cadena de conexión ODBC
-		*!*	**********************************************************************************
+		*!*	***********************************************************************************
 		THIS.cStringCnx	= SPACE(0)
 		*.cStringCnx	= .cStringCnx + "DSN="		+ .cSourceODBC	+ ";"
 		THIS.cStringCnx	= THIS.cStringCnx + "DRIVER=SQL Server;"
@@ -3186,6 +3264,9 @@ DEFINE CLASS cnxgen_odbc AS custom
 
 		*!*	THIS.cStringCnx	= THIS.cStringCnx + "UID="		+ THIS.cUser		+ ";"
 		*!*	THIS.cStringCnx	= THIS.cStringCnx + "PWD="		+ THIS.cPassword	+ ";"
+		IF !ISNULL(THIS.cScheme) AND !EMPTY(THIS.cScheme)
+			THIS.cStringCnx	= THIS.cStringCnx + "SCHEME=" + THIS.cScheme	+ ";"
+		ENDIF
 
 		IF !ISNULL(THIS.cEstacion) AND !EMPTY(THIS.cEstacion)
 			THIS.cStringCnx	= THIS.cStringCnx + "WSID=" + THIS.cEstacion	+ ";"
@@ -3546,9 +3627,199 @@ DEFINE CLASS cnxgen_odbc AS custom
 	ENDPROC
 
 
+	PROCEDURE gencadena2
+		PARAMETERS PcDRIVER,PcSERVER,PcDATABASE,PcPORT,PcUID,PcPWD,PcWSID
+		*!*	**********************************************************************************
+		*!*	Procedimiento para generar la cadena de conexión ODBC
+		*!*	**********************************************************************************
+		THIS.cStringCnx2	= SPACE(0)
+
+		THIS.cStringCnx2	= THIS.cStringCnx2 + "DRIVER=" + PcDRIVER + ";"
+
+		THIS.cStringCnx2	= THIS.cStringCnx2 + "SERVER="	+ PcSERVER		+ ";"
+
+
+		THIS.cStringCnx2	= THIS.cStringCnx2 + "DATABASE="	+ PcDATABASE	+ ";"
+
+		IF !ISNULL(PcPORT) AND !EMPTY(PcPORT)
+			THIS.cStringCnx2	= THIS.cStringCnx2 + "PORT=" + PcPORT	+ ";"
+		ENDIF
+
+		THIS.cStringCnx2	= THIS.cStringCnx2 + "UID="		+ PcUID		+ ";"
+
+		THIS.cStringCnx2	= THIS.cStringCnx2 + "PWD="		+ PCPWD	+ ";LANGUAGE=Español;TranslationName=Yes;"
+
+		*!*	THIS.cStringCnx	= THIS.cStringCnx + "UID="		+ THIS.cUser		+ ";"
+		*!*	THIS.cStringCnx	= THIS.cStringCnx + "PWD="		+ THIS.cPassword	+ ";"
+
+		IF !ISNULL(PcWSID) AND !EMPTY(PcWSID)
+			THIS.cStringCnx2	= THIS.cStringCnx2 + "WSID=" + PcWSID	+ ";"
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE gencadena3
+		PARAMETERS PcDRIVER,PcSERVER,PcDATABASE,PcPORT,PcUID,PcPWD,PcWSID
+		*!*	**********************************************************************************
+		*!*	Procedimiento para generar la cadena de conexión ODBC
+		*!*	**********************************************************************************
+		THIS.cStringCnx3	= SPACE(0)
+
+		THIS.cStringCnx3	= THIS.cStringCnx3 + "DRIVER=" + PcDRIVER + ";"
+
+		THIS.cStringCnx3	= THIS.cStringCnx3 + "SERVER="	+ PcSERVER		+ ";"
+
+
+		THIS.cStringCnx3	= THIS.cStringCnx3 + "DATABASE="	+ PcDATABASE	+ ";"
+
+		IF !ISNULL(PcPORT) AND !EMPTY(PcPORT)
+			THIS.cStringCnx3	= THIS.cStringCnx3 + "PORT=" + PcPORT	+ ";"
+		ENDIF
+
+		THIS.cStringCnx3	= THIS.cStringCnx3 + "UID="		+ PcUID		+ ";"
+
+		THIS.cStringCnx3	= THIS.cStringCnx3 + "PWD="		+ PCPWD	+ ";LANGUAGE=Español;TranslationName=Yes;"
+
+		*!*	THIS.cStringCnx	= THIS.cStringCnx + "UID="		+ THIS.cUser		+ ";"
+		*!*	THIS.cStringCnx	= THIS.cStringCnx + "PWD="		+ THIS.cPassword	+ ";"
+
+		IF !ISNULL(PcWSID) AND !EMPTY(PcWSID)
+			THIS.cStringCnx3	= THIS.cStringCnx3 + "WSID=" + PcWSID	+ ";"
+		ENDIF
+	ENDPROC
+
+
+	*-- Carga parametros para armar cadena de conexion desde archivo INI
+	PROCEDURE cargaparmscadcnxarcini
+		LPARAMETER PcArchIni 
+		IF VARTYPE(PcArchIni)	<>	'C'
+			PcArchIni = 'CONFIG.INI'
+		ENDIF
+		IF EMPTY(PcArchIni)
+			PcArchIni = 'CONFIG.INI'
+		ENDIF
+		LcFileIni = LOCFILE(PcArchIni) 
+		*!*	Leer el Archivo .INI
+		lcStringINI	= FILETOSTR(PcArchIni) && UPPER( FILETOSTR("CONFIG.INI") )
+		oIniVal=NEWOBJECT("oldinireg","registry.vcx")
+		lcvalue=''
+		oIniVal.getinientry(@lcvalue,'Database Engine2','BackEnd2',LcFileINI) 
+		This.cBackEnd2  = lcvalue
+		IF EMPTY(this.cBackend2) OR UPPER(this.cBackend2)='VFPDBC'
+			**RETURN 
+		ENDIF
+
+		*!* Valores iniciales de las propiedades
+		WITH THIS
+					.cSourceODBC2	= SPACE(0)
+					.cServer2		= SPACE(0)
+					.cDriver2 		= SPACE(0)
+					.nPort2			= 0
+					.cDataBase2		= SPACE(0)
+					.cUser2			= SPACE(0)
+					.cEstacion2		= ALLTRIM( LEFT(SYS(0),AT('#',SYS(0))-1) )
+					.cPassword2		= SPACE(0)
+					.cStringCnx2	= SPACE(0)
+					.cParams2		= SPACE(0)
+					.nIDConexion2	= 0
+					.lDatos2		= .F.
+					.cSQL2			= SPACE(0)
+					.cSP2			= SPACE(0)
+					.cCursor2		= SPACE(0)
+					.lConectado2	= .F.
+				*	.cInitSP	= ""
+					** Servidor 2
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Server2','Servidor2',LcFileINI) 
+					.cServer2 = lcvalue
+					** Base datos 2
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Base de Datos2','BaseDatos2',LcFileINI) 
+					.cDataBase2 = lcvalue
+					** Driver 2
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Database Engine2','Driver2',LcFileINI) 
+					.cDriver2	= lcvalue
+					** Puerto 2
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Database Engine2','Port2',LcFileINI) 
+					.nPort2	= lcvalue
+					** Usuario 2
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Usuario2','Usuario2',LcFileINI) 
+					.cUser2 = lcvalue
+					** Password 2
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Clave2','Password2',LcFileINI) 
+					.cPassword2 = lcvalue
+					** Generamos cadena de conexion 2
+					this.GenCadena2(.cDriver2 , .cServer2 , .cDataBase2 , .nPort2, .cUser2, .cPassword2 )
+
+					*IF PARAMETERS() == 5
+						*.SetParams(m.lcSourceODBC ,	m.lcServer , m.lcDataBase , m.lcUser , m.lcPassword)
+					*ENDIF
+
+					.cSourceODBC3	= SPACE(0)
+					.cServer3		= SPACE(0)
+					.cDriver3 		= SPACE(0)
+					.nPort3			= 0
+					.cDataBase3		= SPACE(0)
+					.cUser3			= SPACE(0)
+					.cEstacion3		= ALLTRIM( LEFT(SYS(0),AT('#',SYS(0))-1) )
+					.cPassword3		= SPACE(0)
+					.cStringCnx3	= SPACE(0)
+					.cParams3		= SPACE(0)
+					.nIDConexion3	= 0
+					.lDatos3		= .F.
+					.cSQL3			= SPACE(0)
+					.cSP3			= SPACE(0)
+					.cCursor3		= SPACE(0)
+					.lConectado3	= .F.
+				*	.cInitSP	= ""
+					** Servidor 3
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Server3','Servidor3',LcFileINI) 
+					.cServer3 = lcvalue
+					** Base datos 3
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Base de Datos3','BaseDatos3',LcFileINI) 
+					.cDataBase3 = lcvalue
+					** Driver 3
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Database Engine3','Driver3',LcFileINI) 
+					.cDriver3	= lcvalue
+					** Puerto 3
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Database Engine3','Port3',LcFileINI) 
+					.nPort3	= lcvalue
+					** Usuario 3
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Usuario3','Usuario3',LcFileINI) 
+					.cUser3 = lcvalue
+					** Password 3
+					lcvalue=''
+					oIniVal.getinientry(@lcvalue,'Clave3','Password3',LcFileINI) 
+					.cPassword3 = lcvalue
+					** Generamos cadena de conexion 2
+					this.GenCadena3(.cDriver3 , .cServer3 , .cDataBase3 , .nPort3, .cUser3, .cPassword3 )
+
+
+		ENDWITH
+	ENDPROC
+
+
 	PROCEDURE Init
 		LPARAMETER m.lcSourceODBC ,	m.lcServer , m.lcDataBase , m.lcUser , m.lcPassword
-
+		LcFileIni = LOCFILE("CONFIG.INI") 
+		*!*	Leer el Archivo .INI
+		lcStringINI	= FILETOSTR("CONFIG.INI") && UPPER( FILETOSTR("CONFIG.INI") )
+		oIniVal=NEWOBJECT("oldinireg","registry.vcx")
+		lcvalue=''
+		oIniVal.getinientry(@lcvalue,'Database Engine','BackEnd',LcFileINI) 
+		This.cBackEnd  = lcvalue
+		IF EMPTY(this.cBackend) OR UPPER(this.cBackend)='VFPDBC'
+			**RETURN 
+		ENDIF
 		*!* Valores iniciales de las propiedades
 		WITH THIS
 			.cSourceODBC= SPACE(0)
@@ -3569,45 +3840,57 @@ DEFINE CLASS cnxgen_odbc AS custom
 
 			*!*	Archivo .INI , para determinar SERVIDOR y BASEDATOS por defecto
 			*lcFileINI	= ADDBS( GETENV("WINDIR") ) + "TDV.INI"
-
+			LcFileIni = LOCFILE("CONFIG.INI") 
 			*!*	Leer el Archivo .INI
-			lcStringINI	= UPPER( FILETOSTR("CONFIG.INI") )
-
+			lcStringINI	= FILETOSTR("CONFIG.INI") && UPPER( FILETOSTR("CONFIG.INI") )
+			oIniVal=NEWOBJECT("oldinireg","registry.vcx")
 			*!*	Obtener el Servidor por Defecto
-			lcServidor	= SUBSTR( lcStringINI , AT( "SERVIDOR" , lcStringINI ) )
-			lcServidor	= ALLTRIM( SUBSTR( lcServidor , AT( "=" , lcServidor ) + 1 ) )
-			IF CHR(13) $ lcServidor
-				lcServidor	= ALLTRIM( LEFT (  lcServidor , AT( CHR(13) , lcServidor ) - 1 ) )
-			ENDIF
-			lcServidor	= STRTRAN( lcServidor , CHR(13) , "" )
-			lcServidor	= STRTRAN( lcServidor , CHR(10) , "" )
+		*!*		lcServidor	= SUBSTR( lcStringINI , AT( "SERVIDOR" , lcStringINI ) )
+		*!*		lcServidor	= ALLTRIM( SUBSTR( lcServidor , AT( "=" , lcServidor ) + 1 ) )
+		*!*		IF CHR(13) $ lcServidor
+		*!*			lcServidor	= ALLTRIM( LEFT (  lcServidor , AT( CHR(13) , lcServidor ) - 1 ) )
+		*!*		ENDIF
+		*!*		lcServidor	= STRTRAN( lcServidor , CHR(13) , "" )
+		*!*		lcServidor	= STRTRAN( lcServidor , CHR(10) , "" )
+			lcvalue=''
+			oIniVal.getinientry(@lcvalue,'Server','Servidor',LcFileINI) 
+			lcServidor = lcvalue
 
 			*!*	Obtener la Base de Datos por Defecto
-			lcBaseDatos	= SUBSTR( lcStringINI , AT( "BASEDATOS" , lcStringINI) )
-			lcBaseDatos	= ALLTRIM( SUBSTR( lcBaseDatos , AT( "=" , lcBaseDatos ) + 1 ) )
-			IF CHR(13) $ lcBaseDatos
-				lcBaseDatos	= ALLTRIM( LEFT (  lcBaseDatos , AT( CHR(13) , lcBaseDatos	) - 1 ) )
-			ENDIF
-			lcBaseDatos	= STRTRAN( lcBaseDatos , CHR(13) , "" )
-			lcBaseDatos	= STRTRAN( lcBaseDatos , CHR(10) , "" )
+		*!*		lcBaseDatos	= SUBSTR( lcStringINI , AT( "BASEDATOS" , lcStringINI) )
+		*!*		lcBaseDatos	= ALLTRIM( SUBSTR( lcBaseDatos , AT( "=" , lcBaseDatos ) + 1 ) )
+		*!*		IF CHR(13) $ lcBaseDatos
+		*!*			lcBaseDatos	= ALLTRIM( LEFT (  lcBaseDatos , AT( CHR(13) , lcBaseDatos	) - 1 ) )
+		*!*		ENDIF
+		*!*		lcBaseDatos	= STRTRAN( lcBaseDatos , CHR(13) , "" )
+		*!*		lcBaseDatos	= STRTRAN( lcBaseDatos , CHR(10) , "" )
+			lcvalue=''
+			oIniVal.getinientry(@lcvalue,'Base de Datos','BaseDatos',LcFileINI) 
+			lcBaseDatos = lcvalue
 
 			*!*	Obtener el Usuario por Defecto
-			lcUsuario	= SUBSTR( lcStringINI , AT( "USUARIO" , lcStringINI) )
-			lcUsuario	= ALLTRIM( SUBSTR( lcUsuario , AT( "=" , lcUsuario ) + 1 ) )
-			IF CHR(13) $ lcUsuario
-				lcUsuario	= ALLTRIM( LEFT (  lcUsuario , AT( CHR(13) , lcUsuario	) - 1 ) )
-			ENDIF
-			lcUsuario	= STRTRAN( lcUsuario , CHR(13) , "" )
-			lcUsuario	= STRTRAN( lcUsuario , CHR(10) , "" )
+		*!*		lcUsuario	= SUBSTR( lcStringINI , AT( "USUARIO" , lcStringINI) )
+		*!*		lcUsuario	= ALLTRIM( SUBSTR( lcUsuario , AT( "=" , lcUsuario ) + 1 ) )
+		*!*		IF CHR(13) $ lcUsuario
+		*!*			lcUsuario	= ALLTRIM( LEFT (  lcUsuario , AT( CHR(13) , lcUsuario	) - 1 ) )
+		*!*		ENDIF
+		*!*		lcUsuario	= STRTRAN( lcUsuario , CHR(13) , "" )
+		*!*		lcUsuario	= STRTRAN( lcUsuario , CHR(10) , "" )
+			lcvalue=''
+			oIniVal.getinientry(@lcvalue,'Usuario','Usuario',LcFileINI) 
+			lcUsuario = lcvalue
 
 			*!*	Obtener la clave del usuario por defecto
-			lcPassword	= SUBSTR( lcStringINI , AT( "PASSWORD" , lcStringINI) )
-			lcPassword	= ALLTRIM( SUBSTR( lcPassword , AT( "=" , lcPassword ) + 1 ) )
-			IF CHR(13) $ lcPassword
-				lcPassword	= ALLTRIM( LEFT (  lcPassword , AT( CHR(13) , lcPassword	) - 1 ) )
-			ENDIF
-			lcPassword	= STRTRAN( lcPassword , CHR(13) , "" )
-			lcPassword	= STRTRAN( lcPassword , CHR(10) , "" )
+		*!*		lcPassword	= SUBSTR( lcStringINI , AT( "PASSWORD" , lcStringINI) )
+		*!*		lcPassword	= ALLTRIM( SUBSTR( lcPassword , AT( "=" , lcPassword ) + 1 ) )
+		*!*		IF CHR(13) $ lcPassword
+		*!*			lcPassword	= ALLTRIM( LEFT (  lcPassword , AT( CHR(13) , lcPassword	) - 1 ) )
+		*!*		ENDIF
+		*!*		lcPassword	= STRTRAN( lcPassword , CHR(13) , "" )
+		*!*		lcPassword	= STRTRAN( lcPassword , CHR(10) , "" )
+			lcvalue=''
+			oIniVal.getinientry(@lcvalue,'Clave','Password',LcFileINI) 
+			lcPassword = lcvalue
 
 			*!*	Obtener el Store Procedure de Inicializacion
 		*!*		lcInitSP	= SUBSTR( lcStringINI , AT( "INIT_SP" , lcStringINI) )
@@ -3620,8 +3903,8 @@ DEFINE CLASS cnxgen_odbc AS custom
 
 		*!*		.cInitSP	= lcInitSP
 
-			.cUser		= UPPER(lcUsuario)
-			.cPassword	= UPPER(lcPassword)
+			.cUser		= lcUsuario       && UPPER(lcUsuario)
+			.cPassword	= lcPassword    && UPPER(lcPassword)
 
 			.cServer	= lcServidor
 			.cDataBase	= lcBaseDatos
@@ -3630,6 +3913,38 @@ DEFINE CLASS cnxgen_odbc AS custom
 				*.SetParams(m.lcSourceODBC ,	m.lcServer , m.lcDataBase , m.lcUser , m.lcPassword)
 			*ENDIF
 		ENDWITH
+	ENDPROC
+
+
+	*-- Genera una cadena de conexion en base parametros en tiempo de ejecucion no depende de archivo ini
+	PROCEDURE gennewstringconn
+		PARAMETERS PcDRIVER,PcSERVER,PcDATABASE,PcPORT,PcUID,PcPWD,PcWSID
+		*!*	**********************************************************************************
+		*!*	Procedimiento para generar la cadena de conexión ODBC
+		*!*	**********************************************************************************
+		THIS.cStringCnxNew 	= SPACE(0)
+
+		THIS.cStringCnxNew	= THIS.cStringCnxNew + "DRIVER=" + PcDRIVER + ";"
+
+		THIS.cStringCnxNew	= THIS.cStringCnxNew + "SERVER="	+ PcSERVER		+ ";"
+
+
+		THIS.cStringCnxNew	= THIS.cStringCnxNew + "DATABASE="	+ PcDATABASE	+ ";"
+
+		IF !ISNULL(PcPORT) AND !EMPTY(PcPORT)
+			THIS.cStringCnxNew	= THIS.cStringCnxNew + "PORT=" + PcPORT	+ ";"
+		ENDIF
+
+		THIS.cStringCnxNew	= THIS.cStringCnxNew + "UID="		+ PcUID		+ ";"
+
+		THIS.cStringCnxNew	= THIS.cStringCnxNew + "PWD="		+ PCPWD	+ ";LANGUAGE=Español;TranslationName=Yes;"
+
+		*!*	THIS.cStringCnx	= THIS.cStringCnx + "UID="		+ THIS.cUser		+ ";"
+		*!*	THIS.cStringCnx	= THIS.cStringCnx + "PWD="		+ THIS.cPassword	+ ";"
+
+		IF !ISNULL(PcWSID) AND !EMPTY(PcWSID)
+			THIS.cStringCnxNew	= THIS.cStringCnxNew + "WSID=" + PcWSID	+ ";"
+		ENDIF
 	ENDPROC
 
 
@@ -3643,7 +3958,7 @@ ENDDEFINE
 *-- Class:        entorno (k:\aplvfp\classgen\vcxs\admnovis.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   11/12/07 11:24:04 AM
+*-- Time Stamp:   04/26/17 06:02:07 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -3920,7 +4235,6 @@ DEFINE CLASS entorno AS custom
 	PROCEDURE remotepathentidad
 		*!*	Retorna el nombre de la Entidad con la ruta completa del servidor
 		LPARAMETERS tcNombreEntidad , tnRemoteLocal , tlFlagBusqueda
-
 		LOCAL lcRemotePathEntidad, lcSrvDB , lcArea
 
 		tnRemoteLocal	= IIF( VARTYPE(tnRemoteLocal) = "N" , tnRemoteLocal , 0 )
@@ -3960,14 +4274,15 @@ DEFINE CLASS entorno AS custom
 		ENDIF
 
 		IF EMPTY(_TALLY)
-			IF NOT GoEntorno.SqlEntorno	&& NO estoy accediendo a un servidor de base de datos
+			** VETT  12/02/2013 08:42 AM : SqlEntorno debe homologarse al valor de TnLocalRemoto si TnLocalRemoto=0 
+			IF NOT GoEntorno.SqlEntorno OR  tnRemoteLocal = 0	&& NO estoy accediendo a un servidor de base de datos
 				LcRemotePathEntidad = goentorno.open_dbf1('RUTA',tcNombreEntidad,'','','')
 			ELSE
 				lcRemotePathEntidad = tcNombreEntidad
 			endif
 			tlFlagBusqueda		= .F.
 		ELSE
-			IF NOT GoEntorno.SqlEntorno	&& NO estoy accediendo a un servidor de base de datos
+			IF NOT GoEntorno.SqlEntorno OR  tnRemoteLocal = 0	&& NO estoy accediendo a un servidor de base de datos
 		*!*			LcRemotePathEntidad = ALLTRIM(Cursor_SQL.NombreEntidad)
 				LcRemotePathEntidad = goentorno.open_dbf1('RUTA',Cursor_SQL.NombreEntidad,'','','')
 			ELSE
@@ -4030,7 +4345,7 @@ DEFINE CLASS entorno AS custom
 	PROCEDURE generarlog
 		LPARAMETERS xCodTransacc,xcodboton, xdeserror , xCodigoFormulario
 		lnParameter = PARAMETERS()
-		IF NOT GoEntorno.SqlEntorno
+		IF NOT GoEntorno.SqlEntorno  OR  .T.  && Desactivado por ahora VETT 2013/02/09
 			RETURN
 		ENDIF
 		IF VARTYPE(xdeserror)=="C"
@@ -4144,23 +4459,30 @@ DEFINE CLASS entorno AS custom
 				RETURN .f.
 			ENDIF
 			*** Ubico la base de datos a la que pertenece la tabla ***
+			LsDBC=''
 			DO CASE
 				CASE dbfs.connect = 'FOXPRO.DBC'
 					DO CASE
 						CASE 	!(EMPTY(DBFS.Basedatos) OR ISNULL(DBFS.Basedatos))	 
+							LsDBC=TRIM(Basedatos)
 							LsRutaTabla=TRIM(Basedatos)+'!'+cArchivo 
 						CASE	EMPTY(DBFS.Basedatos) OR ISNULL(DBFS.Basedatos)
 							DO CASE
 								CASE DBFS.Ubicacion='INI'
+									LsDBC='ADMIN'
 									LsRutaTabla='ADMIN!'+cArchivo 
 								CASE DBFS.Ubicacion='CIA'
+									LsDBC=TRIM(DBFS.Ubicacion)+GOENTORNO.GsCodCia
 									LsRutaTabla=TRIM(DBFS.Ubicacion)+GOENTORNO.GsCodCia+'!'+cArchivo
 								CASE DBFS.Ubicacion='PER'
+									LsDBC=LEFT(TRIM(DBFS.Ubicacion),1)+GOENTORNO.GsCodCia+LEFT(GOENTORNO.GsPeriodo,4)
 									LsRutaTabla=LEFT(TRIM(DBFS.Ubicacion),1)+GOENTORNO.GsCodCia+LEFT(GOENTORNO.GsPeriodo,4)+'!'+cArchivo
 							ENDCASE
 					ENDCASE
 				CASE dbfs.CONNECT = 'FOXPRO'
 							LsRutaTabla=TRIM(PATH_001+cArchivo)
+				OTHERWISE
+						LsRutaTabla =  cArchivo
 			ENDCASE
 			***
 			IF UPPER(cAccion)='RUTA' 
@@ -4169,7 +4491,15 @@ DEFINE CLASS entorno AS custom
 				ENDIF
 				RETURN LsRutaTabla	 
 			ENDIF
-
+			IF !EMPTY(LsDBC)
+				IF !DBUSED(LsDBC)
+					OPEN DATABASE (LsDBC)
+				ENDIF
+				SET DATABASE TO (LsDBC)
+				IF !INDBC(cArchivo,'TABLE')
+					RETURN .F.
+				ENDIF
+			ENDIF
 			SELE 0
 			DO CASE
 				CASE !EMPTY(cArchivo) AND !EMPTY(cAlias) AND !EMPTY(cExclu)
@@ -4228,6 +4558,25 @@ DEFINE CLASS entorno AS custom
 	ENDPROC
 
 
+	PROCEDURE Error
+		LPARAMETERS nError, cMethod, nLine
+		IF SET("Development")='ON' 
+			MESSAGEBOX(cMethod+" "+TTOC(DATETIME())+CRLF+;
+					"Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF+ ;
+					"  "+MESSAGE()+CRLF,2+16+256,'Ha ocurrido un error en el sistema')
+
+			RETURN CONTEXT_E_ABORTED
+		ELSE
+
+
+			STRTOFILE(cMethod+" "+TTOC(DATETIME())+CRLF,ERRLOGFILE,.T.)
+			STRTOFILE("Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF,ERRLOGFILE,.T.)
+			STRTOFILE("  "+MESSAGE()+CRLF,ERRLOGFILE,.T.)
+			RETURN CONTEXT_E_ABORTED
+		ENDIF
+	ENDPROC
+
+
 	PROCEDURE Init
 		LOCAL lcServidor , lcBaseDatos , lcTmpPath , lcLocPath , lcFileINI , lcStringINI ,lcDefaBackEnd
 
@@ -4249,41 +4598,53 @@ DEFINE CLASS entorno AS custom
 
 		LcFileIni = LOCFILE("CONFIG.INI") 
 		*!*	Leer el Archivo .INI
-		lcStringINI	= UPPER( FILETOSTR("CONFIG.INI") )
+		lcStringINI	= FILETOSTR("CONFIG.INI") 		&& UPPER( FILETOSTR("CONFIG.INI") )
 		oIniVal=NEWOBJECT("oldinireg","registry.vcx")
 
 		*!*	Obtener el Path Local
-		lcLocPath	= SUBSTR( lcStringINI , AT( "PATH LOCAL" , lcStringINI) )
-		lcLocPath	= ALLTRIM( SUBSTR( lcLocPath , AT( "=" , lcLocPath ) + 1 ) )
-		IF CHR(13) $ lcLocPath
-			lcLocPath	= ALLTRIM( LEFT (  lcLocPath , AT( CHR(13) , lcLocPath	) - 1 ) )
-		ENDIF
-		lcLocPath	= STRTRAN( lcLocPath , CHR(13) , "" )
-		lcLocPath	= STRTRAN( lcLocPath , CHR(10) , "" )
+		*!*	lcLocPath	= SUBSTR( lcStringINI , AT( "PATH LOCAL" , lcStringINI) )
+		*!*	lcLocPath	= ALLTRIM( SUBSTR( lcLocPath , AT( "=" , lcLocPath ) + 1 ) )
+		*!*	IF CHR(13) $ lcLocPath
+		*!*		lcLocPath	= ALLTRIM( LEFT (  lcLocPath , AT( CHR(13) , lcLocPath	) - 1 ) )
+		*!*	ENDIF
+		*!*	lcLocPath	= STRTRAN( lcLocPath , CHR(13) , "" )
+		*!*	lcLocPath	= STRTRAN( lcLocPath , CHR(10) , "" )
+		lcvalue=''
+		oIniVal.getinientry(@lcvalue,'Ruta locales','Path Local',LcFileINI) 
+		lcLocPath = lcvalue
 
 		*!*	Obtener el Path Temporal
-		lcTmpPath	= SUBSTR( lcStringINI , AT( "PATH TMP" , lcStringINI) )
-		lcTmpPath	= ALLTRIM( SUBSTR( lcTmpPath , AT( "=" , lcTmpPath ) + 1 ) )
-		IF CHR(13) $ lcTmpPath
-			lcTmpPath	= ALLTRIM( LEFT (  lcTmpPath , AT( CHR(13) , lcTmpPath ) - 1 ) )
-		ENDIF
-		lcTmpPath	= STRTRAN( lcTmpPath, CHR(13) , "" )
-		lcTmpPath	= STRTRAN( lcTmpPath, CHR(10) , "" )
+		*!*	lcTmpPath	= SUBSTR( lcStringINI , AT( "PATH TMP" , lcStringINI) )
+		*!*	lcTmpPath	= ALLTRIM( SUBSTR( lcTmpPath , AT( "=" , lcTmpPath ) + 1 ) )
+		*!*	IF CHR(13) $ lcTmpPath
+		*!*		lcTmpPath	= ALLTRIM( LEFT (  lcTmpPath , AT( CHR(13) , lcTmpPath ) - 1 ) )
+		*!*	ENDIF
+		*!*	lcTmpPath	= STRTRAN( lcTmpPath, CHR(13) , "" )
+		*!*	lcTmpPath	= STRTRAN( lcTmpPath, CHR(10) , "" )
+		lcvalue=''
+		oIniVal.getinientry(@lcvalue,'Ruta temporales','Path Tmp',LcFileINI) 
+		lcTmpPath = lcvalue
+
 
 		THIS.TmpPath	= IIF( EMPTY( lcTmpPath ) , ADDBS( GETENV( "TEMP" ) ) , lcTmpPath )
 		THIS.LocPath	= IIF( EMPTY( lcLocPath ) , "C:\APLVFP\Tmp" , lcLocPath )
 
 		* Obtener tipo de servidor de datos por defecto
-		lcDefaBackEnd	= SUBSTR( lcStringINI , AT( "BACKEND" , lcStringINI) )
-		lcDefaBackEnd	= ALLTRIM( SUBSTR( lcDefaBackEnd , AT( "=" , lcDefaBackEnd ) + 1 ) )
-		IF CHR(13) $ lcDefaBackEnd
-			lcDefaBackEnd	= ALLTRIM( LEFT (  lcDefaBackEnd , AT( CHR(13) , lcDefaBackEnd ) - 1 ) )
-		ENDIF
-		lcDefaBackEnd	= STRTRAN( lcDefaBackEnd, CHR(13) , "" )
-		lcDefaBackEnd	= STRTRAN( lcDefaBackEnd, CHR(10) , "" )
+		*!*	lcDefaBackEnd	= SUBSTR( lcStringINI , AT( "BACKEND" , lcStringINI) )
+		*!*	lcDefaBackEnd	= ALLTRIM( SUBSTR( lcDefaBackEnd , AT( "=" , lcDefaBackEnd ) + 1 ) )
+		*!*	IF CHR(13) $ lcDefaBackEnd
+		*!*		lcDefaBackEnd	= ALLTRIM( LEFT (  lcDefaBackEnd , AT( CHR(13) , lcDefaBackEnd ) - 1 ) )
+		*!*	ENDIF
+		*!*	lcDefaBackEnd	= STRTRAN( lcDefaBackEnd, CHR(13) , "" )
+		*!*	lcDefaBackEnd	= STRTRAN( lcDefaBackEnd, CHR(10) , "" )
+		lcvalue=''
+		oIniVal.getinientry(@lcvalue,'Database Engine','BackEnd',LcFileINI) 
+		lcDefaBackEnd = lcvalue
+
 		LcValue =''
 		oIniVal.getinientry(@lcvalue,'Path Database','Data Admin',LcFileIni) 
 		this.TsPathAdm	= LcValue
+
 		LcValue =''
 		oIniVal.getinientry(@lcvalue,'Path Database','Data Source',LcFileIni)
 		This.tspathData	= LcValue
@@ -4321,25 +4682,6 @@ DEFINE CLASS entorno AS custom
 			this.GsPeriodo = STR(_ANO,4,0)+TRAN(_MES,'@L ##')
 		ENDIF
 
-	ENDPROC
-
-
-	PROCEDURE Error
-		LPARAMETERS nError, cMethod, nLine
-		IF SET("Development")='ON' 
-			MESSAGEBOX(cMethod+" "+TTOC(DATETIME())+CRLF+;
-					"Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF+ ;
-					"  "+MESSAGE()+CRLF,2+16+256,'Ha ocurrido un error en el sistema')
-
-			RETURN CONTEXT_E_ABORTED
-		ELSE
-
-
-			STRTOFILE(cMethod+" "+TTOC(DATETIME())+CRLF,ERRLOGFILE,.T.)
-			STRTOFILE("Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF,ERRLOGFILE,.T.)
-			STRTOFILE("  "+MESSAGE()+CRLF,ERRLOGFILE,.T.)
-			RETURN CONTEXT_E_ABORTED
-		ENDIF
 	ENDPROC
 
 
@@ -4911,7 +5253,7 @@ ENDDEFINE
 *-- Class:        interfaces (k:\aplvfp\classgen\vcxs\admnovis.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   12/16/05 01:02:13 AM
+*-- Time Stamp:   02/19/15 09:53:06 PM
 *
 DEFINE CLASS interfaces AS custom
 
@@ -4952,8 +5294,6 @@ DEFINE CLASS interfaces AS custom
 	nnivelchequeo = 0
 	*-- Numero de areas abiertas a cerrar
 	g_areacount = 0
-	*-- Activa o desactiva la verificación la version que se esta ejecutando.
-	lverificatipoejecucion = .T.
 	*-- Base de datos alternativa
 	cbasedatos2 = ""
 	*-- Producto, familia , codigo de desarrollo y version de codigo de desarrollo de prenda
@@ -4985,6 +5325,44 @@ DEFINE CLASS interfaces AS custom
 	showmessage = .T.
 	cexceptionfile = ""
 	cestadomigracion = ""
+	*-- Tipo archivo origen (DBF, XLS, CSV)
+	tipo_arch = ([])
+	*-- Ruta donde se encuentra el archivo a migrar
+	ruta_arch = ([])
+	*-- Directorio de interfaces
+	cdirintf = "=[]"
+	*-- XML Metadata for customizable properties
+	_memberdata = [<VFPData><memberdata name="cdirintf" type="property" display="cDirIntf"/><memberdata name="cdirintcia" type="property" display="cDirIntCia"/><memberdata name="model_arch" type="property" display="Model_Arch"/><memberdata name="hoja_xls" type="property" display="Hoja_xls"/><memberdata name="arch_xls" type="property" display="Arch_Xls"/><memberdata name="cnromes" type="property" display="cNroMes"/><memberdata name="cano" type="property" display="cAno"/><memberdata name="conexion2y3" type="property" display="Conexion2y3"/><memberdata name="cano2" type="property" display="cAno2"/><memberdata name="cnromes2" type="property" display="cNroMes2"/><memberdata name="int_inicializabd" type="method" display="Int_InicializaBD"/><memberdata name="des_mod" type="property" display="Des_Mod"/><memberdata name="des_mod_d" type="property" display="Des_Mod_d"/><memberdata name="do_sqlexec" type="property" display="Do_SqlExec"/><memberdata name="cadenasql" type="property" display="CadenaSql"/><memberdata name="cadenasql2" type="property" display="CadenaSql2"/></VFPData>]
+	*-- Ruta (directorio) del repositorio de estructiuras modelo de tablas usadas en la interfase de migracion de datos
+	cdirintcia = ([])
+	*-- Model de estructura o plantilla en formato dbf
+	model_arch = "=[]"
+	*-- Hoja (sheet) contenida en archivo excel (xls,xlsx)
+	hoja_xls = "=[]"
+	*-- Archivo excel (XLS,XLSX) incluye ruta.
+	arch_xls = ([])
+	*-- Numero de mes de proceso
+	cnromes = "=[]"
+	*-- Año de proceso , segun fecha de transaccion inicial
+	cano = ([])
+	*-- Objeto controla conexion  ODBC
+	ocnx_odbc = (.F.)
+	*-- Controla si hay mas de una conexion ODBC disponible
+	conexion2y3 = .F.
+	*-- Año hasta
+	cano2 = "=[]"
+	*-- Mes hasta
+	cnromes2 = ([])
+	*-- Descripcion del modulo
+	des_mod = "=[]"
+	*-- Nombre del modulo para procesos
+	des_mod_d = ([])
+	*-- CLI ->  SQL pass-through en el cliente ; SRV -  SQL pass-through llama SP en el servidor
+	do_sqlexec = "=[]"
+	cadenasql = "=[]"
+	cadenasql2 = "=[]"
+	ccodope = ([])
+	ccodope2 = ([])
 	Name = "interfaces"
 
 	*-- Cambiar la unidad de negocio en la configuración con la de la sede actual.
@@ -5005,6 +5383,9 @@ DEFINE CLASS interfaces AS custom
 	*-- Actualizar tablas principales
 	ltablasprincipales = .F.
 	linicializapath = .F.
+
+	*-- Activa o desactiva la verificación la version que se esta ejecutando.
+	lverificatipoejecucion = .F.
 	lsolotablasprincipales = .F.
 
 	*-- Guarda el pedido que se esta revisando en la consistencia de GPP no necesariamente es el mismo que se guarda en cNumeroPedidoTdv
@@ -5237,6 +5618,11 @@ DEFINE CLASS interfaces AS custom
 		IF PARAMETERS()=0
 			tcPrefijo = []
 		ENDIF
+
+		** Por ahora no ** 
+
+		RETURN .T.
+
 		tcPrefijo = UPPER(tcPrefijo)
 		PRIVATE llOpen,lcPath
 		LOCAL LcCadenaLog
@@ -5401,7 +5787,7 @@ DEFINE CLASS interfaces AS custom
 		ENDIF
 		*
 		SELE 0
-		USE GIST04 ORDER PK02 ALIAS MIGRADOS
+		USE INT_MIGRADOS ORDER PK02 ALIAS MIGRADOS
 		IF !USED()
 			IF THIS.SHOWMESSAGE
 				=MESSAGEBOX('No se puede accesar la tabla GIST04.DBF')
@@ -5436,23 +5822,35 @@ DEFINE CLASS interfaces AS custom
 
 	*-- Asocia los programas o metodos de actualización con las correspondientes tablas en DOS según el módulo al que pertenece COM,IGP,DTE,DCO,TIN,CIV,CIQ,CIT,etc.
 	PROCEDURE programasxmodulos
-		SELE 0
-		USE GISX01 ORDER GISO0101 ALIAS GISX01 
+
+
+		IF !USED('GISX01')
+			SELE 0
+			USE INT_Entidades_Od ORDER PK01 ALIAS GISX01 
+			*!*	USE GISX01 ORDER GISO0101 ALIAS GISX01 
+		ENDIF
 		** Generamos resumen por modulo **
 		LcTablaTmp=goentorno.tmppath+SYS(3)
 		IF !USED([MODULOS])
 			SELE 0 
-			CREATE TABLE (LcTablaTmp) (Codigo C(3) ,;
+			CREATE TABLE (LcTablaTmp)  FREE (Codigo C(3) ,;
 										Des_Mod C(45),;
 										Procesar L(1),;
 										Path_Dir C(30),;
 										U_Negocio C(20),;
 										Cod_Mod_D C(3),;
 										Cod_Tabla C(2), ; 
-		                                Ord_Carga c(2), ;
-		                                pk_nro_tag n(1),;
-		                                pk_Cadena M, ;
-		                                Alm_Dos C(3) )
+		                                				Ord_Carga c(2), ;
+		                                				pk_nro_tag n(1),;
+		                                				pk_Cadena M, ;
+		                                				Alm_Dos C(3),;
+		                                				Tipo_arch C(3),;
+		                                				Ruta_arch C(60),;
+		                                				Model_Arch C(30),;
+		                                				Arch_Xls C(40),;
+		                                				Hoja_Xls  C(30),;
+		                                				Do_SqlExec C(3), ;
+		                                				Des_Mod_d C(8) )
 		                                
 		**	LOkey=CURSORSETPROP("Buffering", 5, "MODULOS")
 			USE (LcTablaTmp) EXCLU ALIAS MODULOS
@@ -5470,7 +5868,7 @@ DEFINE CLASS interfaces AS custom
 			SET FILTER TO 
 		ELSE
 			SELE 0
-			USE TABLASMODULO SHARE ORDER PK4
+			USE TABLASMODULO SHARE ORDER PK3
 		ENDIF
 
 		*!*	IF thisformset.form1.CboInterface.ListIndex = 3
@@ -5489,26 +5887,27 @@ DEFINE CLASS interfaces AS custom
 			IF !U_Negocio=m.Unidad_de_Negocio
 				LOOP
 			ENDIF
-			IF (THIS.lChkResponsable and ATC(m.Usr_Res,UPPER(USR_GRUPOS))=0) &&AND !EMPTY(USR_GRUPOS)
-				LOOP
-			ENDIF
+		*!*		IF (THIS.lChkResponsable and ATC(m.Usr_Res,UPPER(USR_GRUPOS))=0) &&AND !EMPTY(USR_GRUPOS)
+		*!*			LOOP
+		*!*		ENDIF
 			IF TABLASMODULO.No_Chk_Gis
 				SELE MODULOS
 				APPEND BLANK 
 				REPLACE CODIGO 		WITH TABLASMODULO.COD_MOD_D
 				REPLACE DES_MOD 	WITH TABLASMODULO.Desc_tabla
-				REPLACE PROCESAR    WITH IIF(THIS.lChkResponsable,.F.,.T.)
-				REPLACE PATH_Dir    WITH []
-				REPLACE U_negocio   WITH TABLASMODULO.U_Negocio
+				REPLACE PROCESAR     WITH IIF(THIS.lChkResponsable,.F.,.T.)
+				REPLACE PATH_Dir    	WITH []
+				REPLACE U_negocio   	WITH TABLASMODULO.U_Negocio
 				IF EMPTY(DES_MOD)
 					REPLACE PROCESAR    WITH .F.
 				ENDIF
 				REPLACE COD_MOD_D 	WITH TABLASMODULO.COD_MOD_D
 				REPLACE COD_Tabla 	WITH TABLASMODULO.COD_Tabla
-				REPLACE Ord_Carga   WITH TABLASMODULO.oRD_cARGA
-				replace alm_dos		with tablasmodulo.Alm_dos
-				replace Pk_cadena	with tablasmodulo.Pk_Cadena
-				replace pk_nro_tag  with tablasmodulo.pk_nro_tag 
+				REPLACE Ord_Carga   	WITH TABLASMODULO.oRD_cARGA
+				REPLACE alm_dos		WITH tablasmodulo.Alm_dos
+				REPLACE Pk_cadena	WITH tablasmodulo.Pk_Cadena
+				REPLACE pk_nro_tag  	WITH tablasmodulo.pk_nro_tag 
+				REPLACE Des_Mod_d	WITH TABLASMODULO.DES_MOD_D 
 			ELSE
 				SELE MODULOS 
 		*		SEEK TABLASMODULO.COD_MOD_D
@@ -5520,14 +5919,20 @@ DEFINE CLASS interfaces AS custom
 						REPLACE CODIGO 		WITH TABLASMODULO.COD_MOD_D
 						REPLACE DES_MOD 	WITH GISX01.APPDES01
 						REPLACE PROCESAR    WITH IIF(THIS.lChkResponsable,.F.,.T.)
-						REPLACE PATH_Dir    WITH GISX01.APPDIR01
-						REPLACE U_negocio   WITH TABLASMODULO.U_Negocio
+						REPLACE PATH_Dir    	WITH GISX01.APPDIR01
+						REPLACE U_negocio   	WITH TABLASMODULO.U_Negocio
 						IF EMPTY(DES_MOD)
 							REPLACE PROCESAR    WITH .F.
 						ENDIF
-						REPLACE COD_MOD_D 	WITH TABLASMODULO.COD_MOD_D
-						REPLACE COD_Tabla 	WITH TABLASMODULO.COD_Tabla
-						REPLACE Ord_Carga   WITH TABLASMODULO.oRD_cARGA
+						REPLACE COD_MOD_D 	WITH 	TABLASMODULO.COD_MOD_D
+						REPLACE COD_Tabla 	WITH 	TABLASMODULO.COD_Tabla
+						REPLACE Ord_Carga	WITH 	TABLASMODULO.oRD_cARGA
+						REPLACE Tipo_arch 	WITH	TABLASMODULO.Tipo_arch
+						REPLACE Model_Arch	WITH	TABLASMODULO.Model_Arch
+						REPLACE Arch_Xls		WITH	TABLASMODULO.Arch_Xls
+						REPLACE Hoja_Xls		WITH	TABLASMODULO.Hoja_Xls
+						REPLACE Des_Mod_d	WITH	TABLASMODULO.DES_MOD_D 
+						REPLACE Do_SqlExec	WITH 	TABLASMODULO.Do_SqlExec
 					ENDIF
 				ENDIF
 			ENDIF
@@ -5554,7 +5959,31 @@ DEFINE CLASS interfaces AS custom
 	*-- Captura la ruta principal de los archivos de configuracion y equivalencias en la red Novell
 	PROCEDURE cappathredgis
 		*!*	Leer el Archivo .INI
-		lcStringINI	= UPPER( FILETOSTR("TDV.INI") )
+		** Verficamos existencia de ruta inicial para alojar y leer archivos y configuraciones de interfases
+		LsDirIntf = ADDBS(SYS(5)+JUSTPATH(goentorno.tspathadm))+'Interface'
+		LsDirIntf = SYS(5)+'\o-Negocios\Interface'
+		IF !DIRECTORY(LsDirIntf)
+			MD(LsDirIntf)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsDirIntf+ ;
+			'  Este directorio se usara para buscar los archivos de .txt o .csv necesarios para realizar la interface de datos',64,'ATENCION !!' )
+		ENDIF
+		LsFileInterface=ADDBS(LsDirIntf)+'INTERFACE.INI'
+		IF !FILE(LsFileInterface)
+			=MESSAGEBOX('No se encuentra el archivo de configuración de interfases',16,'Atención ! / Warning!') 
+			RETURN 
+		ENDIF
+		this.cDirIntf = LsDirIntf
+		**
+		LsDirIntCia= ADDBS(this.cDirIntf )+'Cia_'+RIGHT(GsCodcia,2)  && Verificación pendiente si es el formato a usar ??
+		IF !DIRECTORY(LsDirIntCia)
+			MD(LsDirIntCia)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' +LsDirIntCia+ ;
+			'  Este directorio se usará como repositorio de las estructuras modelo de las tablas o entidades a utilizar en la interface de migración de datos',64,'ATENCION !!' )
+		ENDIF
+		this.cDirIntCia =  LsDirIntCia
+
+
+		lcStringINI	= UPPER( FILETOSTR(LsFileInterface) )
 		*!*	Obtener el Path de la Red ** Chincha
 		lcPathRed	= SUBSTR( lcStringINI , AT( "PATH REDCHINCHA" , lcStringINI) )
 		lcPathRed	= ALLTRIM( SUBSTR( lcPathRed , AT( "=" , lcPathRed ) + 1 ) )
@@ -5755,7 +6184,7 @@ DEFINE CLASS interfaces AS custom
 	PROCEDURE clearareas
 		FOR i = 1 TO this.g_areacount
 		   SELECT (m.i)
-		   IF !INLIST(ALIAS(),"TABLASMODULO","MODULOS",'C_SERVIDORES','C_ALM_DOS')
+		   IF !INLIST(ALIAS(),"ACCESS","DBFS","TABLASMODULO","MODULOS",'C_SERVIDORES','C_ALM_DOS','CONSISTENCIA','CMODDETALLE')
 		   
 			   USE
 			ENDIF	   
@@ -8034,6 +8463,9 @@ DEFINE CLASS interfaces AS custom
 	PROCEDURE dfhtransac_desde_assign
 		LPARAMETERS vNewVal
 		*To do: Modify this routine for the Assign method
+		LsFecha = IIF(VARTYPE(vNewVal)='D',DTOS(vNewVal),IIF(VARTYPE(vNewVal)='T',TTOC(vNewVal,1),''))
+		THIS.cAno		= SUBSTR(LsFecha,1,4)
+		THIS.cNroMes	= SUBSTR(LsFecha,5,2)
 		DO CASE
 			CASE goEntorno.Conexion.cDateFormat == "DMY"
 				vNewVal	= DTOC(vNewVal)+ " 00:00:00"
@@ -8051,6 +8483,10 @@ DEFINE CLASS interfaces AS custom
 	PROCEDURE dfhtransac_hasta_assign
 		LPARAMETERS vNewVal
 		*To do: Modify this routine for the Assign method
+		LsFecha = IIF(VARTYPE(vNewVal)='D',DTOS(vNewVal),IIF(VARTYPE(vNewVal)='T',TTOC(vNewVal,1),''))
+		THIS.cAno2 		= SUBSTR(LsFecha,1,4)
+		THIS.cNroMes2 	= SUBSTR(LsFecha,5,2)
+
 		DO CASE
 			CASE goEntorno.Conexion.cDateFormat == "DMY"
 				vNewVal		= DTOC(vNewVal) + " 23:59:59"
@@ -8122,7 +8558,1579 @@ DEFINE CLASS interfaces AS custom
 	ENDPROC
 
 
+	*-- Ejecuta la migracion de las entidades correspondientes a los modulos seleccionados
+	PROCEDURE procesar2
+
+
+		LOCAL LDFHTRANSAC,   NENVIOS
+
+
+		** Tabla Maestra de Items Migrados - 23/03/2001 VETT ***
+		** OJO Solo se migraran transacciones de los items registrados en esta Tabla
+
+		IF THIS.LACCESO_CONSISTENCIA
+			THIS.INT_BORRA_CONSISTENCIA
+		ENDIF
+		*** Controlamos si se procesa un modulo y/o una tabla , o todo
+		LOCAL LSFORMODULO,LSFORTABLA
+		DO CASE
+		CASE EMPTY(THIS.CMODULO_DOS) AND EMPTY(THIS.CTABLA_DOS)
+			LSFORMODULO = '.T.'
+			LSFORTABLA  = '.T.'
+		CASE !EMPTY(THIS.CMODULO_DOS) AND EMPTY(THIS.CTABLA_DOS)
+			LSFORMODULO = 'UPPER(Modulos.Codigo) = TRIM(UPPER(THIS.cmodulo_dos))'
+			LSFORTABLA  = '.T.'
+		CASE EMPTY(THIS.CMODULO_DOS) AND !EMPTY(THIS.CTABLA_DOS)
+			LSFORMODULO = '.T.'
+			LSFORTABLA  = 'UPPER(TablasModulo.DESC_TABLA) = TRIM(UPPER(THIS.ctabla_dos))'
+		CASE !EMPTY(THIS.CMODULO_DOS) AND !EMPTY(THIS.CTABLA_DOS)
+			LSFORMODULO = 'UPPER(Modulos.Codigo) = TRIM(UPPER(THIS.cmodulo_dos))'
+			LSFORTABLA  = 'UPPER(TablasModulo.DESC_TABLA) = TRIM(UPPER(THIS.ctabla_dos))'
+
+		ENDCASE
+
+		*!*	SET STEP ON 
+		*** Actualizamos tablas maestras ***
+		SELECT TABLASMODULO
+		SCAN FOR PRIORIDAD AND  THIS.LTABLASPRINCIPALES	AND EVALUATE(LSFORMODULO)
+			PROG1=PREFIJO+ALLTRIM(DESC_TABLA)+".prg"
+			PROG2=PREFIJO+ALLTRIM(DESC_TABLA)+'()'
+			THIS.CPROGRAMA_CARGA= UPPER(PREFIJO+ALLTRIM(DESC_TABLA))
+			THIS.CTABLA_EN_PROCESO = UPPER(ALLTRIM(DESC_TABLA))
+			THIS.Tipo_Arch		= TABLASMODULO.Tipo_Arch
+			THIS.Ruta_Arch		= TABLASMODULO.Ruta_Arch
+			THIS.Model_Arch	= Tablasmodulo.Model_Arch
+			THIS.Hoja_Xls 		= Tablasmodulo.Hoja_Xls
+			THIS.Arch_Xls 		= Tablasmodulo.Arch_Xls
+			IF !EMPTY(DESC_TABLA)
+				THIS.CAVISO2 = "Ejecutando:"+PROG1
+				IF THIS.LACCESO_CONSISTENCIA
+					THIS.INT_BORRA_CONSISTENCIA
+				ENDIF
+				IF 	Tiene_det
+
+				ELSE
+					IF THIS.LPROCESOENBLOQUE
+						**			this.dfhtransac_desde=tablasmodulo.fh_transac
+						THIS.G_AREACOUNT = 20
+						THIS.CLEARAREAS
+						**			DO (PROG1)
+						THIS.&PROG2
+					ELSE
+						THIS.&PROG2
+					ENDIF
+				ENDIF
+				THIS.CAVISO1 = "Programa anterior:"+PROG1
+				THIS.CAVISO2 = ""
+			ENDIF
+			SELECT TABLASMODULO
+			REPLACE FH_TRANSAC WITH DATETIME()
+		ENDSCAN
+		IF THIS.LSOLOTABLASPRINCIPALES
+			RETURN
+		ENDIF
+
+		*** Actualizamos Tablas Seleccionadas
+		NENVIOS = 0
+		SELE MODULOS
+		SCAN FOR PROCESAR AND UPPER(TRIM(U_NEGOCIO))=UPPER(TRIM(THIS.CUNIDADNEGOCIO)) AND EVALUATE(LSFORMODULO)
+			SELECT TABLASMODULO
+			SCAN FOR COD_MOD_D=MODULOS.CODIGO AND SELEC AND NOT PRIORIDAD  AND EVALUATE(LSFORTABLA) AND EMPTY(Detalle)
+
+				PROG1=PREFIJO+ALLTRIM(DESC_TABLA)+".prg"
+				PROG2=PREFIJO+ALLTRIM(DESC_TABLA)+'()'
+				THIS.CPROGRAMA_CARGA= UPPER(PREFIJO+ALLTRIM(DESC_TABLA))
+				THIS.CTABLA_EN_PROCESO = UPPER(ALLTRIM(DESC_TABLA))
+				THIS.Tipo_arch =	TABLASMODULO.Tipo_Arch
+				THIS.Ruta_arch =	TABLASMODULO.Ruta_Arch
+				THIS.Model_Arch	= Tablasmodulo.Model_Arch
+				THIS.Hoja_Xls 		= Tablasmodulo.Hoja_Xls
+				THIS.Arch_Xls 		= Tablasmodulo.Arch_Xls
+				THIS.Do_SqlExec 	= Tablasmodulo.Do_SqlExec
+				THIS.CadenaSql 	=  Tablasmodulo.CadenaSql
+				THIS.CadenaSql2 	=  Tablasmodulo.CadenaSql2
+				IF 	!Tiene_det
+					** Limpiamos tabla modelo ** 
+					IF USED(THIS.CTABLA_EN_PROCESO)
+						USE IN (THIS.CTABLA_EN_PROCESO)
+					ENDIF
+					LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+					SELECT 0
+					USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO) EXCL
+					thisformset.procesoInterfaces.TxtAviso1.Value    = "Borrando datos anterior proceso en : "+DBF()
+					ZAP
+					thisformset.procesoInterfaces.TxtAviso1.Value    = ""
+					SELECT TABLASMODULO
+				ENDIF
+
+				IF VARTYPE(ENVIAMAIL1)='L'
+					IF ENVIAMAIL1 OR ENVIAMAIL2 OR ENVIAMAIL3 OR ENVIAMAIL4
+						NENVIOS = NENVIOS + 1
+						IF ALEN(THIS.AENVIOS,1)<NENVIOS
+							DIMENSION THIS.AENVIOS(NENVIOS+1,5)
+						ENDIF
+						THIS.AENVIOS(NENVIOS,1) = ENVIAMAIL1
+						THIS.AENVIOS(NENVIOS,2) = ENVIAMAIL2
+						THIS.AENVIOS(NENVIOS,3) = ENVIAMAIL3
+						THIS.AENVIOS(NENVIOS,4) = ENVIAMAIL4
+						THIS.AENVIOS(NENVIOS,5) = THIS.CTABLA_EN_PROCESO
+
+					ENDIF
+				ENDIF
+
+				IF !EMPTY(DESC_TABLA)
+					IF THIS.LACCESO_CONSISTENCIA
+						THIS.INT_BORRA_CONSISTENCIA
+					ENDIF
+					THIS.CAVISO2 = "Ejecutando:"+PROG1
+					** Vericamos si tiene detalle de archivos a procesar, utilizado para procesar movimientos por periodos
+					**  meses , semanas  como en planillas o contabilidad
+
+					IF 	Tiene_det
+
+						LsLlave				=	Cod_Mod+Cod_Tabla
+						LsDetalle			=	Desc_Tabla
+						LsModel_Arch		=	Model_Arch
+						LsNomb_tabla		=	Nomb_tabla
+						THIS.CadenaSql 	=	Tablasmodulo.CadenaSql
+						THIS.CadenaSql2 	=	Tablasmodulo.CadenaSql2
+						SELECT * FROM Tablasmodulo WHERE Cod_Mod+Cod_Tabla=LsLlave AND Detalle=LsDetalle INTO CURSOR cModDetalle
+						SELECT cModDetalle
+						SCAN FOR Selec = .T.
+							** Limpiamos tabla modelo ** 
+							IF USED(THIS.CTABLA_EN_PROCESO)
+								USE IN (THIS.CTABLA_EN_PROCESO)
+							ENDIF
+							LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+							SELECT 0
+							USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO) EXCL
+							thisformset.procesoInterfaces.TxtAviso1.Value    = "Borrando datos anterior proceso en : "+DBF()
+							ZAP
+							thisformset.procesoInterfaces.TxtAviso1.Value    = ""
+							SELECT cModDetalle
+
+							THIS.Tipo_arch		=	Tipo_Arch
+							THIS.Ruta_arch 		=	Ruta_Arch
+							THIS.Model_Arch	= 	IIF(EMPTY(Model_Arch),LsModel_Arch,Model_Arch)
+							THIS.Hoja_Xls 		= 	Hoja_Xls
+							THIS.Arch_Xls 		= 	Arch_Xls
+							LsNomb_tabla		=	Nomb_tabla
+		*!*						SET STEP ON 
+							IF THIS.LPROCESOENBLOQUE
+								**				this.dfhtransac_desde=tablasmodulo.fh_transac
+								THIS.G_AREACOUNT = 20
+								THIS.CLEARAREAS
+								**				DO (PROG1)
+								THIS.&PROG2
+								** Copiamos registros procesados antes de borrar el contenido de la tabla modelo
+		*!*							WAIT WINDOW "Haciendo Backup de registros procesados en : "+ADDBS(this.cDirIntCia)+LEFT(LsDetalle,4)+'-'+LEFT(LsNomb_tabla,3)+'.dbf' NOWAIT
+								THISFORMSET.procesoInterfaces.TxtAviso1.Value = "Haciendo Backup de registros procesados en : "+ADDBS(this.cDirIntCia)+LEFT(LsDetalle,4)+'-'+LEFT(LsNomb_tabla,3)+'.dbf'
+
+								COPY   TO ADDBS(this.cDirIntCia)+LEFT(LsDetalle,4)+'-'+LEFT(LsNomb_tabla,3)+'.dbf' WITH CDX TYPE FOX2X 
+								THISFORMSET.procesoInterfaces.TxtAviso1.Value = 'Listo'
+							ELSE
+								THIS.&PROG2
+							ENDIF
+							SELECT cModDetalle
+						ENDSCAN
+						SELECT TABLASMODULO
+					ELSE
+						IF THIS.LPROCESOENBLOQUE
+							**				this.dfhtransac_desde=tablasmodulo.fh_transac
+							THIS.G_AREACOUNT = 20
+							THIS.CLEARAREAS
+							**				DO (PROG1)
+							THIS.&PROG2
+						ELSE
+							THIS.&PROG2
+						ENDIF
+					ENDIF
+					THIS.CAVISO1 = "Programa anterior:"+PROG1
+					THIS.CAVISO2 = ""
+				ENDIF
+				THISFORMSET.procesoInterfaces.TxtAviso1.Value = []
+				THISFORMSET.procesoInterfaces.TxtAviso2.Value = []
+				SELECT TABLASMODULO
+				REPLACE FH_TRANSAC WITH DATETIME()
+			ENDSCAN
+			SELE MODULOS
+		ENDSCAN
+		THIS.CAVISO1 = "PROCESO TERMINADO "
+		THISFORMSET.procesoInterfaces.TxtAviso1.Value = THIS.CAVISO1
+		THISFORMSET.procesoInterfaces.TxtAviso2.Value = []
+		IF !THIS.LPROCESOENBLOQUE
+			WAIT WINDOW THIS.CAVISO1 NOWAIT
+		ENDIF
+		**WAIT WIND 'Los datos fueron procesados' TIMEOUT 0.6
+		IF NENVIOS>0
+			FOR K = 1 TO ALEN(THIS.AENVIOS,1)
+				THIS.LENVIARMAIL 		= THIS.AENVIOS(NENVIOS,1)
+				THIS.LENVIARMAILSIEMPRE = THIS.AENVIOS(NENVIOS,2)
+				THIS.LENVIARMAILNOTIFICA= THIS.AENVIOS(NENVIOS,3)
+				THIS.LENVIARMAILOTROS 	= THIS.AENVIOS(NENVIOS,4)
+				THIS.CTAGMAIL 			= THIS.AENVIOS(NENVIOS,5)
+				IF THIS.LENVIARMAIL
+					THIS.ENVIAR_MAIL('1')
+				ENDIF
+				IF THIS.LENVIARMAILNOTIFICA
+					THIS.ENVIAR_MAIL('2')
+				ENDIF
+				IF THIS.LENVIARMAILOTROS
+					THIS.ENVIAR_MAIL('3')
+				ENDIF
+
+			ENDFOR
+			RELEASE K
+		ENDIF
+	ENDPROC
+
+
+	*-- Interface de trabajadores
+	PROCEDURE int_trab
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsAno=This.cAno
+				LsMes=This.cNroMes
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(Codigo)
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.Nombre 	 =	ALLTRIM(pri_nom) + IIF(!EMPTY(seg_nom), ' '+ALLTRIM(seg_nom), '') 
+						m.Nomcom   =	Ape_Pat + ' ' + Ape_mat + ', ' + m.Nombre
+						m.Nomcom   =	LEFT(m.Nomcom,60)
+						m.Sexo     	 =	UPPER(ALLTRIM(sexo))
+						m.Codigo	=	PADL(ALLTRIM(codigo),7,'0')
+						m.Codigo1	=	PADR(m.Codigo,11)
+						m.CodRLJ	=	ALLTRIM(m.codigo)
+						m.Cen_Cos	=   	IIF(EMPTY(m.Cen_Cos),'999999',m.Cen_Cos)   && N/A
+						m.Cod_Car 	=	TRANSFORM(VAL(m.cod_Car),'@L ##')
+						m.Doc_ide	=	 '000' && TRANSFORM(VAL(m.Doc_ide),'@L ###')
+
+
+						IF EMPTY(Nomina)	OR  !INLIST(TRIM(Nomina),'1','2','3','4','5','6')
+							SELECT  (THIS.CTABLA_EN_PROCESO)
+							** Generar Log de inconsistencia
+							REPLACE Error WITH '#' , MsgErr WITH 'Codigo de nomina es inválido'  IN  (THIS.CTABLA_EN_PROCESO)
+							LOOP
+						ENDIF
+						m.CodTpl	=  	TRANSFORM(VAL(m.nomina),"@L ##")
+						m.CodSuc	='01'
+
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_TRABAJADORES_TRA " + ;
+
+							DO CASE 
+
+								CASE	THIS.Do_SqlExec = 'CLI'
+
+									LsCadSql	= This.CadenaSql
+
+								CASE	THIS.Do_SqlExec = 'SVR' 
+									LsCadSQL	= This.CadenaSql2 
+
+							ENDCASE
+
+		*!*					IF m.Codigo='1200041'
+		*!*						SET STEP ON 
+		*!*					ENDIF
+							LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+
+							IF LnControl<0
+		*!*							SET STEP ON 
+								REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+							ENDIF
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_cias
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					SCATTER MEMVAR
+
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	=  = "EXEC INT_COMPANIA_CIA " + ;  && Si activan esta linea comentar las 2 anteriores
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)   && Comentar doble esta linea si activan las  2 siguientes
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_banc
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					SCATTER MEMVAR
+						STORE '' TO m.CtaNac,m.CtaDol
+						IF INLIST(m.Mon_Cta ,1,2)
+							IF m.Mon_Cta=1
+								m.CtaNac = m.Nro_Cta
+							ELSE
+								m.CtaDol = m.Nro_Cta
+							ENDIF
+						ENDIF
+						m.Des_Ban2=LEFT(m.Des_Ban,20)
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_BANCOS_BCO " + ;       && Si activan esta linea comentar las 2 anteriores
+
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las  2 siguientes
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_cost
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(Cen_Cos) 
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.IndDis  = 0
+						m.IndCos = 0
+						m.IndPro = 0
+						m.CODGCO = '01'
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_CENTRO_COSTO_CCO " + ;    
+
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_carg
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(Cod_Car) 
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_CARGOS_TRABAJADORES_CDT " + ;
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_pcue
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(Cue_con) 
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.Cod_Cia = TRANSFORM(VAL(Cod_Cia),"@L ##")
+
+						m.TipCta	=	'0'
+						m.CodTmo	=	'SO'
+
+						m.Indest 	= 1
+						m.FecAct 	= DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_CUENTA_CONTABLE_CCT " + ;    
+
+		*!*					LsCadSql	= "EXEC INT_CUENTA_CONTABLE_CCT " + ;
+		*!*							"@CIA_CODCIA		= ?m.cod_cia , " + ;
+		*!*							"@CCT_CODCCT	= ?m.Cue_Con , " + ;
+		*!*							"@CCT_NOMCTA	= ?m.Des_Con , " + ;
+		*!*							"@CCT_OTRDES	= ?m.Des_Con , " + ;
+		*!*							"@CCT_TIPCTA		= ?m.TipCta		, " + ;
+		*!*							"@TMO_CODTMO	= ?m.CodTmo , " + ;
+		*!*							"@CCT_INDEST		= ?m.Indest  , " + ;
+		*!*							"@CCT_FECACT	= ?m.FecAct  , " + ;
+		*!*							"@Usuario 			= ?m.Usuario , " + ;
+		*!*							"@Estacion 			= ?m.Estacion , " + ;
+		*!*							"@TipoOperacion 	= ?m.TipoOperacion "
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_plan
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN  
+					IF EMPTY(ALLTRIM(Empresa+Ano+Mes+Codigo+Cod_Con)) 
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+
+						m.CodSuc='01'
+						m.Mes 		= TRANSFORM(VAL(m.Mes)		,"@L ##")
+						m.Semana	= TRANSFORM(VAL(m.Semana)	,"@L ##")
+						LsCodigo	= Codigo
+						m.Codigo	=	PADL(ALLTRIM(codigo),7,'0')
+
+						IF !USED('TRAB')
+							SELECT  0
+							USE ADDBS(this.cDirIntCia)+'TRAB' ALIAS TRAB
+							SET ORDER TO Codigo
+						ELSE
+							SELECT TRAB
+							SET ORDER TO Codigo
+						ENDIF
+						SELECT  TRAB
+						SEEK 	PADR(LsCodigo,LEN(TRAB.Codigo))
+						IF !FOUND()
+							SELECT  (THIS.CTABLA_EN_PROCESO)
+							REPLACE Error WITH '#' , MsgErr WITH 'No se encuentra codigo de trabajador en TRAB.DBF'  IN  (THIS.CTABLA_EN_PROCESO)
+							LOOP
+						ELSE
+							IF EMPTY(Nomina)	OR  !INLIST(TRIM(Nomina),'1','2','3','4','5','6')
+								SELECT  (THIS.CTABLA_EN_PROCESO)
+								** Generar Log de inconsistencia
+								REPLACE Error WITH '#' , MsgErr WITH 'Codigo de nomina es inválido'  IN  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+						ENDIF	 
+						** Obtenemos el codigo de nomina TPL_CODTPL --> Valor deber existir en  dbo.TIPO_PLANILLA_TPL
+						m.CodTpl	=  TRANSFORM(VAL(nomina),"@L ##")
+						SELECT  (THIS.CTABLA_EN_PROCESO)
+						DO CASE
+							CASE m.Tip_Pla = 'M'		&& Mensual
+								m.Tip_Pla	=	'01'
+							CASE m.Tip_Pla = 'S'		&& Semanal
+								m.Tip_Pla	=	'02'
+							CASE m.Tip_Pla = 'G'		&& Gratificacion
+								m.Tip_Pla	=	'03'
+							CASE m.Tip_Pla = 'V'		&& Vacaciones
+								m.Tip_Pla	=	'04'
+							CASE m.Tip_Pla = 'U'		&& Utilidades
+								m.Tip_Pla	=	'05'
+							CASE m.Tip_Pla = 'Q'		&& Quincena
+								m.Tip_Pla	=	'06'
+							CASE m.Tip_Pla = 'P'		&& Planilla LBS
+								m.Tip_Pla	=	'07'
+							CASE m.Tip_Pla = 'E'		&& Extraordinaria
+								m.Tip_Pla	=	'09'
+
+							OTHERWISE 
+								** Generar Log de inconsistencia **
+						ENDCASE
+						m.CorPPE	= '001'   && Secuencia
+						** Variable para el correlativo de la llave 
+						m.CorPCA    = '000'   && CIA_CODCIA+SUC_CODSUC+ANO_CODANO+MES_CODMES+TPL_CODTPL+PPE_CORPPE+AUX_CODAUX
+						m.CodCTE	= '00000000000000'
+						m.NumDoc	= ''
+						** -- **
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_PLANILLA_CALCULO_PCA " + ;       && Si activan esta linea comentar las 2 anteriores
+
+						LsCadSql = 	"EXEC INT_PLANILLA_CALCULO_PCA " + ;
+								"@CIA_CODCIA     	= ?m.Empresa , " + ;
+								"@SUC_CODSUC	= ?m.CodSuc , " + ;
+								"@ANO_CODANO	= ?m.Ano , " + ;
+								"@MES_CODMES	= ?m.Mes , " + ;
+								"@TPL_CODTPL	= ?m.CodTpl , " + ;
+								"@PPE_CORPPE	= ?m.CorPPE , " + ;
+								"@AUX_CODAUX	= ?m.Codigo , " + ;
+								"@CON_CODCON	= ?m.Cod_Con , " + ;
+								"@PCA_CORPCA	= ?m.CorPCA , " + ;
+								"@CTE_CODCTE	= ?m.CodCTE , " + ;
+								"@PCA_NUMDOC	= ?m.NumDoc , " + ;
+								"@PCA_MDATO3	= ?m.Importe , " + ;
+								"@PCA_FECACT	= ?m.FecAct  , " + ;
+								"@Usuario 			= ?m.Usuario , " + ;
+								"@Estacion 			= ?m.Estacion , " + ;
+								"@TipoOperacion 	= ?m.TipoOperacion "
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las  2 siguientes
+
+						IF lnControl < 0
+							SET STEP ON 
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_hora
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(Cod_Hor)
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_HORA_HOR " + ;       && Si activan esta linea comentar las 2 anteriores
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las  2 siguientes
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_remu
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsAno=This.cAno2 
+				LsMes=This.cNroMes2 
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(ALLTRIM(Cod_Cia+ Codigo + Cod_Con + Mon_Pag))
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.CodSuc		= '01'
+						m.nomina		= '01' 
+						m.Secuencia 	= '001'
+
+						m.Mon_Pag		= UPPER(LEFT(m.Mon_Pag,2))
+						IF m.Mon_Pag='S'
+							m.Mon_Pag='SO'
+						ENDIF
+						IF m.Mon_Pag='D'
+							m.Mon_Pag='DO'
+						ENDIF
+
+						LsCodigo	= Codigo
+						m.Codigo	=	PADL(ALLTRIM(codigo),7,'0')
+						IF !USED('TRAB')
+							SELECT  0
+							USE ADDBS(this.cDirIntCia)+'TRAB' ALIAS TRAB
+							SET ORDER TO Codigo
+						ELSE
+							SELECT TRAB
+							SET ORDER TO Codigo
+						ENDIF
+						SELECT  TRAB
+						SEEK 	PADR(LsCodigo,LEN(TRAB.Codigo))
+						IF !FOUND()
+							SELECT  (THIS.CTABLA_EN_PROCESO)
+
+		*!*						SET STEP ON 
+							** Generar Log de inconsistencia
+							REPLACE Error WITH '#' , MsgErr WITH 'No se encuentra codigo de trabajador en TRAB.DBF'  IN  (THIS.CTABLA_EN_PROCESO)
+							LOOP
+						ELSE
+							IF ERROR='@'
+		*!*							SET STEP ON
+								 SELECT  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+							IF EMPTY(Nomina)	OR  !INLIST(TRIM(Nomina),'1','2','3','4','5','6')
+								SELECT  (THIS.CTABLA_EN_PROCESO)
+								** Generar Log de inconsistencia
+								REPLACE Error WITH '#' , MsgErr WITH 'Codigo de nomina es inválido'  IN  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+						ENDIF	 
+						** Obtenemos el codigo de nomina TPL_CODTPL --> Valor deber existir en  dbo.TIPO_PLANILLA_TPL
+						m.CodTpl	=  TRANSFORM(VAL(nomina),"@L ##")
+
+
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_REMUNERACIONES_TRABAJADORES_RTR " + ;
+
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_sald
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsAno=This.cAno2 
+				LsMes=This.cNroMes2 
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				LnCodCte    = 0
+				SCAN 
+					IF EMPTY(ALLTRIM(Cod_Cia+ Codigo + Cod_Con + Mon_Pag))
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.Libro_Pla		= '020'  
+						m.Asiento		= '00001'
+						m.TipCam		= 2.83
+						LnCodCte    		= LnCodCte + 1
+						m.Cod_Cia		= TRANSFORM(VAL(m.Cod_Cia),"@L ##")
+						m.CodSuc		= '01'
+						m.nomina		= '01' 
+						m.Secuencia 	= '001'
+						LsPict			= "@L "+REPLICATE('9',10)
+						m.Mes			= TRANSFORM( VAL(m.Mes),'@L ##')
+						m.CodCte		= m.Cod_Cia+m.Ano +m.Mes+ RIGHT(TRANSFORM(LnCodCte, LsPict	),6)
+						m.Mon_Pag		= UPPER(LEFT(m.Mon_Pag,2))
+						IF m.Mon_Pag='S'
+							m.Mon_Pag='SO'
+						ENDIF
+						IF m.Mon_Pag='D'
+							m.Mon_Pag='DO'
+						ENDIF
+						m.CodTdo		= 'PRP'   && Prestamos al personal
+						LnMes			= VAL(m.Mes)
+						LnAno			= VAL(m.Ano)
+
+						IF  LnMes	< 12
+						        m.FecReg		= CTOD("01/"+STR(LnMes+1,2,0)+"/"+STR(LnAno,4,0))-1
+						ELSE
+						        m.FecReg		= CTOD("31/12/"+STR(LnAno,4,0))
+						ENDIF
+						m.CodDoc		=	PADR(m.Doc_Ref,12)
+						m.Doc_Ref		=      PADR(m.Doc_Ref,14)
+						m.FecEmi		= 	m.FecReg
+
+						LsCodigo		= Codigo
+						m.Codigo		= PADL(ALLTRIM(codigo),7,'0')
+						IF !USED('TRAB')
+							SELECT  0
+							USE ADDBS(this.cDirIntCia)+'TRAB' ALIAS TRAB
+							SET ORDER TO Codigo
+						ELSE
+							SELECT TRAB
+							SET ORDER TO Codigo
+						ENDIF
+						SELECT  TRAB
+						SEEK 	PADR(LsCodigo,LEN(TRAB.Codigo))
+						IF !FOUND()
+							SELECT  (THIS.CTABLA_EN_PROCESO)
+							** Generar Log de inconsistencia
+							REPLACE Error WITH '#' , MsgErr WITH 'No se encuentra codigo de trabajador en TRAB.DBF'  IN  (THIS.CTABLA_EN_PROCESO)
+							LOOP
+						ELSE
+							IF ERROR='@'
+								SET STEP ON
+								 SELECT  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+							IF EMPTY(Nomina)	OR  !INLIST(TRIM(Nomina),'1','2','3','4','5','6')
+								SELECT  (THIS.CTABLA_EN_PROCESO)
+								** Generar Log de inconsistencia
+								REPLACE Error WITH '#' , MsgErr WITH 'Codigo de nomina es inválido'  IN  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+						ENDIF	 
+						** Obtenemos el codigo de nomina TPL_CODTPL --> Valor deber existir en  dbo.TIPO_PLANILLA_TPL
+						m.CodTpl	=  TRANSFORM(VAL(nomina),"@L ##")
+
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_CUENTA_CORRIENTE_PLANILLA_CCP " + ;
+
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+
+						ENDIF
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE int_prov_vac
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsAno=This.cAno2 
+				LsMes=This.cNroMes2 
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				LnCodCte    = 0
+				SCAN 
+					IF EMPTY(ALLTRIM(Cod_Cia+ Codigo + Cod_Con + Mon_Pag))
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.Cod_Cia		= TRANSFORM(VAL(m.Cod_Cia),"@L ##")
+						m.CodSuc		= '01'
+						m.nomina		= '01' 
+						m.Mes			= TRANSFORM( VAL(m.Mes),'@L ##')
+						LnMes			= VAL(m.Mes)
+						LnAno			= VAL(m.Ano)
+						LsCodigo		= Codigo
+						m.Codigo		= PADL(ALLTRIM(codigo),7,'0')
+						IF !USED('TRAB')
+							SELECT  0
+							USE ADDBS(this.cDirIntCia)+'TRAB' ALIAS TRAB
+							SET ORDER TO Codigo
+						ELSE
+							SELECT TRAB
+							SET ORDER TO Codigo
+						ENDIF
+						SELECT  TRAB
+						SEEK 	PADR(LsCodigo,LEN(TRAB.Codigo))
+						IF !FOUND()
+							SELECT  (THIS.CTABLA_EN_PROCESO)
+							** Generar Log de inconsistencia
+							REPLACE Error WITH '#' , MsgErr WITH 'No se encuentra codigo de trabajador en TRAB.DBF'  IN  (THIS.CTABLA_EN_PROCESO)
+							LOOP
+						ELSE
+							IF ERROR='@'
+								SET STEP ON
+								 SELECT  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+							IF EMPTY(Nomina)	OR  !INLIST(TRIM(Nomina),'1','2','3','4','5','6')
+								SELECT  (THIS.CTABLA_EN_PROCESO)
+								** Generar Log de inconsistencia
+								REPLACE Error WITH '#' , MsgErr WITH 'Codigo de nomina es inválido'  IN  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+						ENDIF	 
+						** Obtenemos el codigo de nomina TPL_CODTPL --> Valor deber existir en  dbo.TIPO_PLANILLA_TPL
+						m.CodTpl	=  TRANSFORM(VAL(nomina),"@L ##")
+
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_CUENTA_CORRIENTE_PLANILLA_CCP " + ;
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+
+						ENDIF
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	*-- Interfase: Migración de conceptos de planilla
+	PROCEDURE int_conc
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(Cod_Con) 
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.Des_Con2 = PADR(m.Des_Con,20)
+						m.Indest	= 1
+						m.FecAct	= DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_CONCEPTOS_PLANILLA_CON " + ;
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
+	*-- Borra completamente los datos de las entidades destino en la base de datos Sql Server
+	PROCEDURE int_inicializabd
+		m.Indest 	= 1
+		m.FecAct 	= DATETIME()
+		m.Usuario	= goentorno.user.login
+		m.Estacion	= goentorno.user.estacion
+		m.Cod_Mod = THIS.Des_Mod_d
+		m.TipoOperacion = 'I1'
+
+
+		LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+		CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_HORA_HOR " + ;       && Si activan esta linea comentar las 2 anteriores
+
+		LsCadSql = 	"EXEC INT_INICIALIZA_TABLAS_MODULO " + ;
+				"@COD_MODULO     = ?m.Cod_Mod , " + ;
+				"@Usuario 			= ?m.Usuario , " + ;
+				"@Estacion 			= ?m.Estacion , " + ;
+				"@TipoOperacion 	= ?m.TipoOperacion "
+
+		LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las  2 siguientes
+
+		IF LnControl <0
+			=MESSAGEBOX(MESSAGE(),16,'ATENCION / WARNING ')
+		ENDIF
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+		=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+		IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE Init
+		IF goEntorno.SqlEntorno
+			THIS.oCnx_ODBC = goConexion
+		ENDIF
+		IF 	!This.Ocnx_Odbc.CargaParmsCadCnxArcIni('config.ini')
+			MESSAGEBOX('Error en captura de parametros de conexión desde archivo '+LOCFILE('CONFIG.INI'),16)
+			This.Conexion2y3	= .F.
+		ELSE
+			This.Conexion2y3	= .T.
+		ENDIF
+	ENDPROC
+
+
+	*-- Carga registros provenientes de un archivo excel o txt hacia una operacion o libro contable para un determinado rango de periodos o meses contables del _ANO contable
+	PROCEDURE int_libro_contable
+
+		PARAMETERS PcAno,PcMes,PcCodOpe, PcArch_Xls,PcHoja_Xls,PcRuta_Arch_Xls,PcModel_Arch,Pc_Ruta_Model,Pc_Tabla_en_Proceso
+		This.cAno	=	PcAno
+		This.cAno2	=	PcAno
+		This.cCodope =	PcCodOpe
+		This.Arch_Xls =	PcArch_Xls
+		This.Ruta_arch = PcRuta_Arch_Xls
+		This.Model_Arch = PcModel_Arch
+		This.cTabla_en_proceso = Pc_Tabla_en_Proceso
+
+		DO CASE
+
+			CASE	This.Tipo_Arch	=	'XLS'
+				LsAno=This.cAno2 
+				LsMes=This.cNroMes2 
+				LsFile=ADDBS(this.cDirIntCia)+ THIS.Model_Arch
+				SELECT 0
+				USE  (LsFile) ALIAS  (THIS.CTABLA_EN_PROCESO)
+				IF EMPTY(This.Arch_Xls)
+					This.Arch_Xls= ADDBS(JUSTPATH(LsFile))+JUSTSTEM(LsFile)
+				ENDIF
+				LsRutaArchXls=ADDBS(RTRIM(This.ruta_arch))+this.Arch_Xls
+				AppendFromExcel(LsRutaArchXls, THIS.Hoja_Xls, THIS.CTABLA_EN_PROCESO, "","1=1", "", ".T.")
+				**
+				LnTotReg		= RECCOUNT()
+				LnTRegProc	= 0
+				thisformset.procesoInterfaces.TxtAviso1.Value	=	[PROCESANDO:] + RTRIM(THIS.CTABLA_EN_PROCESO) + [ - ] + RTRIM(this.Arch_Xls) + [ - ]+ RTRIM(THIS.Hoja_Xls)
+				**
+				SELECT  (THIS.CTABLA_EN_PROCESO)
+				LOCATE
+				SCAN 
+					IF EMPTY(ALLTRIM(NroMes+ FchDoc + NroDoc))
+						LOOP
+					ENDIF
+					SCATTER MEMVAR
+						m.CodSuc		= '01'
+						m.nomina		= '01' 
+						m.Secuencia 	= '001'
+
+						m.Mon_Pag		= UPPER(LEFT(m.Mon_Pag,2))
+						IF m.Mon_Pag='S'
+							m.Mon_Pag='SO'
+						ENDIF
+						IF m.Mon_Pag='D'
+							m.Mon_Pag='DO'
+						ENDIF
+
+						LsCodigo	= Codigo
+						m.Codigo	=	PADL(ALLTRIM(codigo),7,'0')
+						IF !USED('TRAB')
+							SELECT  0
+							USE ADDBS(this.cDirIntCia)+'TRAB' ALIAS TRAB
+							SET ORDER TO Codigo
+						ELSE
+							SELECT TRAB
+							SET ORDER TO Codigo
+						ENDIF
+						SELECT  TRAB
+						SEEK 	PADR(LsCodigo,LEN(TRAB.Codigo))
+						IF !FOUND()
+							SELECT  (THIS.CTABLA_EN_PROCESO)
+
+		*!*						SET STEP ON 
+							** Generar Log de inconsistencia
+							REPLACE Error WITH '#' , MsgErr WITH 'No se encuentra codigo de trabajador en TRAB.DBF'  IN  (THIS.CTABLA_EN_PROCESO)
+							LOOP
+						ELSE
+							IF ERROR='@'
+		*!*							SET STEP ON
+								 SELECT  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+							IF EMPTY(Nomina)	OR  !INLIST(TRIM(Nomina),'1','2','3','4','5','6')
+								SELECT  (THIS.CTABLA_EN_PROCESO)
+								** Generar Log de inconsistencia
+								REPLACE Error WITH '#' , MsgErr WITH 'Codigo de nomina es inválido'  IN  (THIS.CTABLA_EN_PROCESO)
+								LOOP
+							ENDIF
+						ENDIF	 
+						** Obtenemos el codigo de nomina TPL_CODTPL --> Valor deber existir en  dbo.TIPO_PLANILLA_TPL
+						m.CodTpl	=  TRANSFORM(VAL(nomina),"@L ##")
+
+
+						m.Indest = 1
+						m.FecAct = DATETIME()
+						m.Usuario	= goentorno.user.login
+						m.Estacion	= goentorno.user.estacion
+						m.TipoOperacion = 'I1'
+
+						LsStringBD2	= This.Ocnx_Odbc.cStringCnx2 
+						CnxDB2		= SQLSTRINGCONNECT(LsStringBD2)
+
+		*!*	*!*					.ocnx_ODBC.cSQL	= "EXEC INT_REMUNERACIONES_TRABAJADORES_RTR " + ;
+
+
+						DO CASE 
+
+							CASE	THIS.Do_SqlExec = 'CLI'
+
+								LsCadSql	= This.CadenaSql
+
+							CASE	THIS.Do_SqlExec = 'SVR' 
+								LsCadSQL	= This.CadenaSql2 
+
+						ENDCASE
+
+						LnControl  = SQLEXEC(CnxDB2,LsCadSQL)  && Comentar doble esta linea si activan las 2 siguientes
+						IF lnControl < 0
+							REPLACE Error WITH '@' , MsgErr WITH MESSAGE()  IN  (THIS.CTABLA_EN_PROCESO)
+						ENDIF
+		*!*	*!*						.ocnx_ODBC.cCursor = ""
+		*!*	*!*						lnControl = .ocnx_ODBC.DoSQL()
+							=SQLDISCONNECT(CnxDB2)     && Comentar doble esta linea si activan las  2 anteriores
+
+							IF lnControl < 0
+		*!*							=MESSAGEBOX("No se actualizaron los datos",64,"Error")
+		*!*							RETURN
+							ENDIF
+							IF LnTotReg>0
+								LnTRegProc = LnTRegProc + 1
+								this.caviso2 = "PROCESANDO: "+STR(ROUND(LnTRegProc/LnTotReg*100,2),10,2) + ' %'
+								thisformset.procesoInterfaces.TxtAviso2.Value	=	This.cAviso2
+							ENDIF
+
+				ENDSCAN
+
+			CASE	This.Tipo_Arch	=	'DBF'
+			CASE	This.Tipo_Arch	=	'CSV'
+		ENDCASE
+	ENDPROC
+
+
 	PROCEDURE netflock
+	ENDPROC
+
+
+	PROCEDURE int_prov_cts
+	ENDPROC
+
+
+	PROCEDURE int_prov_gra
+	ENDPROC
+
+
+	PROCEDURE int_depe
 	ENDPROC
 
 
@@ -8192,7 +10200,7 @@ ENDDEFINE
 *-- Class:        util (k:\aplvfp\classgen\vcxs\admnovis.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   10/11/07 06:50:05 PM
+*-- Time Stamp:   08/25/14 12:59:14 PM
 *-- Utilidades para el Sistema
 *
 DEFINE CLASS util AS custom
@@ -8200,6 +10208,8 @@ DEFINE CLASS util AS custom
 
 	Height = 26
 	Width = 23
+	*-- XML Metadata for customizable properties
+	_memberdata = [<VFPData><memberdata name="openfileext" type="method" display="OpenFileExt"/></VFPData>]
 	Name = "util"
 
 	*-- Es un array que contiene los nombres de las tablas locales contenidos en la PC Local
@@ -8852,7 +10862,11 @@ DEFINE CLASS util AS custom
 
 
 	PROCEDURE cursor_esta_vacio
-		PARAMETERS Pc_Tabla
+		PARAMETERS Pc_Tabla,Pl_NumReg
+		IF VARTYPE(Pl_NumReg)<>'L'
+			Pl_NumReg=.F.
+		ENDIF
+
 		IF PARAMETERS()=0
 			Pc_Tabla=ALIAS()
 		ENDIF
@@ -8867,9 +10881,19 @@ DEFINE CLASS util AS custom
 			SELECT * FROM (pc_tabla) INTO CURSOR xTmp
 			USE IN xTmp
 			SELECT(pc_tabla)
-			RETURN EMPTY(_TALLY)
+			** VETT  25/08/2014 12:59 PM : Retornamos el numero de registros del cursor o tabla evaluada 
+			IF Pl_NumReg
+				RETURN _TALLY
+			ELSE
+				RETURN EMPTY(_TALLY)
+			ENDIF
 		ELSE
-			RETURN .T.
+		** VETT  25/08/2014 12:59 PM :  No esta definida o no se encontro la tabla o cursor
+			IF Pl_NumReg
+				RETURN -1
+			ELSE
+				RETURN .T.
+			ENDIF
 		ENDIF
 
 		*!*		SELE (Pc_Tabla)
@@ -8937,6 +10961,28 @@ DEFINE CLASS util AS custom
 		ENDCASE
 
 		RETURN 1
+	ENDPROC
+
+
+	*-- Abrir archivo externo (DOC, XLS, PDF)
+	PROCEDURE openfileext
+		PARAMETERS PcFileName
+		IF VARTYPE(PcFileName)<>'C'
+			PcFileName = ''
+		ENDIF
+		IF EMPTY(PcFileName)
+			RETURN 
+		ENDIF
+		DECLARE INTEGER ShellExecute IN shell32.dll ;
+		INTEGER hndWin, ;
+		STRING cAction, ;
+		STRING cFileName, ;
+		STRING cParams, ;
+		STRING cDir, ;
+		INTEGER nShowWin
+		*!*	cFileName = "c:\GenLed\Images\CC.pdf"
+		cAction = "open"
+		ShellExecute(0,cAction,PcFileName,"","",1)
 	ENDPROC
 
 

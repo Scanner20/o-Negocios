@@ -107,4 +107,177 @@ LnReturn = 1
 RETURN LnReturn
 
 
+FUNCTION LogUsuario
+SELECT 0
+USE CCBRGDOC ALIAS GDOC EXCLUSIVE 
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+SELECT 0
+USE VTAVPEDI ALIAS VPED EXCLUSIVE 
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+SELECT 0
+USE VTAVPROF ALIAS VPRO EXCLUSIVE 
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+SELECT 0
+USE VTARPRO ALIAS RPRO EXCLUSIVE 
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
 
+
+** VETT:campos Log de usuario 2022 2022/02/16 03:41:08 ** 
+
+USE almctran ALIAS ctra EXCLUSIVE 
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE almdtran ALIAS Dtra EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+
+USE almcatge ALIAS catg EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+
+USE almcatal ALIAS calm EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE vtaritem ALIAS item EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE ccbmvtos ALIAS vtos EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE cctclien ALIAS clie EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE cbdmauxi ALIAS AUXI EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE cbdmtabl ALIAS tabl EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE almcftra ALIAS CFTR EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE almtalma ALIAS alma EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE cbdrmovm ALIAS rmov EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE cbdvmovm ALIAS vmov EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE cbdmctas ALIAS ctas EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE ccbrrdoc ALIAS RDOC EXCLUSIVE 
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE vtatdocm ALIAS DOCM EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE almcdocm ALIAS CDOC EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE cbdtoper ALIAS oper EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+USE ccbtbdoc ALIAS BDOC EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
+
+USE
