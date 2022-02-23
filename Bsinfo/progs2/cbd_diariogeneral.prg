@@ -1746,14 +1746,14 @@ ELSE
 			IF VerifyVar('CTAREF','','CAMPO','AUXI')
 				TsCC1Cta	=	AUXI.CtaRef
 			ENDIF
-			** Verificamos su existencia **
+			** Verificamos su existencia **  TAG:CASO1
 			IF ! SEEK(TsClfAn1+TsAn1Cta,"AUXI")
-				GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsAn1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas Auxiliares"
+				GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsAn1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas Auxiliares CASO1"
 				=MESSAGEBOX(GsMsgErr,16,'Atención')
 				RETURN 2
 			ENDIF
 			*** FIN: VETT 22/05/2009
-		*** CASO 2 : La cuenta automatica no esta definida pero la contracuenta si.
+		*** CASO 2 : La cuenta automatica no esta definida pero la contracuenta si.  TAG:CASO2
 		CASE EMPTY(TsAn1Cta) AND !EMPTY(TsCC1Cta) AND !(ctas.CodCta>='60' AND ctas.CodCta<='99' AND CTAS.TpoCta=3)
 			*** Variante 1: La cuenta automatica es en base al centro de costo 
 			*** Centro de costo pertenece a una tabla
@@ -1770,14 +1770,14 @@ ELSE
 					TsAn1Cta = PADR(RMOV.CodAux,LEN(CTAS.COdCta))
 				ENDIF
 				IF ! SEEK(TsAn1Cta,"ctas") AND !(ctas.CodCta>='60' AND ctas.CodCta<='99' AND CTAS.TpoCta=3)
-					GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsAn1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas"
+					GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsAn1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas  CASO2"
 			        =MESSAGEBOX(GsMsgErr,16,'Atención')
 					RETURN 2
 				ENDIF
 			ENDIF
 			*** FIN: VETT 22/05/2009
 	ENDCASE
-	*** Direccionamos el auxiliar de las cuenta automatica generada por compra de existencias 60 vs clase 2
+	*** Direccionamos el auxiliar de las cuenta automatica generada por compra de existencias 60 vs clase 2  TAG: CASO3
 	IF !EMPTY(TsAn1Cta)
 		IF SUBSTR(XSCODCTA,1,4) >= "6000" .AND. SUBSTR(XSCODCTA,1,4) <= "6069"
 			IF SUBSTR(TSAN1CTA,1,2)="20" .OR. SUBSTR(TSAN1CTA,1,2)="24" .OR. SUBSTR(TSAN1CTA,1,2)="25" .OR. SUBSTR(TSAN1CTA,1,2)="26"
@@ -1786,7 +1786,7 @@ ELSE
 			ENDIF
 		ENDIF
 		IF ! SEEK(TsAn1Cta,"CTAS") AND !(ctas.CodCta>='60' AND ctas.CodCta<='99' AND CTAS.TpoCta=3)
-			GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsAn1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas"
+			GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsAn1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas CASO3"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN
 		else
@@ -1798,9 +1798,9 @@ ELSE
 			endif
 		endif	   
 	ENDIF
-	IF !EMPTY(TsCc1Cta)   
+	IF !EMPTY(TsCc1Cta)   && TAG: CASO4
 		IF ! SEEK(TsCC1Cta,"CTAS") AND !(ctas.CodCta>='60' AND ctas.CodCta<='99' AND CTAS.TpoCta=3)
-			GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsCc1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas"
+			GsMsgErr = "Cuenta Autom tica no existe o esta en blanco ["+TsCc1Cta+"] generado por ["+XsCodCta+"]. Actualizaci¢n queda pendiente, verifique el Maestro de Cuentas CASO4"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN 2
 		ENDIF
@@ -1865,26 +1865,28 @@ SELECT CTAS
 LlHayAn2CtaME = VARTYPE(An2CtaME)='C'
 SELECT RMOV
 =SEEK(LsCodCta_ORI,'CTAS')
+
+
 DO CASE
-	CASE CTAS.TIP_AFE_RC='A'
+	CASE CTAS.TIP_AFE_RC='A'    && TAG: CASO5  ** VETT:Afinando validaciones para cuentas automaticas 2022/02/17 16:56:49 **
 		XsCodCta=LsCodCta_ORI
 		XcTpoMov=LcTpoMov_ORI		
-		TsAn1Cta=CTAS.AN2CTA
-		TsCC1Cta=CTAS.CC2CTA
-		TsAn2CtaME = IIF(LlHayAn2CtaME,CTAS.AN2CTAME,'')
+		TsAn1Cta=CTAS.AN2CTA  && 42 MN 
+		TsCC1Cta=CTAS.CC2CTA  && 40
+		TsAn2CtaME = IIF(LlHayAn2CtaME,CTAS.AN2CTAME,'')  && 42 ME
 		LlHayAn2CtaME = IIF(EMPTY(TsAn2CtaME),.F.,.T.)
 		IF ! SEEK(TsAn1Cta,"CTAS")
-			GsMsgErr = "Cuenta " + TsAn1Cta+" no existe. Actualizaci¢n queda pendiente"
+			GsMsgErr = "Cuenta ["+TsAn1Cta+"] automatica de ["+XsCodCta+"] no existe. Actualizaci¢n queda pendiente CASO5 An2Cta"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN
 		ENDIF
 		IF ! SEEK(TsCC1Cta,"CTAS")
-			GsMsgErr = "Cuenta " + TsCC1Cta+" no existe. Actualizaci¢n queda pendiente"
+			GsMsgErr = "Cuenta ["+TsCc1Cta+"] automatica de ["+XsCodCta+"] no existe. Actualizaci¢n queda pendiente CASO5 CC2Cta"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN 2
 		ENDIF
 		
-		XsCodCta = TsCC1Cta
+		XsCodCta = TsCC1Cta 
 		XcEliItm = ''
 		XcTpoMov = IIF(XcTpoMov = 'D' , 'D' , 'H' )
 		XsClfAux = SPACE(LEN(RMOV.ClfAux))
@@ -1998,7 +2000,7 @@ DO CASE
 		ENDIF	
 		=MOVbGrab(LlCrearDeta)
 		
-	CASE CTAS.TIP_AFE_RV='A'
+	CASE CTAS.TIP_AFE_RV='A'  && TAG: CASO6 ** VETT:Afinando validaciones para cuentas automaticas 2022/02/17 16:56:49 **
 
 		XsCodCta=LsCodCta_ORI
 		XcTpoMov=LcTpoMov_ORI		
@@ -2007,12 +2009,12 @@ DO CASE
 		TsAn2CtaME = IIF(LlHayAn2CtaME,CTAS.AN2CTAME,'')
 		LlHayAn2CtaME = IIF(EMPTY(TsAn2CtaME),.F.,.T.)
 		IF ! SEEK(TsAn1Cta,"CTAS")
-			GsMsgErr = "Cuenta Autom tica no existe. Actualizaci¢n queda pendiente"
+			GsMsgErr =  "Cuenta ["+TsAn1Cta+"] automatica de ["+XsCodCta+"] no existe. Actualizaci¢n queda pendiente CASO6 An1Cta"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN
 		ENDIF
 		IF ! SEEK(TsCC1Cta,"CTAS")
-			GsMsgErr = "Cuenta Autom tica no existe. Actualizaci¢n queda pendiente"
+			GsMsgErr = "Cuenta ["+TsCc1Cta+"] automatica de ["+XsCodCta+"] no existe. Actualizaci¢n queda pendiente CASO6 CC1Cta"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN 2
 		ENDIF
@@ -2129,8 +2131,8 @@ DO CASE
 		ENDIF	
 		=MOVbGrab(LlCrearDeta)
 	****	
-		
-	CASE CTAS.TIP_AFE_RT='A'	&& VETT 2010-07-05 
+	** VETT 2010-07-05	
+	CASE CTAS.TIP_AFE_RT='A'	   && TAG: CASO7 ** VETT:Afinando validaciones para cuentas automaticas 2022/02/17 16:56:49 **
 
 		XsCodCta=LsCodCta_ORI
 		XcTpoMov=LcTpoMov_ORI		
@@ -2139,12 +2141,12 @@ DO CASE
 		TsAn2CtaME = IIF(LlHayAn2CtaME,CTAS.AN2CTAME,'')
 		LlHayAn2CtaME = IIF(EMPTY(TsAn2CtaME),.F.,.T.)
 		IF ! SEEK(TsAn1Cta,"CTAS")
-			GsMsgErr = "Cuenta Autom tica no existe. Actualizaci¢n queda pendiente"
+			GsMsgErr = "Cuenta ["+TsAn1Cta+"] automatica de ["+XsCodCta+"] no existe. Actualizaci¢n queda pendiente CASO7 An1Cta"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN
 		ENDIF
 		IF ! SEEK(TsCC1Cta,"CTAS")
-			GsMsgErr = "Cuenta Autom tica no existe. Actualizaci¢n queda pendiente"
+			GsMsgErr = "Cuenta ["+TsCc1Cta+"] automatica de ["+XsCodCta+"] no existe. Actualizaci¢n queda pendiente CASO7 Cc1Cta"
 			=MESSAGEBOX(GsMsgErr,16,'Atención')
 			RETURN 2
 		ENDIF

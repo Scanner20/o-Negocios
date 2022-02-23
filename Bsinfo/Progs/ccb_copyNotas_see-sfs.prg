@@ -1,5 +1,9 @@
 PARAMETERS PsTipo,PsNota,PsFact
 
+IF PsNota='E'
+	RETURN
+ENDIF
+
 SET PROCEDURE TO setup_file_date additive 
 ** Ejemplo
 **  MODIFY COMMAND O:\o-negocios\Interface\facturador\cia_001\20427712959-07-F002-00000058.NOT

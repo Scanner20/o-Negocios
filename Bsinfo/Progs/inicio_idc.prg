@@ -116,13 +116,17 @@ DO config_almacen
 
 && Clasificacion auxiliar de clientes y proveedores de la tabla CBDMAUXI
 DO FORM gen4_login.scx WITH 'ADM'
+** VETT:Inicio rapido escoger Login, Empresa(Compañia) y Modulo 2022/02/19 15:22:39 ** 
+READ EVENTS
 *!*	Goentorno.User.Login= 'Prueba'
 *!*	GoEntorno.USER.GroupName		= 'Ventas'
 *!*	GsUsuario = 'Prueba'
 =BuildAccessCursor()
 xAcceso = .T.
-*
-**
+DO FORM funfun_compañias.scx
+DO FORM funfun_selec_contab.scx
+** VETT: 2022/02/19 15:22:39 **
+
 ************************
 PROCEDURE Config_almacen
 ************************

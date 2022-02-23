@@ -5,6 +5,11 @@ IF VARTYPE(PsVer)<>'C'
 	PsVer = '1.3.2'
 ENDIF
 #include const.h 
+IF PoDataCab.NroDoc='E' AND INLIST(PoDataCab.CodDoc,'FACT','BOLE','N/C','N/D')
+	RETURN .T.
+ENDIF
+
+
 Lsruta   = ADDBS(TRIM(PsRuta))
 LsCodDoc	=ICASE(PoDataCab.CodDoc='FACT','01',PoDataCab.CodDoc='BOLE','03',PoDataCab.CodDoc='N/C','07',PoDataCab.CodDoc='N/D','08')
 LsLetSer	=ICASE(INLIST(PoDataCab.CodDoc,'FACT','BOLE'),LEFT(PoDataCab.CodDoc,1),INLIST(PoDataCab.CodDoc,'N/C','N/D'),LEFT(PoDataCab.CodRef,1),'X')

@@ -260,9 +260,16 @@ DO WHILE NroMes+CodOpe = xLLave .AND. ! EOF()
 	REPLACE  CodCco     WITH XsCodCco
 	REPLACE  Cliente    with IIF(VMOV.FlgEst='A',VMOV.NotAst,XsNomAux)
 	REPLACE  CodDoc     With XsCodDoc
-	XnPosGuion= AT('-',XsNroDoc)
-	LsSerDoc    = IIF(XnPosGuion>0,LEFT(XsNroDoc,XnPosGuion-1),LEFT(XsNroDoc,3))
-	LsNroDoc    = IIF(XnPosGuion>0,SUBST(XsNroDoc,XnPosGuion+1),SUBST(XsNroDoc,4))
+	** VETT:Control de las series que incluyen letras- Documentos creados en SEE - SOL - SFS 2022/02/18 16:43:41 **
+	** QUEDA PENDIENTE AGREGAR ESTA REGLA DE NEGOCIO FUERA DEL CODIGO &&RN001:SERIE 2022/02/18 16:43:41 **
+	m.lcReturnToMe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	m.LcSource  = XsNroDoc
+	m.LsSerLet	= CHRTRAN(m.lcSource, CHRTRAN(m.lcSource, m.lcReturnToMe, SPACE(0)), SPACE(0))
+	LnLenSer    = IIF(EMPTY(m.LsSerLet),3,4)	
+	XnPosGuion	= AT('-',XsNroDoc)
+	LsSerDoc    = IIF(XnPosGuion>0,LEFT(XsNroDoc,XnPosGuion-1), LEFT(XsNroDoc,LnLenSer))    &&RN001  IIF(XnPosGuion>0,LEFT(XsNroDoc,XnPosGuion-1),LEFT(XsNroDoc,3))
+	LsNroDoc    = IIF(XnPosGuion>0,SUBST(XsNroDoc,XnPosGuion+1),SUBST(XsNroDoc,LnLenSer+1)) &&RN001  IIF(XnPosGuion>0,SUBST(XsNroDoc,XnPosGuion+1),SUBST(XsNroDoc,4))
+	** VETT: 2022/02/18 16:43:41 **
 	REPLACE  SerDoc     With IIF(VMOV.FlgEst='A',LEFT(VMOV.NroVou,3),LsSerDoc)
 	REPLACE  NroDoc     With IIF(VMOV.FlgEst='A',SUBs(VMOV.NroVou,4),LsNroDoc)
 *	REPLACE  FchDoc		WITH IIF(EMPTY(XdFchDoc),VMOV.FchAst,XdFchDoc)
@@ -288,9 +295,13 @@ DO WHILE NroMes+CodOpe = xLLave .AND. ! EOF()
 	REPLACE FchRef	WITH XdFchRef	
 	REPLACE TipRef		WITH XsTipRef
 	** VETT  22/11/2017 1:15 AM : Descomponer la serie del NroRef por defecto 3 1eros digitos, sino segun el guion '-'
+ 	** VETT:Control de las series que incluyen letras- Documentos creados en SEE - SOL - SFS 2022/02/18 16:43:41 **
+	m.LcSource  = XsNroRef
+	m.LsSerLet	= CHRTRAN(m.lcSource, CHRTRAN(m.lcSource, m.lcReturnToMe, SPACE(0)), SPACE(0))	
+	LnLenSer    = IIF(EMPTY(m.LsSerLet),3,4)	
 	XnPosGuion= AT('-',XsNroRef)
-	LsSerRef    = IIF(XnPosGuion>0,LEFT(XsNroRef,XnPosGuion-1),LEFT(XsNroRef,3))
-	LsNroRef    = IIF(XnPosGuion>0,SUBST(XsNroRef,XnPosGuion+1),SUBST(XsNroRef,4))
+	LsSerRef    = IIF(XnPosGuion>0,LEFT(XsNroRef,XnPosGuion-1),LEFT(XsNroRef,LnLenSer))     &&RN001 IIF(XnPosGuion>0,LEFT(XsNroRef,XnPosGuion-1),LEFT(XsNroRef,3))
+	LsNroRef    = IIF(XnPosGuion>0,SUBST(XsNroRef,XnPosGuion+1),SUBST(XsNroRef,LnLenSer+1))   &&RN001 IIF(XnPosGuion>0,SUBST(XsNroRef,XnPosGuion+1),SUBST(XsNroRef,4))
 	REPLACE SerRef    WITH RIGHT('0000'+LTRIM(LsSerRef),4)		&& LEFT(XsNroRef,3)
 	REPLACE NroRef    WITH LsNroRef		&& SUBST(XsNroRef,4)
 	REPLACE FchVto	WITH XdFchVto

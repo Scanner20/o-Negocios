@@ -1,7 +1,8 @@
 Bsinfo/hojas/
 bk_Foxcode/
-Bsinfo/X*.dbf
-Bsinfo/X*.cdx
+Bsinfo/*.dbf
+Bsinfo/*.cdx
+Bsinfo/*.fpt
 bsinfo1/
 bsinfo2/
 bsinfo3/

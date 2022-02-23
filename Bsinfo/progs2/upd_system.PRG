@@ -279,5 +279,12 @@ ALTER table ALIAS() add  COLUMN usermodi C(10)
 ALTER table ALIAS() add  COLUMN fchmodi T
 ALTER table ALIAS() add  COLUMN userelim C(10)
 ALTER table ALIAS() add  COLUMN fchelim T
+USE VTAVGUIA ALIAS GUIA EXCLUSIVE
+ALTER table ALIAS() add  COLUMN usercrea C(10)
+ALTER table ALIAS() add  COLUMN fchcrea T
+ALTER table ALIAS() add  COLUMN usermodi C(10)
+ALTER table ALIAS() add  COLUMN fchmodi T
+ALTER table ALIAS() add  COLUMN userelim C(10)
+ALTER table ALIAS() add  COLUMN fchelim T
 
 USE
