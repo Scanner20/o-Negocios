@@ -172,7 +172,8 @@ ELSE
 				SELECT RMOV
 				SEEK TRANSFORM(TnMes,'@L 99')+CTAS.CodCta
 				SCAN WHILE NroMes=TRANSFORM(TnMes,'@L 99') AND CodCta=CTAS.CodCta FOR EVALUATE(XsFor1)
-					IF SEEK(CodOpe,'OPER') AND OPER.Libros   
+					** VETT:Vamos a eliminar el filtro de [libros] por que es para los que intervienen en el presupuesto 2022/03/04 11:15:59 **
+					IF SEEK(CodOpe,'OPER') && AND OPER.Libros   2022/03/04 11:15:59 **
 						IF Import <> 0 OR ImpUsa <> 0 AND !EMPTY(CodOpe) AND !EMPTY(NroAst)
 							IF SEEK(NroMes+CodOpe+NroAst,'VMOV')
 								IF &LsFiltro
@@ -275,14 +276,15 @@ ELSE
 ENDIF
 En6 = ""
 DO CASE
-	CASE !XlDetalle_RMOV
+	** VETT:Diferenciar si es de un solo mes o rango de meses independiente de los otros filtros 2022/03/04 11:56:47 ** 
+	CASE !XlDetalle_RMOV AND XiMesIni<>XiMesFin
 	
-En7 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-En8 = "     CUENTAS - CONCEPTOS             ENERO          FEBRERO             MARZO           ABRIL              MAYO            JUNIO           JULIO          AGOSTO         SETIEMBRE          OCTUBRE         NOVIEMBRE    "
-En9 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-En7 =En7+"-----------------------------------"
-En8 =En8+"   DICIEMBRE       ACUMULADO       "
-En9 =En9+"-----------------------------------"
+		En7 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+		En8 = "     CUENTAS - CONCEPTOS             ENERO          FEBRERO             MARZO           ABRIL              MAYO            JUNIO           JULIO          AGOSTO         SETIEMBRE          OCTUBRE         NOVIEMBRE    "
+		En9 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+		En7 =En7+"-----------------------------------"
+		En8 =En8+"   DICIEMBRE       ACUMULADO       "
+		En9 =En9+"-----------------------------------"
 		STORE "" TO  LsEncab1,LsEncab2,LsEncab3,LsEncab4
 		LsEncab1 = LEFT(En7,30)
 		LsEncab2 = LEFT(En8,30)
@@ -298,14 +300,23 @@ En9 =En9+"-----------------------------------"
 		En8 = LsEncab2
 		En9 = LsEncab3
 		Ancho = 30+ XnEsp*13
+	
+	** VETT:  2022/03/04 11:56:47 ** 
+	CASE !XlDetalle_RMOV AND XiMesIni=XiMesFin
+		En7 = "--------------------------------------------------------------------------------------------------------------"
+		En8 = "     CUENTAS - CONCEPTOS                                           IMPORTE      			         TOTAL       "
+		En9 = "--------------------------------------------------------------------------------------------------------------"
+			  *1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+	          *                                34                         60                   81           94 
+			Ancho = LEN(En9)
 
 	CASE XlDetalle_RMOV AND XiMesIni<>XiMesFin
-En7 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-En8 = "     CUENTAS - CONCEPTOS             ENERO          FEBRERO             MARZO           ABRIL              MAYO            JUNIO           JULIO          AGOSTO         SETIEMBRE          OCTUBRE         NOVIEMBRE    "
-En9 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-En7 =En7+"-----------------------------------"
-En8 =En8+"   DICIEMBRE       ACUMULADO       "
-En9 =En9+"-----------------------------------"
+		En7 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+		En8 = "     CUENTAS - CONCEPTOS             ENERO          FEBRERO             MARZO           ABRIL              MAYO            JUNIO           JULIO          AGOSTO         SETIEMBRE          OCTUBRE         NOVIEMBRE    "
+		En9 = "-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+		En7 =En7+"-----------------------------------"
+		En8 =En8+"   DICIEMBRE       ACUMULADO       "
+		En9 =En9+"-----------------------------------"
 
 			STORE "" TO  LsEncab1,LsEncab2,LsEncab3,LsEncab4
 			LsEncab1 = LEFT(En7,30)
@@ -324,10 +335,10 @@ En9 =En9+"-----------------------------------"
 			Ancho = 30+ XnEsp*13
 
 	CASE XlDetalle_RMOV AND XiMesIni=XiMesFin
-En7 = "--------------------------------------------------------------------------------------------------------------"
-En8 = "     CUENTAS - CONCEPTOS                                      DOCUMENTO            FECHA          TOTAL       "
-En9 = "--------------------------------------------------------------------------------------------------------------"
-	Ancho = LEN(En9)
+		En7 = "--------------------------------------------------------------------------------------------------------------"
+		En8 = "     CUENTAS - CONCEPTOS                                      DOCUMENTO            FECHA          TOTAL       "
+		En9 = "--------------------------------------------------------------------------------------------------------------"
+			Ancho = LEN(En9)
 ENDCASE
  	  *-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
 	  *     CUENTAS - CONCEPTOS         1234567890123456789012345 12345678901234567890 99/99/9999   999,999,999.99 
@@ -364,7 +375,8 @@ PRINTJOB
 		vImp = 0
 		LlPreCCo = !EMPTY(XsCodCCo) OR !EMPTY(XsCtaPre)
 		LHayMovimiento = .F.	
-		IF !XlDetalle_RMOV AND !LlPreCco
+		** VETT: ** VETT:Diferenciar si es de un solo mes o rango de meses independiente de los otros filtros 2022/03/04 12:02:49 ** 
+		IF !XlDetalle_RMOV AND !LlPreCco && AND XiMesIni<>XiMesFin
 			IF DBENAC=0 AND HbeNAC =0 AND XiCodMon=1 AND !LlPreCCo
 				SKIP
 				LOOP
@@ -378,7 +390,11 @@ PRINTJOB
 				LOOP
 			ENDIF
 			DO Calculo
-			DO LinImp
+			IF XiMesIni<>XiMesFin
+				DO LinImp
+			ELSE
+				DO LinImp2
+			ENDIF	
 			SELECT TEMPO
 		ELSE
 			LsCodAux = CodAux
@@ -403,7 +419,14 @@ PRINTJOB
 *!*				IF XiMesIni<>XiMesFin
 *!*					DO LinImp_Aux
 *!*				ELSE
-				DO LinImp_Aux_Docs
+			** VETT:Solo si se marca detalle por auxiliar 2022/03/04 15:58:18 **
+			LlImprimir = .T.  
+			IF XlDetalle_RMOV
+				DO LinImp_Aux_Docs 
+			ELSE  && Solo hacer los calculos para 
+				DO LinImp_Aux_Docs2
+			ENDIF
+			** VETT: 2022/03/04 15:58:18 **
 *!*				ENDIF
 			SELECT TEMPO
 			SKIP 
@@ -475,6 +498,24 @@ FOR i = 1 to 12
 	vImp[i] = 0
 NEXT
 @ NumLin,30 + 12*XnEsp  SAY PICNUM(TOT)
+RETURN
+****************
+PROCEDURE LinImp2
+****************
+DO RESETPAG
+Numlin = PROW() + 1
+TOT    = 0
+=SEEK(LsCodCta,"CTAS")
+@ NumLin,0 SAY LsCodCta+" "+CTAS->nomCta PICT "@S30"
+FOR i = 1 to 12
+	IF i=XiMesFin
+		@ NumLin,60   SAY PICNUM(vImp[I])
+	ENDIF
+	TOT      = TOT + vImp[i]
+	vTot(i)     = vTot(i) + vImp[i]
+	vImp[i] = 0
+NEXT
+@ NumLin,94  SAY PICNUM(TOT)
 RETURN
 *********************
 PROCEDURE LinImp_RMOV
@@ -591,7 +632,6 @@ RETURN
 *************************
 PROCEDURE LinImp_Aux_Docs
 *************************
-*!*	SET STEP ON 
 LsAreaAct=SELECT()
 IF !USED('RMOV_AUX_DET')
 	RETURN
@@ -655,9 +695,71 @@ DO WHILE !EOF() AND &LsCampos1=LsLlave1 AND !Cancelar
 	ENDIF	
 	Cancelar = ( INKEY() = k_esc )
 ENDDO
-*!*	SET STEP ON 
 SELECT (LsAreaAct)
 RETURN
+*************************
+PROCEDURE LinImp_Aux_Docs2
+*************************
+** VETT:Solo se calculan los totales 2022/03/04 15:58:18 **
+LsAreaAct=SELECT()
+IF !USED('RMOV_AUX_DET')
+	RETURN
+ENDIF
+
+TOT    = 0
+vAux	= 0
+SEEK LsLlave1
+DO WHILE !EOF() AND &LsCampos1=LsLlave1 AND !Cancelar
+	DO RESETPAG
+	Numlin = PROW() + 1
+	IF XnOrd_Aux_Det = 1
+		=SEEK(ClfAux+CodAUX,"AUXI")
+		LsCodAux = CodAux
+		LsLLave2 = LsCodCta+LsCodAux
+	ELSE
+		=SEEK(CodCta,"CTAS")
+		LsCodCta = CodCta
+		LsLLave2 = LsCodAux+LsCodCta
+	ENDIF
+	Tot = 0
+	SCAN WHILE &LsCampos2 = LsLlave2 AND !Cancelar
+		xmes = VAL(NroMes)
+		IF XiCodMon = 1
+			LfImport = IIF(XlFormato,ROUND(IIF(TpoMov='D',1,-1)*Import,0),IIF(TpoMov='D',1,-1)*Import) 
+			vAux(xMes) = vAux(xMes) + IIF(XlFormato,ROUND(IIF(TpoMov='D',1,-1)*Import,0),IIF(TpoMov='D',1,-1)*Import) 
+		ELSE
+			vAux(xMes) = vAux(xMes) + IIF(XlFormato,ROUND(IIF(TpoMov='D',1,-1)*ImpUsa,0),IIF(TpoMov='D',1,-1)*ImpUsa)
+			LfImport = IIF(XlFormato,ROUND(IIF(TpoMov='D',1,-1)*ImpUsa,0),IIF(TpoMov='D',1,-1)*ImpUsa) 
+		ENDIF
+		IF XiMesIni=XiMesFin
+		ENDIF
+		Cancelar = ( INKEY() = k_esc )
+	ENDSCAN
+	FOR i = 1 to 12
+		IF XiMesIni<>XiMesFin
+		ENDIF	
+		TOT      = TOT + vAux[i]
+		vTot(i)     = vTot(i) + vAux[i]
+		vAux[i] = 0
+	NEXT
+	IF XiMesIni<>XiMesFin
+
+	ELSE
+	ENDIF	
+	Cancelar = ( INKEY() = k_esc )
+ENDDO
+SELECT (LsAreaAct)
+RETURN
+*********************************************************
+** VETT: CONTROLAMOS SI SE IMPRIME 2022/03/04 15:58:18 **
+FUNCTION fNumlin
+**************
+PARAMETERS PnNumLin,PnCol,PnValor,PlNoPrint
+IF PlNoPrint
+	RETURN 
+ENDIF
+@ PnNumLin,PnCol  SAY PnValor
+
 
 ****************
 PROCEDURE LinTOT
@@ -741,7 +843,7 @@ PROCEDURE GENTEMPO
 ******************
 ArcTmp2 = pathuser+sys(3)
 SELE 0
-CREATE TABLE FREE (ArcTmp2) (CodCta C(LEN(ACCT.CodCta)), NomCta C(Len(CTAS.NomCta)), ;
+CREATE TABLE (ArcTmp2) FREE (CodCta C(LEN(ACCT.CodCta)), NomCta C(Len(CTAS.NomCta)), ;
 				CodRef C(LEN(ACCT.CodRef)),;	
 				vImp01 n(14,2),vImp02 n(14,2),vImp03 n(14,2),;
 				vImp04 n(14,2),vImp05 n(14,2),vImp06 n(14,2),;

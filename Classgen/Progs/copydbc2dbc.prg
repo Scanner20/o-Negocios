@@ -90,7 +90,7 @@ FOR i=1 to ALEN(atables,1)
   SET DATABASE TO (tfromdbc)
   use (atables(i)) IN 0
   SELECT(atables(i))
-  IF SEEK(PADR(UPPER(atables(i)),LEN(DBFS.Archivo)),'DBFS') OR .T.
+  IF SEEK(PADR(UPPER(atables(i)),LEN(DBFS.Archivo)),'DBFS') && OR .T.
 	  IF INLIST(UPPER(atables(i)),'VTARITEM','ALMCAT')
 *!*			  	SET STEP ON 
 	  ENDIF

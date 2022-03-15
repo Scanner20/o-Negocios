@@ -23,6 +23,7 @@ SET PATH TO .\Forms , ;
             .\Reports , ;
             .\Reports2, ;
             .\Menus , ;
+            .\Menus2 , ;
             .\vcxs , ;
 	     	O:\o-negocios\IDC , ;
             O:\o-negocios\IDC\Data , ;

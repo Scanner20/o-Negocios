@@ -10362,7 +10362,7 @@ ENDDEFINE
 *-- Class:        base_form (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  form
 *-- BaseClass:    form
-*-- Time Stamp:   11/25/21 05:52:07 PM
+*-- Time Stamp:   03/03/22 09:18:00 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -10970,9 +10970,9 @@ DEFINE CLASS base_form AS form
 			IF UPPER(GsSigCia)='PREZCOM'
 		  		MESSAGEBOX( "En proceso de implementación", 64, "We are working about this issue",2000 )
 			ELSE
-				MESSAGEBOX( "Acceso denegado", 64, "Access denied", 2000 )
+				MESSAGEBOX( "Acceso denegado al proceso: ["+THISFORM.Name+"] Agregar permiso en Configuración de Accesos/Security Access", 64, "Access denied", 2000 )
 			ENDIF
-		 	STRTOFILE(TTOC(DATETIME()) +","+PROGRAM(1)+","+PROGRAM(2)+","+PROGRAM(3)+","+PROGRAM(4)+","+"Proceso: "+THISFORM.Name+CRLF,ERRLOGACCESS,.T.)
+		 	STRTOFILE(Goentorno.user.groupname+","+Goentorno.user.Login+","+TTOC(DATETIME()) +","+PROGRAM(1)+","+PROGRAM(2)+","+PROGRAM(3)+","+PROGRAM(4)+","+"Proceso: "+THISFORM.Name+CRLF,ERRLOGACCESS,.T.)
 		   RETURN .F.
 		ENDIF
 
@@ -11066,7 +11066,7 @@ ENDDEFINE
 *-- Class:        base_form_transac (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_form (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    form
-*-- Time Stamp:   01/19/22 01:00:03 AM
+*-- Time Stamp:   03/14/22 05:33:12 AM
 *-- Formulario base de transacciones
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
@@ -11328,9 +11328,9 @@ DEFINE CLASS base_form_transac AS base_form
 		Anchor = 0, ;
 		Enabled = .F., ;
 		Height = 20, ;
-		InputMask = "9999999999", ;
+		InputMask = "XXXXX9999999999", ;
 		Left = 64, ;
-		MaxLength = 10, ;
+		MaxLength = 15, ;
 		TabIndex = 1, ;
 		Top = 7, ;
 		Width = 80, ;
@@ -12024,7 +12024,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 
 	ADD OBJECT base_form_transac.pgfdetalle.page1.grddetalle.column7.txtprevta AS base_textbox_numero WITH ;
-		InputMask = "999,999,999.999", ;
+		InputMask = "999,999,999.9999", ;
 		Left = 35, ;
 		Top = 55, ;
 		Name = "TxtPreVta"
@@ -12064,7 +12064,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 
 	ADD OBJECT base_form_transac.pgfdetalle.page1.grddetalle.column9.txtpreuni AS base_textbox_numero WITH ;
-		InputMask = "99,999,999.999", ;
+		InputMask = "99,999,999.9999", ;
 		Left = 39, ;
 		Top = 43, ;
 		Name = "TxtPreUni"
@@ -16855,7 +16855,7 @@ DEFINE CLASS base_form_transac AS base_form
 			LfPreVta	= IIF(Thisform.LcTipOpe='I',this.Parent.Parent.column7.TxtPreVta.Value,EVALUATE(this.Parent.Parent.column7.TxtPreVta.Controlsource))
 			LfCantidad	= IIF(Thisform.LcTipOpe='I',this.Parent.Parent.Column4.TxtCantidad.Value,EVALUATE(this.Parent.Parent.Column4.txtCantidad.Controlsource))
 			LfD1	= IIF(Thisform.LcTipOpe='I',this.Parent.Parent.Column8.TxtD1.Value,EVALUATE(this.Parent.Parent.Column8.TxtD1.Controlsource))
-			LfPreUni    = ROUND(LfPreVta*(1-LfD1/100),3)
+			LfPreUni    = ROUND(LfPreVta*(1-LfD1/100),4)
 			LfImpLin=ROUND(LfPreUni*LfCantidad*This.Value,2)  
 			This.Parent.Parent.column9.TxtPreUni.Value  = LfPreUni
 			This.Parent.Parent.column10.TxtImpLin.Value = LfImpLin 
@@ -16911,7 +16911,7 @@ DEFINE CLASS base_form_transac AS base_form
 			LfD1		=	IIF(Thisform.LcTipOpe='I',this.Parent.Parent.COLUMN8.TxtD1.Value,EVALUATE(this.Parent.Parent.Column8.TxtD1.Controlsource))
 			.TxtFacEqu.Value = LfFacEqu
 			.TxtCandes.Value = LfCantidad
-			.TxtPreuni.Value = ROUND(this.value*(1-LfD1/100),3)
+			.TxtPreuni.Value = ROUND(this.value*(1-LfD1/100),4)
 		   	LlOkItem=  .TXtPreuni.Valid()
 		    LfPreuni = .txtPreuni.value 
 		    LfImpCto = .TxtImpCto.Value
@@ -17481,9 +17481,9 @@ DEFINE CLASS base_form_transac AS base_form
 						LfPreVta	=	CURVAL(LsCmpPVTA,thisform.c_validitem)
 
 						 IF INLIST(thisform.objreftran.XsCodDoc,'BOLE','PROF') 
-						 	.Column7.TxtPreVta.Value =	ICASE(LsCodIng_TP='SINIGV',ROUND(LfPreVta*(1+LfPorIgv/100),3),LsCodIng_TP='CONIGV',LfPreVta,LfPreVta )
+						 	.Column7.TxtPreVta.Value =	ICASE(LsCodIng_TP='SINIGV',ROUND(LfPreVta*(1+LfPorIgv/100),4),LsCodIng_TP='CONIGV',LfPreVta,LfPreVta )
 						 ELSE
-							.Column7.TxtPreVta.Value =	ICASE(LsCodIng_TP='SINIGV',LfPreVta,LsCodIng_TP='CONIGV',ROUND(LfPreVta/(1+LfPorIgv/100),3),LfPreVta ) && LfPreVta      && CURVAL(LsCmpPVTA,thisform.c_validitem)
+							.Column7.TxtPreVta.Value =	ICASE(LsCodIng_TP='SINIGV',LfPreVta,LsCodIng_TP='CONIGV',ROUND(LfPreVta/(1+LfPorIgv/100),4),LfPreVta ) && LfPreVta      && CURVAL(LsCmpPVTA,thisform.c_validitem)
 						ENDIF
 					ELSE
 						.Column7.TxtPreVta.Value=CURVAL('PREVTA',thisform.cCursor_d)
@@ -17543,7 +17543,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 
 	PROCEDURE txtpreuni.Valid
-		this.Value = ROUND(this.Value,3)
+		this.Value = ROUND(this.Value,4)
 		IF this.Parent.TxtFacEqu.Value<=0
 			This.parent.TxtImpCto.VALUE=round(THIS.VALUE*this.parent.TxtCandes.VALUE,2)
 		ELSE

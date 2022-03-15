@@ -78,11 +78,16 @@ IF XiTpoCco = 2
 ENDIF
 * 
 SELECT RMOV
-SEEK [6]
+** VETT:Debe cargar la clase 9  2022/03/04 19:40:58 ** 
+*!*	SEEK [6]
+SEEK [9]
 IF XiTpoCco = 1
-   COPY TO &ArcTmp WHILE CODCTA=[6] FOR((Val(NroMes)>=XiMesIni AND Val(NroMes)<=XiMesFin) AND !EMPTY(CodAux) AND !INLIST(LEFT(codcta,2),[66],[67]))
+	*!*	   COPY TO &ArcTmp WHILE CODCTA=[6] FOR((Val(NroMes)>=XiMesIni AND Val(NroMes)<=XiMesFin) AND !EMPTY(CodAux) AND !INLIST(LEFT(codcta,2),[66],[67]))
+   COPY TO &ArcTmp WHILE CODCTA=[9] FOR((Val(NroMes)>=XiMesIni AND Val(NroMes)<=XiMesFin))
 else
-   COPY TO &ArcTmp WHILE CODCTA=[6] FOR((Val(NroMes)>=XiMesIni AND Val(NroMes)<=XiMesFin) AND !EMPTY(CodAux) AND INLIST(ALLTRIM(CodCco),&cCentroCostos) AND !INLIST(LEFT(codcta,2),[66],[67]))
+	*!*	   COPY TO &ArcTmp WHILE CODCTA=[6] FOR((Val(NroMes)>=XiMesIni AND Val(NroMes)<=XiMesFin) AND !EMPTY(CodAux) AND INLIST(ALLTRIM(CodCco),&cCentroCostos) AND !INLIST(LEFT(codcta,2),[66],[67]))
+   COPY TO &ArcTmp WHILE CODCTA=[9] FOR((Val(NroMes)>=XiMesIni AND Val(NroMes)<=XiMesFin) AND INLIST(ALLTRIM(CodCco),&cCentroCostos) )
+	** VETT:Debe cargar la clase 9  2022/03/04 19:40:58 ** 
 ENDIF
 IF USED('TEMP')
    USE IN TEMP

@@ -10,7 +10,7 @@ Ll_Liqui_C=.F.
 IF !USED('L_C_Cobr')
 	IF FILE(ADDBS(goentorno.TsPathcia)+'Liq_Cob.dbf')
 		SELECT 0
-		USE Liq_Cob ORDER LIQ_AST ALIAS L_C_Cobr	&& LIQUI
+		USE ADDBS(goentorno.TsPathcia)+'Liq_Cob' ORDER LIQ_AST ALIAS L_C_Cobr	&& LIQUI
 		Ll_Liqui_C=.T.
 	ENDIF	
 ENDIF
@@ -18,7 +18,7 @@ Ll_Liqui_D=.F.
 IF !USED('L_D_Cobr')
 	IF FILE(ADDBS(goentorno.TsPathcia)+'Liq_Det.dbf')
 		SELECT 0
-		USE Liq_Det ORDER CodDoc ALIAS L_D_Cobr	&& LIQUI
+		USE ADDBS(goentorno.TsPathcia)+'Liq_Det' ORDER CodDoc ALIAS L_D_Cobr	&& LIQUI
 		Ll_Liqui_D=.T.
 	ENDIF
 ENDIF

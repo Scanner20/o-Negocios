@@ -19,6 +19,6 @@ IF NOT EMPTY ( SaveAlias )
 ENDIF
 
 IF !ReturnValue
- 	 STRTOFILE(TTOC(DATETIME()) +","+PROGRAM(1)+","+PROGRAM(2)+","+PROGRAM(3)+","+PROGRAM(4)+","+"Proceso: "+pProcess+CRLF,ERRLOGACCESS,.F.)
+ 	 STRTOFILE(Goentorno.user.groupname+","+Goentorno.user.Login+","+TTOC(DATETIME()) +","+PROGRAM(1)+","+PROGRAM(2)+","+PROGRAM(3)+","+PROGRAM(4)+","+"Proceso: "+pProcess+CRLF,ERRLOGACCESS,.T.)
 ENDIF
 RETURN ReturnValue

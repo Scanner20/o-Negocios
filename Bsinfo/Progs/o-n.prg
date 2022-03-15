@@ -25,19 +25,45 @@ ENDIF
 *!*	         	D:\o-negocios\IDC , ;
 *!*	            D:\o-negocios\IDC\Data , ;
 
-SET PATH TO .\Forms , ; 
-            .\Progs , ;
-            .\Reports , ;
-            .\Menus , ;
-            .\vcxs , ;
-            .\Data ,;
-			..\classgen\vcxs , ;
-			..\classgen\Forms ,;
-			..\classgen\Reports ,;
-			..\classgen\PROGS ,;
-			..\GrafGen\Iconos ,;
-			..\DLLS,;
-			..\LIBV\TASK_SERVER
+IF !EMPTY(VERSION(2))
+	SET PATH TO .\Forms , ; 
+			.\Forms2, ;
+	            .\Progs , ;
+	            .\Progs2, ;
+	            .\Reports , ;
+	            .\Reports2, ;
+	            .\Menus , ;
+	            .\Menus2 , ;
+	            .\vcxs , ;
+	            O:\o-negocios\IDC\,;
+	            O:\o-Negocios\IDC\DATA,;
+				..\classgen\vcxs , ;
+				..\classgen\Forms ,;
+				..\classgen\Reports ,;
+				..\classgen\PROGS ,;
+				..\GrafGen\Iconos ,;
+				..\DLLS,;
+				..\LIBV\TASK_SERVER
+ELSE
+	SET PATH TO .\Forms , ; 
+			.\Forms2, ;
+	            .\Progs , ;
+	            .\Progs2, ;
+	            .\Reports , ;
+	            .\Reports2, ;
+	            .\Menus , ;
+	            .\Menus2 , ;
+	            .\vcxs , ;
+			.\Data ,;
+				..\classgen\vcxs , ;
+				..\classgen\Forms ,;
+				..\classgen\Reports ,;
+				..\classgen\PROGS ,;
+				..\GrafGen\Iconos ,;
+				..\DLLS,;
+				..\LIBV\TASK_SERVER
+
+ENDIF
 			
 SET DEVELOPMENT OFF
 SET SYSMENU TO
