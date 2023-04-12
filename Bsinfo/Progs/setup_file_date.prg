@@ -1,5 +1,5 @@
 PARAMETERS LsFile,LdDateTime,LcTipo
-*!*	Ejem:  do k:\aplvfp\bsinfo\progs\setup_file_date.prg WITH 'c:\temp\appwiz1.bat',CTOT('22/08/2013 5:26p')
+*!*	Ejem:  do k:\aplvfp\bsinfo\progs\setup_file_date.prg WITH 'Fedora-Server-dvd-x86_64-36-1.5.iso',CTOT('20/09/2022 3:26p')
 IF VARTYPE(LsFile)<>'C'
 	LsFile=''
 ENDIF

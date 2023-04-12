@@ -14958,3 +14958,33 @@ PROCEDURE Init
 ENDPROC
 ENDDEFINE
 
+*------------------------------------------------
+FUNCTION _Dec2Bin(nDecimal,PlVer)
+*------------------------------------------------
+* Transforma un número decimal a binario
+* USO: _Dec2Bin(nDecimal)
+* RETORNA: Caracter
+*------------------------------------------------
+	IF PARAMETERS()<2
+		PlVer  = .F.
+	ENDIF
+  LOCAL lcBinario, lnResto,LnDecimal
+  LnDecimal = nDecimal
+  lcBinario = ''
+  IF Plver
+	  ??STR(nDecimal)+"/"+" 2"
+	  ?"====================="
+  ENDIF
+  DO WHILE nDecimal > 0
+    lnResto = MOD(nDecimal,2)
+    nDecimal = INT(nDecimal / 2)
+	IF PlVer
+    	?STR(ndecimal)+"|"+STR(lnResto)
+	ENDIF
+    lcBinario = STR(lnResto,1) + lcBinario
+  ENDDO
+  IF PlVer
+  	?"Resultado:"+STR(LnDecimal)+"(10) = "+LcBinario+"(2)"
+  ENDIF	
+  RETURN lcBinario
+ENDFUNC

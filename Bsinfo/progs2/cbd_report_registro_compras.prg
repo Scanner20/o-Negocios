@@ -324,12 +324,27 @@ REPLACE CodAux    WITH XsCodAux
 REPLACE Proveedor WITH XsNomAux
 REPLACE GloDoc    WITH XsGloDoc
 REPLACE CodDoc    WITH XsCodDoc
-XnPosGuion= AT('-',XsNroDoc)
-*!*	IF NroAst='01000044'
-*!*		SET STEP ON 
-*!*	ENDIF
-REPLACE SerDoc    WITH IIF(XnPosGuion>0,LEFT(XsNroDoc,XnPosGuion-1),LEFT(XsNroDoc,3))
-REPLACE NroDoc    WITH IIF(XnPosGuion>0,SUBST(XsNroDoc,XnPosGuion+1),SUBST(XsNroDoc,4))
+
+
+*!*	*!*	XnPosGuion= AT('-',XsNroDoc)
+*!*	*!*	*!*	IF NroAst='01000044'
+*!*	*!*	*!*		SET STEP ON 
+*!*	*!*	*!*	ENDIF
+*!*	*!*	REPLACE SerDoc    WITH IIF(XnPosGuion>0,LEFT(XsNroDoc,XnPosGuion-1),LEFT(XsNroDoc,3))
+*!*	*!*	REPLACE NroDoc    WITH IIF(XnPosGuion>0,SUBST(XsNroDoc,XnPosGuion+1),SUBST(XsNroDoc,4))
+** VETT:Control de las series que incluyen letras- Documentos creados en SEE - SOL - SFS 2022/02/18 16:43:41 **
+** QUEDA PENDIENTE AGREGAR ESTA REGLA DE NEGOCIO FUERA DEL CODIGO &&RN001:SERIE 2023/03/07 18:46:57 **
+m.lcReturnToMe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+m.LcSource  = XsNroDoc
+m.LsSerLet	= CHRTRAN(m.lcSource, CHRTRAN(m.lcSource, m.lcReturnToMe, SPACE(0)), SPACE(0))
+LnLenSer    = IIF(EMPTY(m.LsSerLet),3,4)	
+XnPosGuion	= AT('-',XsNroDoc)
+LsSerDoc    = IIF(XnPosGuion>0,LEFT(XsNroDoc,XnPosGuion-1), LEFT(XsNroDoc,LnLenSer))    &&RN001  IIF(XnPosGuion>0,LEFT(XsNroDoc,XnPosGuion-1),LEFT(XsNroDoc,3))
+LsNroDoc    = IIF(XnPosGuion>0,SUBST(XsNroDoc,XnPosGuion+1),SUBST(XsNroDoc,LnLenSer+1)) &&RN001  IIF(XnPosGuion>0,SUBST(XsNroDoc,XnPosGuion+1),SUBST(XsNroDoc,4))
+REPLACE  SerDoc     With IIF(VMOV.FlgEst='A',LEFT(VMOV.NroVou,3),LsSerDoc)
+REPLACE  NroDoc     With IIF(VMOV.FlgEst='A',SUBs(VMOV.NroVou,4),LsNroDoc)
+** VETT: 2023/03/07 18:46:57 **
+
 REPLACE NroRef    WITH XsNroRef    &&para las notas de credito y debito
 REPLACE ImporUS   WITH XfDolar   
 REPLACE ImpExt    WITH XfDolar2   && Solo cuando es en dolares

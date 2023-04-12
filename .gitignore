@@ -27,5 +27,6 @@ wwClient/
 _*.DBF
 _*.CDX
 _*.FPT
+*.rar
 Thumbs.db
 ehthumbs.db
