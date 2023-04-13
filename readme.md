@@ -1,4 +1,4 @@
-# AplVfp_public
+# ERP o-Negocios (Legacy ERP application created by Victor E. Torres Tejada since 1995 - 2022)
 
 This public repository contains the `main_idc` branch from the private AplVfp repository. The purpose of sharing this branch is to provide an insight into the source code of our ERP application.
 
