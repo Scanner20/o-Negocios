@@ -3,6 +3,13 @@ bk_Foxcode/
 Bsinfo/*.dbf
 Bsinfo/*.cdx
 Bsinfo/*.fpt
+Bsinfo/Progs/Dbcevents/
+Bsinfo/Progs/BK_Migracion/
+Bsinfo/progs2/Dbcevents/
+Bsinfo/progs2/ADHESIVO/
+Bsinfo/progs2/Amaro/
+Bsinfo/progs2/dev/
+Bsinfo/progs2/Diariog/
 bsinfo1/
 bsinfo2/
 bsinfo3/
