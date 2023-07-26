@@ -1,3 +1,0 @@
-XSTABLA = [CP]
-=VTABUSCA('CP')
-
