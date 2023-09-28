@@ -33,6 +33,7 @@ TierAdapter/
 TierAdapter2/
 Tools/
 wwClient/
+Libs/
 *.log
 *.fxp
 *.err
