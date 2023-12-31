@@ -1,12 +1,12 @@
 *       *********************************************************
 *       *                                                         
-*       * 15/03/2022           FUNVTAM00.MPR            11:48:19  
+*       * 15/12/2023           FUNVTAM00.MPR            05:50:31  
 *       *                                                         
 *       *********************************************************
 *       *                                                         
 *       * Victor E. Torres Tejada                                 
 *       *                                                         
-*       * Copyright (C) 2022 o-Negocios S.A.C                     
+*       * Copyright (C) 2023 o-Negocios S.A.C                     
 *       * Calle Las Palomas 120 - 701 - Torre 1                   
 *       * LIMA, LIMA  L034                                          
 *       * PERU                                              
@@ -27,28 +27,28 @@
 SET SYSMENU TO
 SET SYSMENU AUTOMATIC
 
-DEFINE PAD _6ac0paqg8 OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
+DEFINE PAD _6s60cisac OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
 	KEY ALT+M, ""
-DEFINE PAD _6ac0paqgf OF _MSYSMENU PROMPT "Transaciones" COLOR SCHEME 3 ;
+DEFINE PAD _6s60cisad OF _MSYSMENU PROMPT "Transaciones" COLOR SCHEME 3 ;
 	KEY ALT+T, ""
-DEFINE PAD _6ac0paqgj OF _MSYSMENU PROMPT "Consultas" COLOR SCHEME 3 ;
+DEFINE PAD _6s60cisae OF _MSYSMENU PROMPT "Consultas" COLOR SCHEME 3 ;
 	KEY ALT+C, ""
-DEFINE PAD _6ac0paqgk OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
+DEFINE PAD _6s60cisaf OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
 	KEY ALT+R, ""
-DEFINE PAD _6ac0paqgl OF _MSYSMENU PROMPT "Tablas \<Generales" COLOR SCHEME 3 ;
+DEFINE PAD _6s60cisag OF _MSYSMENU PROMPT "Tablas \<Generales" COLOR SCHEME 3 ;
 	KEY ALT+G, ""
-DEFINE PAD _6ac0paqgm OF _MSYSMENU PROMPT "Configuracion" COLOR SCHEME 3 ;
+DEFINE PAD _6s60cisah OF _MSYSMENU PROMPT "Configuracion" COLOR SCHEME 3 ;
 	KEY ALT+C, ""
-DEFINE PAD _6ac0paqgn OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
+DEFINE PAD _6s60cisai OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
 	KEY ALT+S, ""
-ON PAD _6ac0paqg8 OF _MSYSMENU ACTIVATE POPUP maestros
-ON PAD _6ac0paqgf OF _MSYSMENU ACTIVATE POPUP transacion
-ON PAD _6ac0paqgj OF _MSYSMENU ACTIVATE POPUP consultas
-ON PAD _6ac0paqgk OF _MSYSMENU ACTIVATE POPUP reportes
-ON PAD _6ac0paqgl OF _MSYSMENU ACTIVATE POPUP tablasgene
-ON PAD _6ac0paqgm OF _MSYSMENU ACTIVATE POPUP configurac
-ON SELECTION PAD _6ac0paqgn OF _MSYSMENU ;
-	DO _6ac0paqgo ;
+ON PAD _6s60cisac OF _MSYSMENU ACTIVATE POPUP maestros
+ON PAD _6s60cisad OF _MSYSMENU ACTIVATE POPUP transacion
+ON PAD _6s60cisae OF _MSYSMENU ACTIVATE POPUP consultas
+ON PAD _6s60cisaf OF _MSYSMENU ACTIVATE POPUP reportes
+ON PAD _6s60cisag OF _MSYSMENU ACTIVATE POPUP tablasgene
+ON PAD _6s60cisah OF _MSYSMENU ACTIVATE POPUP configurac
+ON SELECTION PAD _6s60cisai OF _MSYSMENU ;
+	DO _6s60cisaj ;
 	IN LOCFILE("MENUS2\FUNVTAM00" ,"MPX;MPR|FXP;PRG" ,"WHERE is FUNVTAM00?")
 
 DEFINE POPUP maestros MARGIN RELATIVE SHADOW COLOR SCHEME 4
@@ -58,30 +58,33 @@ DEFINE BAR 2 OF maestros PROMPT "Equivalencia de Unidades de Medida" ;
 	SKIP FOR NOT hasaccess('EquivalenciasUnidadesMedida')
 DEFINE BAR 3 OF maestros PROMPT "Correlativo de Documentos" ;
 	SKIP FOR NOT HasAccess('CorrelativoVentas')
-DEFINE BAR 4 OF maestros PROMPT "Maestro de Vendedores" ;
+DEFINE BAR 4 OF maestros PROMPT "Puntos de venta" ;
+	SKIP FOR NOT HasAccess('PuntoDeVenta')
+DEFINE BAR 5 OF maestros PROMPT "Maestro de Vendedores" ;
 	SKIP FOR NOT HasAccess('Vendedores')
-DEFINE BAR 5 OF maestros PROMPT "Lista de Precios" ;
+DEFINE BAR 6 OF maestros PROMPT "Lista de Precios" ;
 	SKIP FOR NOT HasAccess('ListaPrecios')
-DEFINE BAR 6 OF maestros PROMPT "Tipo de Cambio" ;
+DEFINE BAR 7 OF maestros PROMPT "Tipo de Cambio" ;
 	SKIP FOR NOT HasAccess('TipoCambio')
-DEFINE BAR 7 OF maestros PROMPT "Transportistas" ;
+DEFINE BAR 8 OF maestros PROMPT "Transportistas" ;
 	SKIP FOR NOT HasAccess('Transportistas')
-DEFINE BAR 8 OF maestros PROMPT "\-" ;
-	SKIP FOR NOT HasAccess('Competencia')
 DEFINE BAR 9 OF maestros PROMPT "\-" ;
-	SKIP FOR NOT HasAccess('PreciosCompetencia')
+	SKIP FOR NOT HasAccess('Competencia')
 DEFINE BAR 10 OF maestros PROMPT "\-" ;
+	SKIP FOR NOT HasAccess('PreciosCompetencia')
+DEFINE BAR 11 OF maestros PROMPT "\-" ;
 	SKIP FOR NOT HasAccess('AdjudicacionesVentas')
 ON SELECTION BAR 1 OF maestros Do form funcct_cat_clientes
 ON SELECTION BAR 2 OF maestros Do form Vta_Equivalencias
 ON SELECTION BAR 3 OF maestros Do form funvta_vtacdocm
-ON SELECTION BAR 4 OF maestros Do form funvta_vtavende
-ON SELECTION BAR 5 OF maestros Do form funvta_vtap1500
-ON SELECTION BAR 6 OF maestros Do form funfun_tipo_de_cambio
-ON SELECTION BAR 7 OF maestros do form vta_transportistas
-ON SELECTION BAR 8 OF maestros do form vta_competencia
-ON SELECTION BAR 9 OF maestros do form vta_competencia_precio
-ON SELECTION BAR 10 OF maestros do form vta_adjudicaciones
+ON SELECTION BAR 4 OF maestros do form vta_vtaptovt.scx
+ON SELECTION BAR 5 OF maestros Do form funvta_vtavende
+ON SELECTION BAR 6 OF maestros Do form funvta_vtap1500
+ON SELECTION BAR 7 OF maestros Do form funfun_tipo_de_cambio
+ON SELECTION BAR 8 OF maestros do form vta_transportistas
+ON SELECTION BAR 9 OF maestros do form vta_competencia
+ON SELECTION BAR 10 OF maestros do form vta_competencia_precio
+ON SELECTION BAR 11 OF maestros do form vta_adjudicaciones
 
 DEFINE POPUP transacion MARGIN RELATIVE SHADOW COLOR SCHEME 4
 DEFINE BAR 1 OF transacion PROMPT "Guia de remisión" ;
@@ -198,18 +201,18 @@ ON SELECTION BAR 2 OF configurac Do Form Vta_VtaConfg
 
 *       *********************************************************
 *       *                                                         
-*       * _6AC0PAQGO  ON SELECTION PAD                            
+*       * _6S60CISAJ  ON SELECTION PAD                            
 *       *                                                         
 *       * Procedure Origin:                                       
 *       *                                                         
-*       * From Menu:  FUNVTAM00.MPR,            Record:   59      
+*       * From Menu:  FUNVTAM00.MPR,            Record:   60      
 *       * Called By:  ON SELECTION PAD                            
 *       * Prompt:     Salir                                       
 *       * Snippet:    1                                           
 *       *                                                         
 *       *********************************************************
 *
-PROCEDURE _6ac0paqgo
+PROCEDURE _6s60cisaj
 IF MESSAGEBOX("¿Desea Salir de la Aplicación?",4+32+256,"Salir...")=6
    clear events
    set sysmenu to

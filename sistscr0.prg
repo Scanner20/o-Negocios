@@ -16,6 +16,11 @@ DO CASE
 		Run /N NET USE K: "\\servidor3-idc-o-negocios\dev"
 		Run /N NET USE O: "\\servidor3-idc-o-negocios\o-n"
 		Run /N NET USE P: "\\servidor3-idc-o-negocios\o-n2"
+	CASE INLIST(SYS(0),"HP-PRODESK-600-") 
+		Run /N NET USE K: "\\HP-PRODESK-600-G2Mini-L18\dev"
+		Run /N NET USE O: "\\HP-PRODESK-600-G2Mini-L18\o-n"
+		**Run /N NET USE P: "\\servidor3-idc-o-negocios\o-n2"
+
 ENDCASE
 ** VETT:Fin del parche 2021/05/14 07:59:01 ** 
 

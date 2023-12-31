@@ -35,8 +35,8 @@ IF !EMPTY(VERSION(2))
 	            .\Menus , ;
 	            .\Menus2 , ;
 	            .\vcxs , ;
-	            O:\o-negocios\IDC\,;
-	            O:\o-Negocios\IDC\DATA,;
+	            O:\o-negocios\QUEIROLO\,;
+	            O:\o-Negocios\QUEIROLO\DATA,;
 				..\classgen\vcxs , ;
 				..\classgen\Forms ,;
 				..\classgen\Reports ,;

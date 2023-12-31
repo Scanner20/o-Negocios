@@ -7221,7 +7221,7 @@ ENDIF
 **********************
 function cap_almctran  && Capturamos registros de la cabecera de almacen
 *********************
-parameter pcAlias,PcSubAlm,PcTipMov,PcCodMov,PcNroDoc
+parameter pcAlias,PcSubAlm,PcTipMov,PcCodMov,PcNroDoc,PcCodSed
 if PARAMETERS()=0
 	LsWhere = []
 	PcAlias = GoEntorno.TmpPath+SYS(3)
@@ -7287,18 +7287,18 @@ ENDCASE
 *********************
 function cap_almdtran  && Capturamos registros de la cabecera de almacen
 *********************
-parameter pcAlias,PcSubAlm,PcTipMov,PcCodMov,PcNroDoc,PcWhere,PcFor
+parameter PcCur_TEMP,PcSubAlm,PcTipMov,PcCodMov,PcNroDoc,PcWhere,PcFor,PcCodSed
 
 if PARAMETERS()=0
 	LsWhere = []
-	PcAlias = GoEntorno.TmpPath+SYS(3)
+	PcCur_TEMP = GoEntorno.TmpPath+SYS(3)
 else
-		IF PARAMETERS()=6
-			PcFor = '.T.'
-			IF VARTYPE(PcWhere)<>'C'
-				PcWhere = '.T.'
-			ENDIF
-		ENDIF	
+		IF VARTYPE(PcCodSed)<>'C'
+			PcCodSed = []
+		ENDIF
+		IF EMPTY(PcCodSed)
+			PcCodSed = GsCodSed
+		ENDIF
 		IF PARAMETERS()=7
 			IF VARTYPE(PcFor)<>'C'
 				PcFor = '.T.'
@@ -7307,6 +7307,13 @@ else
 				PcWhere = '.T.'
 			ENDIF
 		ENDIF
+
+		IF PARAMETERS()=6
+			PcFor = '.T.'
+			IF VARTYPE(PcWhere)<>'C'
+				PcWhere = '.T.'
+			ENDIF
+		ENDIF	
 
 		IF PARAMETERS()=1
 			LsWhere = []
@@ -7327,7 +7334,7 @@ else
 			PcNroDoc=TRIM(PcNroDoc)
 		ENDIF	
 
-	LsWhere = [almdtran.Subalm+almdtran.TipMov+almDtran.CodMov+almDtran.NroDoc+STR(almdtran.nroitm,3,0)=PcSubAlm+PcTipMov+PcCodMov+PcNroDoc]
+	LsWhere = [almdtran.CodSed+almdtran.Subalm+almdtran.TipMov+almDtran.CodMov+almDtran.NroDoc+STR(almdtran.nroitm,3,0)=PcCodSed+PcSubAlm+PcTipMov+PcCodMov+PcNroDoc]
 ENDIF
 
 IF VARTYPE(PcFor)<>'C'
@@ -7343,20 +7350,24 @@ lsRutaDtra=goentorno.remotepathentidad('almdtran')
 lsRutaCatg=goentorno.remotepathentidad('almcatge')
 DO CASE 
 	CASE PcSubAlm='G/R'
-		IF USED(PcAlias)
-			USE IN (PcAlias)
+		IF USED(PcCur_TEMP)
+			** VETT: Si ya existe el cursor borramos todos sus registros IDUPD:1678539289-23/12/2023 12:15 PM
+			SELECT (PcCur_TEMP)
+			ZAP	
+		ELSE
+			** VETT: Si no esta abierto el cursor lo creamos IDUPD:4260302530-23/12/2023 12:14 PM 		
+			LOCAL LoDatAdm AS DataAdmin OF k:\aplvfp\classgen\vcxs\DOSVR.vcx
+			LoDatAdm=CREATEOBJECT('DOSVR.DataAdmin')
+			LoDatAdm.abrirtabla('TEMP_STR','DTRA',PcCur_TEMP,'','')
+			LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','CodMat2','C',LEN(CATG.CodMat),0)
+			LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','DesMat2','C',LEN(CATG.DesMat),0)
+			LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','UndStk','C',LEN(CATG.UndStk),0)
+			LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','NroReg','N',6,0)
+			LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','ChkSerie','L',1,0)
+			LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','T_Tramo','N',10,2)
+			SELECT (PcCur_TEMP)
+			INDEX on Nro_itm TAG OrdItems
 		ENDIF
-		LOCAL LoDatAdm AS DataAdmin OF k:\aplvfp\classgen\vcxs\DOSVR.vcx
-		LoDatAdm=CREATEOBJECT('DOSVR.DataAdmin')
-		LoDatAdm.abrirtabla('TEMP_STR','DTRA',PcAlias,'','')
-		LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','CodMat2','C',LEN(CATG.CodMat),0)
-		LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','DesMat2','C',LEN(CATG.DesMat),0)
-		LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','UndStk','C',LEN(CATG.UndStk),0)
-		LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','NroReg','N',6,0)
-		LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','ChkSerie','L',1,0)
-		LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','T_Tramo','N',10,2)
-		SELECT (PcAlias)
-		INDEX on Nro_itm TAG OrdItems
 		LOCAL LsLLaveGuia
 		SELECT DTRA
 		SET ORDER TO DTRA04 
@@ -7369,24 +7380,27 @@ DO CASE
 			**m.DesMat = CATG.DesMat 
 			m.UndStk = CATG.UndStk
 			m.NroReg=RECNO()
-			INSERT into (PcAlias) from memvar			
+			INSERT into (PcCur_TEMP) from memvar			
 			SELECT DTRA
 		ENDSCAN
 	OTHERWISE
 		DO CASE 
 			CASE .t.	
-				IF USED(PcAlias)
-					USE IN (PcAlias)
+				IF USED(PcCur_TEMP)
+					** VETT: Si ya existe el cursor borramos todos sus registros IDUPD:1678539289-23/12/2023 12:15 PM
+					SELECT (PcCur_TEMP)
+					ZAP	
+				ELSE
+					** VETT: Si no esta abierto el cursor lo creamos IDUPD:4260302530-23/12/2023 12:14 PM 				LOCAL LoDatAdm AS DataAdmin OF k:\aplvfp\classgen\vcxs\DOSVR.vcx
+					LoDatAdm=CREATEOBJECT('DOSVR.DataAdmin')
+					LoDatAdm.abrirtabla('TEMP_STR','DTRA',PcCur_TEMP,'','')
+					LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','CodMat2','C',LEN(CATG.CodMat),0)
+					LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','DesMat2','C',LEN(CATG.DesMat),0)
+					LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','UndStk','C',LEN(CATG.UndStk),0)
+					LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','NroReg','N',6,0)
+					LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','ChkSerie','L',1,0)
+					LoDatAdm.Mod_str_tabla(PcCur_TEMP,'Agregar','T_Tramo','N',10,2)
 				ENDIF
-				LOCAL LoDatAdm AS DataAdmin OF k:\aplvfp\classgen\vcxs\DOSVR.vcx
-				LoDatAdm=CREATEOBJECT('DOSVR.DataAdmin')
-				LoDatAdm.abrirtabla('TEMP_STR','DTRA',PcAlias,'','')
-				LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','CodMat2','C',LEN(CATG.CodMat),0)
-				LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','DesMat2','C',LEN(CATG.DesMat),0)
-				LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','UndStk','C',LEN(CATG.UndStk),0)
-				LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','NroReg','N',6,0)
-				LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','ChkSerie','L',1,0)
-				LoDatAdm.Mod_str_tabla(PcAlias,'Agregar','T_Tramo','N',10,2)
 				LOCAL LsLLaveGuia
 				SELECT DTRA
 				SET ORDER TO DTRA01 
@@ -7399,13 +7413,13 @@ DO CASE
 					m.DesMat = CATG.DesMat 
 					m.UndStk = CATG.UndStk
 					m.NroReg=RECNO()
-					INSERT into (PcAlias) from memvar			
+					INSERT into (PcCur_TEMP) from memvar			
 					SELECT DTRA
 				ENDSCAN
 
 			OTHERWISE 
 				if empty(lsWhere)
-					select * from lsRutaDtra into table (PcAlias)
+					select * from lsRutaDtra into table (PcCur_TEMP)
 				ELSE
 					IF VERSION(5)<700
 						select almdtran.*,almcatge.desmat,almcatge.undstk,RECNO('almdtran') AS NROREG,SPACE(2) aS TipPre from &LsRutaDtra inner join &LsRutaCatg on ;
@@ -7416,20 +7430,20 @@ DO CASE
 						COPY TO (LcArcTmp)
 						USE IN TEMPORAL
 						SELE 0
-						USE (LcArcTmp) ALIAS (PcAlias) exclusive
+						USE (LcArcTmp) ALIAS (PcCur_TEMP) exclusive
 						
 					ELSE
 						select almdtran.*,almcatge.desmat,almcatge.undstk,RECNO('almdtran') AS NROREG, SPACE(2) aS TipPre from &LsRutaDtra inner join &LsRutaCatg on ;
 						 almdtran.codmat=almcatge.codmat where &LsWhere. ;
-						 into Cursor (PcAlias) readwrite
+						 into Cursor (PcCur_TEMP) readwrite
 
 					ENDIF
 				endif	
 		
 		ENDCASE	
 ENDCASE
-IF USED(PcAlias) 
-	GO TOP IN (PcAlias)
+IF USED(PcCur_TEMP) 
+	GO TOP IN (PcCur_TEMP)
 ENDIF
 ************************
 FUNCTION CORRELATIVO_ALM
@@ -8012,7 +8026,19 @@ ELSE
 		   	NroDoc = m.sNroDoc
 	ENDIF   	
 ENDIF
-** VETT: 2022/02/16 04:34:38 **
+** VETT: Log de usuario [FIN] 2022/02/16 04:34:38 **
+
+** VETT: Modalidad de transporte GRE  11/12/2023 12:06 PM **
+IF VerifyVar('ModTra','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+     	ModTra = C_CTRA.ModTra ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF   	
+** VETT: Modalidad de transporte GRE [FIN] 11/12/2023 12:06 PM **
+
  
 *** Campos para construccion **** VETT 2007-03-13
 SELECT CTRA
@@ -10095,7 +10121,7 @@ FOR K = 1 TO GoCfgCpi.nTotMov
        IF CO_T.flgest<>[P] 
        		LnOk = MESSAGEBOX('Existen componentes y/o insumos que no cuentan con stock en este momento, Desea generar las ;
  salidas de los que si tienen stock y dejar pendientes los que no tienen stock ?',32+4,'Atencion!! / Warning!!')   				 
- 			IF LnOk<>6
+ 			IF LnOk=6
 		   		=ActAlmCen(K)		        			
  			ENDIF	
 	   ELSE 

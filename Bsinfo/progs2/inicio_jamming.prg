@@ -9,13 +9,13 @@ SET SYSMENU TO DEFA
 		SET DEFA TO \AplVfp\bsinfo
 *!*			CD SYS(5)+'\dev\aplvfp\bsinfo\proys\'
 *!*			SET DEFA TO \dev\AplVfp\bsinfo
-		DEFINE WINDOW desktop2 FROM 1,20 TO 40,77  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG')
+		DEFINE WINDOW desktop2 FROM 1,20 TO 40,77  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
 		ACTIVATE WINDOW desktop2
 
 	ELSE
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
 		SET DEFA TO \AplVfp\bsinfo
-		DEFINE WINDOW desktop2 FROM 1,20 TO 40,77  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG')
+		DEFINE WINDOW desktop2 FROM 1,20 TO 40,77  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
 		ACTIVATE WINDOW desktop2
 
 	ENDIF

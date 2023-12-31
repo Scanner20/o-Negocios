@@ -1,0 +1,6 @@
+Almacen:
+Almacen Victor - 100%
+Almacen Miguel - Estadistica anual de movimiento - AlmFrmEstAnualMovimientos
+                 COnsulta almacen - Alm_frmConConsulKardex
+Contabilidad   - 
+Planillas      - 100 % Miguel 

@@ -2798,9 +2798,9 @@ PARAMETERS PsNomCia,PsNomBdAno
 ***************** View setup for V_MATERIALES_SIN_ALMACEN ***************
 
 CREATE SQL VIEW "V_MATERIALES_SIN_ALMACEN" ; 
-   AS SELECT Almcatge.codmat, Almcatge.desmat, Almcatge.undstk, Almcatge.codant, Almtalma.dessub, Almcatal.subalm, ;
+   AS SELECT Almcatge.codmat, Almcatge.desmat, Almcatge.undstk, Almcatge.codant, SPACE(30) AS dessub, Almcatal.subalm, ;
     0.0000 AS stk_sede, 0.0000 AS stk_alm, 0.0000 AS stk_gen FROM  &PsNomBDAno.!almcatge  LEFT OUTER JOIN &PsNomBDAno.!almcatal  ON ;
-     Almcatge.codmat = Almcatal.codmat  INNER JOIN &PsNomCia.!almtalma  ON  Almcatal.subalm = Almtalma.subalm
+     Almcatge.codmat = Almcatal.codmat  WHERE  Almcatal.codmat IS NULL
 
 DBSetProp('V_MATERIALES_SIN_ALMACEN', 'View', 'UpdateType', 1)
 DBSetProp('V_MATERIALES_SIN_ALMACEN', 'View', 'WhereType', 3)
@@ -2840,10 +2840,9 @@ DBSetProp('V_MATERIALES_SIN_ALMACEN.codant', 'Field', 'Updatable', .T.)
 DBSetProp('V_MATERIALES_SIN_ALMACEN.codant', 'Field', 'UpdateName', PsNomBDAno+'!almcatge.codant')
 DBSetProp('V_MATERIALES_SIN_ALMACEN.codant', 'Field', 'DataType', "C(15)")
 * Props for the V_MATERIALES_SIN_ALMACEN.dessub field.
-DBSetProp('V_MATERIALES_SIN_ALMACEN.dessub', 'Field', 'KeyField', .F.)
-DBSetProp('V_MATERIALES_SIN_ALMACEN.dessub', 'Field', 'Updatable', .F.)
-DBSetProp('V_MATERIALES_SIN_ALMACEN.dessub', 'Field', 'UpdateName', PsNomCia+'!almtalma.dessub')
-DBSetProp('V_MATERIALES_SIN_ALMACEN.dessub', 'Field', 'DataType', "C(32)")
+DBSetProp('V_MATERIALES_SIN_ALMACEN.dessub',"Field","DataType","C(30)")
+DBSetProp('V_MATERIALES_SIN_ALMACEN.dessub',"Field","KeyField",.F.)
+DBSetProp('V_MATERIALES_SIN_ALMACEN.dessub',"Field","Updatable",.F.)
 * Props for the V_MATERIALES_SIN_ALMACEN.subalm field.
 DBSetProp('V_MATERIALES_SIN_ALMACEN.subalm', 'Field', 'KeyField', .T.)
 DBSetProp('V_MATERIALES_SIN_ALMACEN.subalm', 'Field', 'Updatable', .F.)

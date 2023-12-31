@@ -7,12 +7,12 @@ SET SYSMENU TO DEFA
 	IF INLIST(SYS(5),'F','E','D')
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
 		SET DEFA TO \AplVfp\bsinfo
-		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",11
+		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
 		ACTIVATE WINDOW desktop2
 	ELSE
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
 		SET DEFA TO \AplVfp\bsinfo
-		DEFINE WINDOW desktop2  FROM 0+5,0+60 TO 22.5+5,64.875+60 TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",11
+		DEFINE WINDOW desktop2  FROM 0+5,0+60 TO 22.5+5,64.875+60 TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
 		ACTIVATE WINDOW desktop2 
  	ENDIF
 *!*	Activar los Paths para sus formularios personales.... (xUsuario)
