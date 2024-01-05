@@ -102,26 +102,26 @@ PARAMETERS PoDataCab,PsRuta
 		LnCnDRel = 0
 	ENDIF
 	LnCnCdRel	= 1  && Un conductor por defecto
-	LnCnPlRel	= 1  && Una # Placa  por defecto 
+	LnCnPlRel	= 1  && Un nro. de Placa por defecto - Cantidad números de placas relacionados
 	LnCnConPr	= 0  && Cantidad de contenedores y precintos por defecto 
-	LsGRBaja	= ""
-	LsTDBaja	= ""
-	LsDRBaja	= ""
+	LsGRBaja	= "" && G/R de baja relacionada - Numeración, conformada por serie y número correlativo 
+	LsTDBaja	= "" && Código del tipo de documento de G/R de baja
+	LsDRBaja	= "" && Documento relacionado RELATED_DOC
 	
 	LsDniCond	= "" 				&& Dni conductor (Chofer)
 	LsTPDCond	= "" 				&& Tipo documento conductor
 	LsNomCond	= "" 				&& Nombres conductor
 	LsApeCond	= "" 				&& Apellidos conductor
 	LsLicCond	= "" 				&& Licencia de conducir conductor
-	LsPlaTra	= PoDataCab.PlaTra 	&& Numero Placa del vehiculo de transportista  
+	LsPlaTra	= PoDataAdi.PlaTra 	&& Numero Placa del vehiculo de transportista  
 	LsTarUCir	= ""				&& Tarjeta Única de Circulación Electrónica o Certificado de Habilitación vehicular 
 	LsNroAutv	= ""				&& Número de autorización especial - Vehículo
 	LsCdEntEmiV	= "06" 				&& Código de la entidad emisora de la autorización especial - Vehículo - Catalogo D-37
 	LsNContene	= ""				&& Número contenedor
 	LsNPrecint	= ""				&& Número precinto
-	LsUbiRemit  = PoDataCab.UbiPpart          && Codigo Ubigeo remitente (Empresa), obtenerlo de suscursales/establecimiento de la empresa (CIAXXX)  
-	LsDirRemit  = GsDirCia			&& Dirección segun sucursal o establecimiento de la empresa
-	LsUrbRemit  = ""				&& Urbanizacion remitente
+	LsUbiRemit  = PoDataAdi.UbiPpart    && Codigo Ubigeo remitente (Empresa), obtenerlo de suscursales/establecimiento de la empresa (CIAXXX)  
+	LsDirRemit  = PoDataAdi.DirRemit	&& Dirección segun sucursal o establecimiento de la empresa
+	LsUrbRemit  = PoDataAdi.UrbRemit	&& Urbanizacion remitente
 	LsPrvRemit  = ""				&& Provincia remitente
 	LsDepRemit	= ""				&& Departamento remitente
 	LsDisRemit  = ""				&& Distrito remitente	
@@ -130,10 +130,10 @@ PARAMETERS PoDataCab,PsRuta
 	LsCdEntEmiR = "06"
 	LsCodEstR	= PoDatacab.CodEstPart
 	LfPesoBruto	= 0
-	LsNroRegMTC = ""				&& Numero de registro MTC transportista
+	LsNroRegMTC = PoDataAdi.NroRegMtc				&& Numero de registro MTC transportista
 	
 	
-	LsUbiDest	=	PoDataCab.UbiPlleg 				&& Codigo Ubigeo Destinatario (Cliente/Empresa) obtenerlo de sucursal/establecimiento cliente
+	LsUbiDest	=	PoDataAdi.UbiPlleg 				&& Codigo Ubigeo Destinatario (Cliente/Empresa) obtenerlo de sucursal/establecimiento cliente
 	LsDirDest	=	PoDataAdi.DirEnt
 	LsUrbDest	=	""
 	LsPrvDest	=	""
@@ -141,7 +141,7 @@ PARAMETERS PoDataCab,PsRuta
 	LsDisDest	=	""
 	LsCdPaisD	=	"PE"
 	LsEmailDest	=	PoDataAdi.EmailDest
-	LsCodEstDes =	PoDataCab.CodEstLleg
+	LsCodEstDes =	PoDataAdi.CodEstLleg
 	
 	LsNomProv	=	""				&& Nombre proveedor
 	LsTDocProv	=	"" 				&& Código del tipo de documento identidad del proveedor "6" o "1"
@@ -178,16 +178,16 @@ PARAMETERS PoDataCab,PsRuta
 	LsRegMTC	=	LsNroRegMTC								&& Numero de registro MTC transportista
 	LsNroAutTra	=	""										&& Numero de Autorizacion especial transportista
 	LsEntEmiTra	=	LsCdEntEmiR								&& 
-	LsCodEstPart=	PoDatacab.CodEstPart
+	LsCodEstPart=	PoDataAdi.CodEstPart
 	LsLongPart  =   0
 	LsLatiPart	=	0
-	LsCodEstLleg=	PoDataCab.CodEstLleg
+	LsCodEstLleg=	PoDataAdi.CodEstLleg
 	LsLongPLleg =   0
 	LsLatiPLleg	=	0
 	
 	
 	DO CASE
-		CASE INLIST(TRANSFORM(PoDataCab.Motivo,'@L ##') , '01','03')
+		CASE INLIST(TRANSFORM(PoDataCab.Motivo,'@L ##') , '01','03',"13")
 			LsDniCond 	= "" 
 			LsTPDCond 	= "" 
 			LsNomCond 	= "" 
@@ -201,11 +201,11 @@ PARAMETERS PoDataCab,PsRuta
 			LsNPrecint	= ""		
 		CASE INLIST(TRANSFORM(PoDataCab.Motivo,'@L ##') , '04')
 			IF LsModTra = '02'   && Modalidad de traslado Privado
-				LsDniCond	= PoDataCab.DNICond 			&& Dni conductor (Chofer)
-				LsTPDCond	= PoDataCab.TPDCond 			&& Tipo documento conductor
-				LsNomCond	= PoDataCab.NomCond 			&& Nombres conductor
-				LsApeCond	= PoDataCab.ApeCond 			&& Apellidos conductor
-				LsLicCond	= PoDataCab.Brevet				&& Licencia de conducir conductor	
+				LsDniCond	= PoDataAdi.DNICond 			&& Dni conductor (Chofer)
+				LsTPDCond	= PoDataAdi.TPDCond 			&& Tipo documento conductor
+				LsNomCond	= PoDataAdi.NomCond 			&& Nombres conductor
+				LsApeCond	= PoDataAdi.ApeCond 			&& Apellidos conductor
+				LsLicCond	= PoDataAdi.Brevet				&& Licencia de conducir conductor	
 			ENDIF
 					
 		OTHERWISE 	
@@ -220,6 +220,7 @@ PARAMETERS PoDataCab,PsRuta
 	LsCadena = LsCadena +	IIF(!EMPTY(LnCnGRef),ALLTRIM(STR(LnCnGRef,3)),"" )					+","  && Cantidad G/Rs referencia
 	LsCadena = LsCadena +	IIF(!EMPTY(LnCnDRel),ALLTRIM(STR(LnCnDRel,3)),"" )					+","  && Cantidad Docs relacionados
 	LsCadena = LsCadena +	IIF(!EMPTY(LnCnCdRel),ALLTRIM(STR(LnCnCdRel,3)),"" )				+","  && Cantidad conductores relacionados
+	LsCadena = LsCadena +	IIF(!EMPTY(LnCnPlRel),ALLTRIM(STR(LnCnPlRel,3)),"" )				+","  && Cantidad números de placas relacionados
 	LsCadena = LsCadena +	IIF(!EMPTY(LnCnConPr),ALLTRIM(STR(LnCnConPr,3)),"" )				+","  && Cantidad de contenedores y precintos por defecto 
 	LsCadena = LsCadena +	SUBSTR(TTOC(PoDatacab.fchCrea,3),12)								+"," && Hora de emision de G/R
 	LsCadena = LsCadena +   CRLF	&& CRLF = CHR(13)+CHR(10) esta definido en const.h 
@@ -229,7 +230,7 @@ PARAMETERS PoDataCab,PsRuta
 	LsCadena = LsCadena +	ALLTRIM(LsDRBaja)										+","		
 	LsCadena = LsCadena +   CRLF		
 	LsCadena = LsCadena +	aFila(3)	
-	LsCadena = LsCadena +   ALLTRIM(IIF(EMPTY(LsNroFac),STUFF(LsNroFac, 5, 0, '-'),''))						+","
+	LsCadena = LsCadena +   ALLTRIM(IIF(!EMPTY(LsNroFac),STUFF(LsNroFac, 5, 0, '-'),''))						+","
 	LsCadena = LsCadena +   ALLTRIM(LsCodFac)										+","
 	LsCadena = LsCadena +  	ALLTRIM(LsDesDREL)										+","
 	LsCadena = LsCadena +	IIF(EMPTY(LsCodFac),"",ALLTRIM(GsRucCia))				+","
@@ -349,7 +350,7 @@ PARAMETERS PoDataCab,PsRuta
 			LsCadena = LsCadena + ALLTRIM(LsCodEstPart)						+","
 			LsCadena = LsCadena + ALLTRIM(STR(LsLongPart,3,8))				+","
 			LsCadena = LsCadena + ALLTRIM(STR(LsLatiPart,3,8))				+","	
-			LsCadena = LsCadena + ALLTRIM(PoDataCab.RucCli)					+","
+			LsCadena = LsCadena + ALLTRIM(PoDataAdi.RucCli)					+","
 			LsCadena = LsCadena + ALLTRIM(LsCodEstDes)						+","
 			LsCadena = LsCadena + ALLTRIM(STR(LsLongPLleg,3,8))				+","
 			LsCadena = LsCadena + ALLTRIM(STR(LsLatiPLleg,3,8))				+","	

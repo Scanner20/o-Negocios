@@ -8037,8 +8037,35 @@ IF VerifyVar('ModTra','','CAMPO','CTRA')
 	   	CodMov = m.sCodMov AND  ;
 	   	NroDoc = m.sNroDoc
 ENDIF   	
+
+IF VerifyVar('PesoBruto','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+     	PesoBruto = C_CTRA.PesoBruto ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF   	
+IF VerifyVar('UndMed','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+     	UndMed = C_CTRA.UndMed ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF   	
+IF VerifyVar('FiniTras','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+		FiniTras = C_CTRA.FiniTras ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF   	
 ** VETT: Modalidad de transporte GRE [FIN] 11/12/2023 12:06 PM **
 
+** VETT: Capturamos el numero de G/R que se creado o modificado NroRf1 IDUPD:1455995224-03/01/2024 08:04 AM
+GoCfgAlm.sNroRf1 = C_CTRA.NroRf1 
  
 *** Campos para construccion **** VETT 2007-03-13
 SELECT CTRA
@@ -15014,3 +15041,24 @@ FUNCTION _Dec2Bin(nDecimal,PlVer)
   ENDIF	
   RETURN lcBinario
 ENDFUNC
+************************
+FUNCTION CloseOpenTables
+************************
+PARAMETERS PlCierreAutoTablas  
+IF !PlCierreAutoTablas 
+	FOR TnTbl=1 TO AUSED(aTables)
+		IF !INLIST(aTables(TnTbl,1),'ACCESS','DBFS')
+			IF !EMPTY(aTables(TnTbl,1))
+				NoEstaAbierta = .T.
+				FOR TnTPrev=1 TO ALEN(This.aTablPrev,1)
+					IF aTables(TnTbl,1)==This.aTablPrev[TnTPrev,1]
+						NoEstaAbierta = .F.
+					ENDIF
+				ENDFOR
+				IF NoEstaAbierta
+					USE IN aTables(TnTbl,1)
+				ENDIF
+			ENDIF
+		ENDIF
+	ENDFOR
+ENDIF
