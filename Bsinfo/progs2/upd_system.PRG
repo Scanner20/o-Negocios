@@ -288,14 +288,134 @@ ALTER table ALIAS() add  COLUMN userelim C(10)
 ALTER table ALIAS() add  COLUMN fchelim T
 
 USE
+***************
+PROCEDURE ZONAS  && Departamentos
+***************
+PARAMETERS PsNomDBCia
+IF VARTYPE(PsNomDBCia)<>"C"
+	PsNomDBCia = "CIA"+GsCodCia
+ENDIF
+IF !DBUSED(PsNomDBCia)
+	OPEN DATABASE (PsNomDBCia)
+ENDIF
+SET DATABASE TO (PsNomDBCia)
+IF verifyvar('ZONAS',"TABLE",'INDBC','CIA'+GsCodCia)
+	REMOVE TABLE 'ZONAS' DELETE
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"ZONAS.dbf")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"ZONAS.dbf"
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"ZONAS.cdx")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"ZONAS.cdx"
+ENDIF
+Create Table ADDBS(goentorno.Tspathcia)+"ZONAS" (Codzona C(2),Deszona C(40),Flagprov L,Coduser C(8),Fchhora T)
+INDEX ON CODZONA TAG ZONA01 
+INDEX ON UPPER(DESZONA)  TAG ZONA02
+
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '01','AMAZONAS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '02','ANCASH',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '03','APURIMAC',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '04','AREQUIPA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '05','AYACUCHO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '06','CAJAMARCA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '07','CALLAO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '08','CUSCO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '09','HUANCAVELICA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '10','HUANUCO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '11','ICA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '12','JUNIN',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '13','LA LIBERTAD',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '14','LAMBAYEQUE',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '15','LIMA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '16','LORETO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '17','MADRE DE DIOS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '18','MOQUEGUA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '19','PASCO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '20','PIURA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '21','PUNO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '22','SAN MARTIN',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '23','TACNA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '24','TUMBES',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '25','UCAYALI',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '26','ACRE',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '27','ALAGOAS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '28','AMAPA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '29','AMAZONAS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '30','BAHIA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '31','CEARA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '32','DISTRITO FEDERAL',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '33','ESPIRITO SANTO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '34','GOIAS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '35','MARANHAO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '36','MATO GROSSO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '37','MATO GROSSO DO SUL',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '38','MINAS GERAIS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '39','PARA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '40','PARAIBA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '41','PARANA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '42','PERNAMBUCO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '43','JUJUY',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '44','SALTA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '45','TUCUMAN',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '46','FORMOSA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '47','CHACO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '48','SANTIAGO DEL ESTERO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '49','CATAMARCA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '50','CORRIENTES',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '51','MISIONES',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '52','LA RIOJA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '53','SAN JUAN',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '54','CORDOBA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '55','SANTA FE',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '56','ENTRE RIOS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '57','SAN LUIS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '58','MENDOZA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '59','BUENOS AIRES',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '60','LA PAMPA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '61','NEUQUEN',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '62','RIO NEGRO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '63','CHUBUT',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '64','SANTA CRUZ',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '65','TIERRA DEL FUEGO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '66','SAO PAULO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '67','RIO DE JANEIRO',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '68','RIO GRANDE DO SUL',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '69','SANTA CATARINA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '70','PIAUI',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '71','RIO GRANDE DO NORTE',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '72','SERGIPE',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '73','RONDONIA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '74','TOCANTINS',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '75','RORAIMA',.T.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+Insert into zonas(Codzona,Deszona,Flagprov,Coduser,Fchhora ) values ( '76','JOHANNESBURG',.F.,'Victor',Ctot( [02/01/2024 03:50:53 AM] ))
+USE IN ZONAS
 
 ********************
 PROCEDURE Provincias
 ********************
-IF verifyvar('Provincias',"TABLE",'INDBC','CIA'+GsCodCia)
-	CREATE TABLE o:\o-negocios\queirolo\data\cia002\Provincias ;
-	(codProvin c(4) NOT NULL, Desprovin c(45) NOT NULL, Codzona c(2) NOT NULL, coduser C(8), fchhora T)
+PARAMETERS PsNomDBCia
+IF VARTYPE(PsNomDBCia)<>"C"
+	PsNomDBCia = "CIA"+GsCodCia
 ENDIF
+IF !DBUSED(PsNomDBCia)
+	OPEN DATABASE (PsNomDBCia)
+ENDIF
+SET DATABASE TO (PsNomDBCia)
+IF verifyvar('Provincias',"TABLE",'INDBC','CIA'+GsCodCia)
+	REMOVE TABLE 'Provincias' DELETE
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"Provincias.dbf")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"Provincias.dbf"
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"Provincias.cdx")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"Provincias.cdx"
+ENDIF
+
+CREATE TABLE ADDBS(goentorno.Tspathcia)+"Provincias" ;
+(codProvin c(4) NOT NULL, Desprovin c(45) NOT NULL, Codzona c(2) NOT NULL, coduser C(8), fchhora T)
+INDEX ON CODPROVIN TAG PROVI01
+INDEX ON UPPER(DESPROVIN)  TAG PROVI02
+INDEX ON CODZONA+CODPROVIN TAG PROVI03
 
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('0101', 'Chachapoyas', '01')
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('0102', 'Bagua', '01')
@@ -493,15 +613,44 @@ INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('2501', 'Coronel 
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('2502', 'Atalaya ', '25')
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('2503', 'Padre Abad ', '25')
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('2504', 'Purús', '25')
-
+USE IN Provincias
+IF !USED("DBFS")
+	USE ADMIN!SISTDBFS ALIAS DBFS
+	SET ORDER TO ARCHIVO
+ENDIF
+SELECT DBFS
+IF !SEEK("PROVINCIAS","DBFS")
+	INSERT INTO DBFS (Sistema,Archivo,Concepto,ALIAS,Trans_str,Ubicacion,Basedatos,servidor,connect) VALUES ("VENTAS",'PROVINCIAS','Tabla de provincias','PROVI',.F.,'CIA','','(Local)','FOXPRO.DBC')
+ENDIF
 RETURN
+
 ********************
 PROCEDURE Distritos
 ********************
-IF !verifyvar('Distritos',"TABLE",'INDBC','CIA'+GsCodCia)
-	CREATE TABLE o:\o-negocios\queirolo\data\cia002\Distritos ;
-	(coddist c(6) NOT NULL, desdist c(45) NOT NULL,codProvin c(4) NOT NULL, Codzona c(3) NOT NULL, coduser C(8), fchhora T)
+PARAMETERS PsNomDBCia
+IF VARTYPE(PsNomDBCia)<>"C"
+	PsNomDBCia = "CIA"+GsCodCia
 ENDIF
+IF !DBUSED(PsNomDBCia)
+	OPEN DATABASE (PsNomDBCia)
+ENDIF
+SET DATABASE TO (PsNomDBCia)
+IF verifyvar('Distritos',"TABLE",'INDBC','CIA'+GsCodCia)
+	REMOVE TABLE 'Distritos' DELETE
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"Distritos.dbf")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"Distritos.dbf"
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"Distritos.cdx")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"Distritos.cdx"
+ENDIF
+
+CREATE TABLE ADDBS(goentorno.Tspathcia)+"Distritos"  ;
+(coddist c(6) NOT NULL, desdist c(45) NOT NULL,codProvin c(4) NOT NULL, Codzona c(3) NOT NULL, coduser C(8), fchhora T)
+INDEX ON CODDIST TAG DIST01
+INDEX ON UPPER(DESDIST) TAG DIST02
+INDEX ON CODZONA TAG DIST03 
+INDEX ON CODZONA+CODPROVIN+CODDIST TAG DIST04
 
 INSERT INTO distritos (coddist, desdist, codprovin, codzona) VALUES ('010101', 'Chachapoyas', '0101', '01')
 INSERT INTO distritos (coddist, desdist, codprovin, codzona) VALUES ('010102', 'Asunción', '0101', '01')
@@ -2377,3 +2526,995 @@ INSERT INTO distritos (coddist, desdist, codprovin, codzona) VALUES ('250303', '
 INSERT INTO distritos (coddist, desdist, codprovin, codzona) VALUES ('250304', 'Neshuya', '2503', '25')
 INSERT INTO distritos (coddist, desdist, codprovin, codzona) VALUES ('250305', 'Alexander Von Humboldt', '2503', '25')
 INSERT INTO distritos (coddist, desdist, codprovin, codzona) VALUES ('250401', 'Purus', '2504', '25')
+USE IN DISTRITOS
+
+********************
+FUNCTION Tabla_Cat06
+********************
+IF !USED("TABL")
+	GoCfgVta.odatadm.abrirtabla("ABRIR","CBDMTABL","TABL","TABL01")
+ENDIF
+
+DIMENSION aDBFTBL(13,4)
+STORE "" TO aDBFTBL
+
+
+FOR K = 1 TO ALEN(aDBFTBL,1) - 1
+	aDBFTBL(K ,1)="TD"
+ENDFOR
+
+aDBFTBL(1 ,2)="0"
+aDBFTBL(1 ,3)= "DOC.TRIB.NO.DOM.SIN.RUC"
+aDBFTBL(2 ,2)="1"
+aDBFTBL(2 ,3)= "Documento Nacional de Identidad"
+aDBFTBL(3 ,2)="4"
+aDBFTBL(3 ,3)= "Carnet de extranjería"
+aDBFTBL(4 ,2)="6"
+aDBFTBL(4 ,3)= "Registro Unico de Contributentes"
+aDBFTBL(5 ,2)="7"
+aDBFTBL(5 ,3)= "Pasaporte"
+aDBFTBL(6 ,2)="A"
+aDBFTBL(6 ,3)= "Cédula Diplomática de identidad"
+aDBFTBL(7 ,2)="B"
+aDBFTBL(7 ,3)= "DOC.IDENT.PAIS.RESIDENCIA-NO.D"
+aDBFTBL(8 ,2)="C"
+aDBFTBL(8 ,3)= "Tax Identification Number - TIN – Doc Trib PP.NN"
+aDBFTBL(9 ,2)="D"
+aDBFTBL(9 ,3)= "Identification Number - IN – Doc Trib PP. JJ"
+aDBFTBL(10,2)="E"
+aDBFTBL(10,3)= "TAM- Tarjeta Andina de Migración"
+aDBFTBL(11,2)="F"
+aDBFTBL(11,3)= "Permiso Temporal de Permanencia - PTP"
+aDBFTBL(12,2)="G"
+aDBFTBL(12,3)= "Salvoconducto"
+
+FOR K = 1 TO ALEN(aDBFTBL,1) - 1
+	aDBFTBL(K ,4)= 0
+ENDFOR
+
+
+aDBFTBL(13,1)=	"00"
+aDBFTBL(13,2)=	"TD"
+aDBFTBL(13,3)=	"Tipo documento identificación"
+aDBFTBL(13,4)=	1
+
+SELECT TABL
+APPEND FROM ARRAY aDbfTbl
+** VETT: INSERT INTO FILENAME FROM ARRAY se usa cuando la no esta abierta pero se debe tener 
+** la ruta completa y/o su ubicacion debe estar en el SET PATH  IDUPD:334937240-23/01/2024 06:34 PM 
+*!*	EJEMPLO: INSERT INTO cbdmtabl FROM ARRAY aDBFTBL
+
+
+
+IF USED("TABL")
+	USE IN TABL
+ENDIF
+
+** VETT: NUEVA GRE-SUNAT IDUPD:145172128-05/02/2024 11:04 AM 
+**********************************************************************************************************
+** 1. ACTUALIZAR ESTRUCTURAS Y PROCEDIMIENTO ALMACENADOS RELACIONADOS CON GRE - SUNAT 2023					**
+** EN LA VENTANA DE COMANDOS:																			**
+** Para ejecutar este programa primero se debe ejecutar el Inicio_NOmcia correspondiente				**
+** en modo developer(desarrollo) desde el proyecto														**	
+** Supongamos que la base de datos a actualizar es P0042024 en la compañia oniblom						**
+** En la ventana de comandos:																			**	
+** Ejecutamos DO k:\aplvfp\bsinfo\progs2\inicio_oniblom													**
+** Ejecutamos DO FORM k:\aplvfp\bsinfo\forms\funfun_selec_ventas.scx 									**
+** Para asegurarnos que todos los path necesarios esten en memoria										**			
+** Luego ejecutar: DO UpdDB_GRE_2024 WITH "CIA004","P0042024" IN k:\aplvfp\bsinfo\progs2\upd_system.prg **
+**********************************************************************************************************
+**********************************************************************************************************
+** 2. Esta función debe ir en la base de datos PXXXAAAA IDUPD:3602053256-01/02/2024 08:49 PM 
+** Ejem: con la BD -> P0012024.DBC 
+** OPEN DATABASE P0012024
+** modify procedure
+** Si ya existe la function UPD_GUIA sustituir por el codigo que esta entre TEXT ... ENDTEXT 
+********************
+FUNCTION UPDATE_PROC
+********************
+PARAMETERS PsNomCia, PsNomBdAno
+TEXT TO LcTxt
+*********************
+FUNCTION Num_Registro
+*********************
+m.Nreg =  RECNO()
+IF EMPTY(nroreg_1)
+	replace nroreg_1 WITH m.Nreg
+ENDIF
+
+RETURN .t.
+*****************
+FUNCTION ADD_GUIA
+*****************
+*!*	SCATTER MEMVAR MEMO <
+*!*	LsTabla=RUTATABLA('RUTA','VTAVGUIA','','','')
+*!*	m.GloDoc 	= m.Observ	
+*!*	m.CodDoc	= m.TpoRf1	
+*!*	m.NroDoc	= m.NroRf1	
+*!*	INSERT INTO (LsTabla) FROM MEMVAR 
+
+*----------------*
+FUNCTION UPD_GUIA   && este procedimiento debe ir en la base de datos PXXXAAAA Ejem: P0012024.DBC
+*----------------*
+SCATTER MEMVAR MEMO 
+
+IF !(M.TPORF1='G/R'	AND M.TIPMOV='S' )
+	RETURN .T.
+ENDIF
+IF EMPTY(M.TPORF1) OR EMPTY(M.NRORF1)
+	RETURN .T.
+ENDIF
+lCerrarTabla= .f.	
+IF !USED('GUIA')
+	LsTabla=RUTATABLA('ABRIR','VTAVGUIA','GUIA','VGUI01','')
+	IF !USED('GUIA')
+		RETURN .T. 
+	ENDIF
+	lCerrarTabla= .T.
+ENDIF
+
+LOCAL LsDirecc ,LlOpenDirec
+LlOpenDirec = .F.
+IF !USED('CDIRE1')
+	LsDirecc = RUTATABLA('ABRIR','CCTCDIRE','CDIRE1','DIRE01','')
+	IF !USED('CDIRE1')
+		RETURN .T. 
+	ENDIF
+	LlOpenDirec = .T.
+ENDIF
+
+LlOpenClie = .F.
+IF !USED('CCTCLIEN')
+	LsDirecc = RUTATABLA('ABRIR','CCTCLIEN','CCTCLIEN','CLIEN04','')
+	IF !USED('CCTCLIEN')
+		RETURN .T. 
+	ENDIF
+	LlOpenClie = .T.
+ENDIF
+SELECT CCTCLIEN
+IF SEEK(GSClfCli+m.CodCli,"CCTCLIEN","CLIEN04")
+	m.NomCli	= CCTCLIEN.RazSoc
+ELSE
+	m.NomCli	= "ERROR:Revisar datos del cliente"	
+ENDIF
+
+** VETT: Completamos datos de destino y/o punto de llegada IDUPD:1761301869-04/01/2024 02:33 PM 
+m.DesDire = ''
+SELECT CDIRE1
+*!*	IF !LlOpenDirec   && El cursor ya fue creado y solo contiene direcciones del cliente  
+*!*		LOCATE FOR codDire = m.CodDire
+*!*	ELSE  && Tenemos que seleccionar segun la llave 
+	LsLLave = GSClfCli+m.CodCli
+	LOCATE FOR ClfAux+CodAux = LsLlave AND codDire = m.CodDire
+*!*	ENDIF
+IF FOUND()
+	m.DesDire		=	DesDire
+	m.DirEnt		=	DesDire
+	m.UbiPlleg		=	UbiGeo
+	m.CodEstLleg	=	CodEstb
+	m.EmailDest		=	EmailD
+ENDIF
+
+lCerrarAUXI2= .f.	
+IF !USED('AUXI2')
+	LsTabla=RUTATABLA('ABRIR','CBDMAUXI','AUXI2','AUXI01','')
+	IF !USED('AUXI2')
+		RETURN .T. 
+	ENDIF
+	lCerrarAuxi2= .T.
+ENDIF
+lCerrarSEDE= .f.	
+IF !USED('SEDES')
+	LsTabla=RUTATABLA('ABRIR','SEDES','SEDES','SEDE01','')
+	IF !USED('SEDES')
+		RETURN .T. 
+	ENDIF
+	lCerrarSEDE= .T.
+ENDIF
+
+** VETT: Completamos datos del establecimiento emisor (remitente) IDUPD:3552534242-04/01/2024 02:32 PM 
+IF VARTYPE("GsClfEst")<>"C"
+	GsClfEst = []
+ENDIF
+IF VARTYPE("m.PtoVta")<>"C"
+	m.PtoVta = []
+ENDIF
+IF !EMPTY(m.PtoVta) AND !EMPTY(m.CodEstPart)
+	SELECT AUXI2
+	Locate FOR Sede+PtoVta+CodEstb=m.CodSed+m.PtoVta+m.CodEstPart
+	IF FOUND()
+		m.UbiPpart = AUXI2.Ubigeo
+		m.DirRemit = AUXI2.NomAUx
+		m.UrbRemit = AUXI2.NomUrban
+	ENDIF
+ELSE
+	SELECT SEDES	
+	SEEK GoCfGAlm.CodSed
+	IF FOUND()
+		m.UbiPpart		= SEDES.Ubigeo
+		m.DirRemit		= SEDES.Nombre
+		m.CodEstPart	= SEDES.CodEstb
+		m.UrbRemit		= SEDES.NomUrban
+	ENDIF	
+ENDIF
+
+** VETT: Completamos datos del transportista y conductor IDUPD:181878888-04/01/2024 02:32 PM
+
+SELECT AUXI2
+SEEK GsClfTra+m.CodTra
+IF FOUND()
+	IF !EMPTY(m.DNICond) AND m.DniCond<>TRIM(AUXI2.DNICond)
+		=RLOCK()
+		replace DniCond		WITH	m.DNICond ,; 			
+		TPDCond		WITH	m.TPDCond ,; 			
+		NomCond		WITH	m.NomCond ,; 			
+		ApeCond		WITH	m.ApeCond ,; 			
+		BreVet		WITH	m.Brevet
+		
+		FLUSH IN AUXI2
+		UNLOCK IN AUXI2
+	ELSE
+		m.DniCond	= DNICond 			
+		m.TPDCond	= TPDCond 			
+		m.NomCond	= NomCond 			
+		m.ApeCond	= ApeCond 			
+		m.Brevet	= Brevet	
+	ENDIF
+	m.nroregmtc = nroregmtc
+	m.nroautesp = nroautesp
+ENDIF
+
+SELECT guia
+
+lExiste=SEEK(m.TpoRf1+m.NroRf1,'GUIA')
+IF !lExiste
+	APPEND BLANK 
+ELSE
+	=RLOCK()
+ENDIF
+
+m.Desmotivo = IIF(VARTYPE(GoCfgVta.cDesmotivo)='C' AND !ISNULL(GoCfgVta.cDesmotivo) AND !EMPTY(GoCfgVta.cDesmotivo),GoCfgVta.cDesmotivo,"")
+
+m.NroRegMTC = IIF(VARTYPE(GoCfgVta.cNroRegMTC)='C' AND !ISNULL(GoCfgVta.cNroRegMTC) AND !EMPTY(GoCfgVta.cNroRegMTC),GoCfgVta.cNroRegMTC,m.NroRegMTC)
+m.NroAutESP = IIF(VARTYPE(GoCfgVta.cNroAutESP)='C' AND !ISNULL(GoCfgVta.cNroAutESP) AND !EMPTY(GoCfgVta.cNroAutESP),GoCfgVta.cNroAutESP,m.NroAutESP)
+replace CodDoc		WITH	m.TpoRf1	,;
+		NroDoc		WITH	m.NroRf1	,;
+		CodCli		WITH	m.CodCli	,;
+		NomCli		WITH	m.NomCli	,;
+		FchDoc		WITH	m.FchDoc	,;
+		GloDoc 		WITH	m.Observ	,;
+		Motivo		WITH	m.Motivo	,;
+		CodVen		WITH	m.CodVen 	,;
+		CodMon		WITH	m.CodMon	,;						
+		NomTra		WITH	m.NomTra	,;
+		DirTra		WITH	m.DirTra	,;
+		RucTra		WITH	m.RucTra	,;
+		PlaTra		WITH	m.PlaTra	,;
+		DirCLi  	WITH	m.DesDire	,;  
+		CodTra		WITH	m.CodTra	,;
+		UbiPpart	WITH	m.UbiPpart ,;
+		CodEstPart	WITH	m.CodEstPart,;
+		DirRemit	WITH	m.DirRemit	,;	
+		DirEnt		WITH	m.DirEnt ,;
+		UrbRemit	WITH	m.UrbRemit ,;
+		UbiPlleg	WITH	m.UbiPlleg ,;
+		CodEstLleg	WITH	m.CodEstLleg ,;
+		EmailDest	WITH	m.EmailDest ,;
+		PesoBruto	WITH	m.PesoBruto ,;
+		ModTra		WITH	m.ModTra ,;
+		UndMed		WITH	m.UndMed ,;
+		FiniTras	WITH	m.FiniTras ,;
+		NomTra		WITH	m.NomTra ,;
+		RucTra		WITH	m.RucTra ,;
+		DniCond		WITH	m.DNICond ,; 			
+		TPDCond		WITH	m.TPDCond ,; 			
+		NomCond		WITH	m.NomCond ,; 			
+		ApeCond		WITH	m.ApeCond ,; 			
+		Brevet		WITH	m.Brevet , ;
+		nroregmtc   WITH	m.nroregmtc ,;
+		nroautesp   WITH    m.nroautesp,; 
+		DesMotivo	WITH	m.Desmotivo			
+		
+		
+** Grabamos la direccion segun codDire de almctran		
+		
+IF lExiste 		
+	** No tocamos el flag	
+*  	REPLACE FlgEst	WITH m.FlgEst
+*!*		IF m.FlgEst='A'
+*!*			REPLACE FlgEst	WITH 'A'
+*!*		ENDIF
+ELSE
+	REPLACE FlgEst	WITH 'E'
+ENDIF		
+FLUSH IN GUIA				
+UNLOCK IN GUIA
+
+IF lCerrarTabla
+	USE IN GUIA
+ENDIF
+IF LlOpenDirec
+	USE IN CDIRE1
+ENDIF
+IF lCerrarSEDE
+	USE IN SEDES
+ENDIF
+IF lCerrarAUXI2
+	USE IN AUXI2
+ENDIF
+IF LlOpenClie
+	USE IN CCTCLIEN
+ENDIF
+** VETT: [FIN] IDUPD:3602053256-01/02/2024 08:49 PM 
+RETURN .T.						
+*****************
+FUNCTION DEL_GUIA
+*****************
+LsTabla=RUTATABLA('RUTA','VTAVGUIA','','','')
+SCATTER MEMVAR
+DELETE FROM (LsTabla) WHERE	CodDoc	= m.TpoRf1	;
+									AND NroDoc	= m.NroRf1	
+******************
+FUNCTION RUTATABLA
+******************
+LPARAMETERS cAccion as String ,cArchivo as String ,cAlias as String ,cTag as String ,cExclu as String ,cPk as String as Boolean
+LOCAL LsRutaTabla,LsArea_Act,LcArcTmp
+IF PARAMETERS()<2
+	RETURN -1
+ENDIF
+LsArea_Act=SELECT()
+
+IF UPPER(cAccion) ='TEMP'
+	DO CASE 
+		CASE UPPER(cAccion) ='TEMP_STR'
+			IF EMPTY(cArchivo) or ISNULL(cArchivo)
+				RETURN .f.
+			ENDIF
+			IF !USED(cArchivo)
+				RETURN .f.
+			ENDIF
+			
+			LcArcTmp = this.tmppath +SYS(3)
+			SELECT (cArchivo)
+			COPY STRUCTURE TO (LcArcTmp) with cdx
+			SELECT 0
+			use (LcArcTmp) ALIAS (cAlias) EXCLU  
+		CASE UPPER(cAccion) ='TEMP_SQL'
+			IF EMPTY(cArchivo) or ISNULL(cArchivo)
+				RETURN .f.
+			ENDIF
+			IF !USED(cArchivo)
+				RETURN .f.
+			ENDIF
+			LcArcTmp = this.tmppath +SYS(3)
+			IF VERSION(5) < 700    
+				select * from (cArchivo) where 0>1 into Cursor temporal
+				SELE Temporal
+				COPY TO (LcArcTmp)
+				USE IN TEMPORAL
+				SELE 0
+				USE (LcArcTmp) ALIAS (cAlias) EXCLUSIVE
+			ELSE
+				SELECT * from (cArchivo) where 0>1 into cursor (cAlias) readwrite 	
+			ENDIF
+					
+	ENDCASE
+	IF !EMPTY(LsArea_act)
+		SELE (LsArea_Act)
+	ENDIF
+	RETURN .t.	
+ENDIF
+
+
+	IF USED('DBFS')
+		SELECT DBFS
+	ELSE
+		SELECT 0
+		use admin!sistdbfs ORDER archivo ALIAS dbfs
+	ENDIF
+	**SEEK PADR(UPPER(cSistema),LEN(DBFS.SISTEMA))+UPPER(cArchivo)
+	SEEK TRIM(UPPER(cArchivo))
+	IF !FOUND()
+		this.serror = 'No esta definida la tabla '+cArchivo+ ' en el registro de entidades SISTDBFS'
+		RETURN ''
+	ENDIF
+	*** Ubico la base de datos a la que pertenece la tabla ***
+	DO CASE
+		CASE dbfs.connect = 'FOXPRO.DBC'
+			DO CASE	
+				CASE 	!(EMPTY(DBFS.Basedatos) OR ISNULL(DBFS.Basedatos))	 
+					LsRutaTabla=TRIM(Basedatos)+'!'+cArchivo 
+				CASE	EMPTY(DBFS.Basedatos) OR ISNULL(DBFS.Basedatos)
+					DO CASE
+						CASE DBFS.Ubicacion='INI'
+							LsRutaTabla='ADMIN!'+cArchivo 	
+						CASE DBFS.Ubicacion='CIA'
+							LsRutaTabla=TRIM(DBFS.Ubicacion)+GsCodCia+'!'+cArchivo	
+						CASE DBFS.Ubicacion='PER'
+							LsRutaTabla=LEFT(TRIM(DBFS.Ubicacion),1)+GsCodCia+LEFT(GsPeriodo,4)+'!'+cArchivo
+					ENDCASE
+			ENDCASE		
+		CASE dbfs.CONNECT = 'FOXPRO'				
+					LsRutaTabla=PATH_001+cArchivo
+	ENDCASE
+	***
+	IF UPPER(cAccion)='RUTA' 
+		IF !EMPTY(LsArea_act)
+			SELE (LsArea_Act)
+		ENDIF
+		RETURN TRIM(LsRutaTabla)	 
+	ENDIF
+
+	SELE 0
+	DO CASE
+		CASE !EMPTY(cArchivo) AND !EMPTY(cAlias) AND !EMPTY(cExclu)
+			USE (LsRutaTabla) ALIAS (cAlias) EXCLU
+		CASE !EMPTY(cArchivo) AND !EMPTY(cAlias) AND EMPTY(cExclu)
+			IF !USED(cAlias)
+				USE (LsRutaTabla) ALIAS (cAlias) SHARED AGAIN
+			ELSE
+				SELECT  (cAlias)
+			ENDIF
+
+		CASE !EMPTY(cArchivo) AND EMPTY(cAlias) AND !EMPTY(cExclu)
+			USE (LsRutaTabla) EXCLU
+		CASE !EMPTY(cArchivo) AND EMPTY(cAlias) AND EMPTY(cExclu)
+			USE (LsRutaTabla) SHARED AGAIN
+			
+		OTHER 		
+			IF !EMPTY(LsArea_act)
+				SELE (LsArea_Act)
+			ENDIF
+			RETURN .F.
+	ENDCASE
+	IF !USED()
+		IF !EMPTY(LsArea_act)
+			SELE (LsArea_Act)
+		ENDIF
+		RETURN .F.
+	ENDIF
+	IF !EMPTY(cTag)
+		SET ORDER TO (cTag)
+	ENDIF
+	
+RETURN .t.
+
+FUNCTION Grb_Nombres
+m.NomBre = Nombres
+IF _triggerlevel =1
+endif
+replace Nombre WITH m.Nombre
+RETURN .t.
+					
+ENDTEXT
+LcFileProc=ADDBS(GoEntorno.TmpPath)+"ProgAAAA.TXT"
+STRTOFILE(LcTxt,LcFileProc) 
+IF !DBUSED(PsNomBdAno)
+	OPEN DATABASE (PsNomBdAno)
+ENDIF
+SET DATABASE TO (PsNomBdAno)
+APPEND PROCEDURES FROM (LcFileProc) OVERWRITE
+RETURN
+***********************
+FUNCTION UpdDB_GRE_2024
+* Ejemplo de ejecucion desde ventana de comandos:
+* DO UpdDB_GRE_2024 WITH "CIA001","P0012024" IN k:\aplvfp\bsinfo\progs2\upd_system.prg
+***********************
+PARAMETERS PsNomCia, PsNomBdAno,PnMes
+IF VARTYPE(PnMes)<>'N'
+	PnMes = 1
+ENDIF
+WAIT WINDOW "Inicializando... " NOWAIT 
+#include const.h 
+GsCodCia			=	SUBSTR(PsNomCia,4,3)
+Goentorno.GsCodCia	=	GsCodCia
+GoEntpub.GsCodCia	=	GsCodCia
+Goentorno.TsPathCia	=	Goentorno.pathdatacia(GsCodCia)
+GoEntPub.TsPathCia	=	Goentpub.Pathdatacia(GsCodCia)
+
+GsAnoMes	=	SUBSTR(PsNomBdAno,5,4)+TRAN(PnMes,[@L 99])     
+GOENTORNO.GsPeriodo	= GsAnoMes
+GoEntpub.GsPeriodo	= GsAnoMes     
+GoEntpub.pathdatacia_ano 
+GoEntorno.pathdatacia_ano
+IF EMPTY(VERSION(2))
+	goentpub.setpath('','RESET')
+ENDIF
+goentpub.setpath(goentpub.tspathcia)
+goentpub.setpath(GoEntpub.TsPathcia_ano)
+
+** Estas entidades (ZONAS,Provincias,Distritos) se deben actualizar para obtener el UBIGEO 
+** Del remitente (Punto partida) Cliente (Punto de llegada) y establecimientos anexos (SUNAT)
+WAIT WINDOW "Actualizando ZONAS.... " NOWAIT 
+DO ZONAS		WITH PsNomCia	&& Departamentos
+WAIT WINDOW "Actualizando Provincias.... " NOWAIT 
+DO Provincias	WITH PsNomCia
+WAIT WINDOW "Actualizando Distritos.... " NOWAIT 
+DO Distritos	WITH PsNomCia
+
+
+IF !DBUSED(PsNomBdAno)
+	OPEN DATABASE (PsNomBdAno)
+ENDIF
+SET DATABASE TO (PsNomBdAno)
+LsCurPath=SYS(5)+CURDIR()
+WAIT WINDOW "Actualizando vistas en "+PsNomBdAno+"..... " NOWAIT 
+SET DEFAULT TO ADDBS(GoEntpub.TsPathcia_ano)
+IF FILE(ADDBS(GoEntpub.TsPathcia_ano)+"CPICULTI.dbf")
+	DELETE FILE ADDBS(GoEntpub.TsPathcia_ano)+"CPICULTI.dbf"
+ENDIF
+IF FILE(ADDBS(GoEntpub.TsPathcia_ano)+"CPICULTI.cdx")
+	DELETE FILE ADDBS(GoEntpub.TsPathcia_ano)+"CPICULTI.cdx"
+ENDIF
+IF !INDBC('CPICULTI','TABLE')
+	DO MakeTable_CPICULTI IN k:\aplvfp\bsinfo\progs\p0012017.PRG
+ENDIF
+**
+IF FILE(ADDBS(GoEntpub.TsPathcia_ano)+"CPICUXLT.dbf")
+	DELETE FILE ADDBS(GoEntpub.TsPathcia_ano)+"CPICUXLT.dbf"
+ENDIF
+IF FILE(ADDBS(GoEntpub.TsPathcia_ano)+"CPICUXLT.cdx")
+	DELETE FILE ADDBS(GoEntpub.TsPathcia_ano)+"CPICUXLT.cdx"
+ENDIF
+IF !INDBC('CPICUXLT','TABLE')
+	DO MakeTable_CPICUXLT IN k:\aplvfp\bsinfo\progs\p0012017.PRG
+ENDIF
+
+** OJO: La vista no se creara si no encuentra las tablas que la componen:
+IF !INDBC('V_CULTIVOS_X_LOTE','VIEW')
+	DO MakeView_V_CULTIVOS_X_LOTE WITH PsNomCia,PsNomBdAno IN k:\aplvfp\bsinfo\progs\p0012017.PRG
+ENDIF
+IF USED("CPICUXLT")
+	USE IN CPICUXLT
+ENDIF
+IF USED("CPICULTI")
+	USE IN CPICULTI
+ENDIF
+SET DEFAULT TO ADDBS(LsCurPath)
+WAIT WINDOW "Actualizando procedimientos almacenados en "+PsNomBdAno+"..... " NOWAIT 
+** Actualizamos procedimientos almacenados **
+DO UPDATE_PROC WITH PsNomCia, PsNomBdAno
+**-----------------------------------------**
+WAIT WINDOW "Actualizando configuración de variables en "+"ADMTCNFG"+"...... " NOWAIT 
+** ADMTCNFG **
+** Registros
+SELECT 0
+USE ADMTCNFG
+LOCATE FOR CodCfg='CFG' AND UPPER(Variable)='GSMODTRA'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux) VALUES ('CFG', 'MODALIDAD DE TRASLADO (GRE)', 'GsModTra', 'MT')
+ENDIF
+LOCATE FOR CodCfg='CFG' AND UPPER(Variable)='GSCIAS'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux) VALUES ('CFG', 'EMPRESAS (COMPAÑIAS)', 'GsCias', 'CIA')
+ENDIF
+LOCATE FOR CodCfg='CFG' AND UPPER(Variable)='GSCLFEST'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux) VALUES ('CFG', 'ESTABLECIMIENTO PTO. PARTIDA X SEDE Y PUNTO VENTA', 'GsClfEst', 'EST')
+ENDIF
+LOCATE FOR CodCfg='CFG' AND UPPER(Variable)='GSMOTIVO'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux) VALUES ('CFG', 'Motivos de traslado GRE', 'GsMotivo', 'MG')
+ENDIF
+USE IN ADMTCNFG
+
+WAIT WINDOW "Actualizando tablas detalle en Almacen "+"ALMTGSIS"+"...... " NOWAIT 
+** ALMTGSIS **
+** Registros
+SELECT 0
+USE ADDBS(goentorno.tspathcia)+"ALMTGSIS"
+LOCATE FOR Tabla='00' AND UPPER(CODIGO)='MT'
+IF !FOUND()
+	INSERT INTO ALMTGSIS (Tabla,Codigo,Nombre,Digitos) VALUES ('00','MT','MODALIDAD DE TRASLADO (GRE)',2)
+ENDIF
+LOCATE FOR Tabla='MT' AND UPPER(CODIGO)='01'
+IF !FOUND()
+	INSERT INTO ALMTGSIS (Tabla,Codigo,Nombre,Digitos) VALUES ('MT','01','TRANSPORTE PUBLICO',0  )
+ENDIF
+LOCATE FOR Tabla='MT' AND UPPER(CODIGO)='02'
+IF !FOUND()
+	INSERT INTO ALMTGSIS (Tabla,Codigo,Nombre,Digitos) VALUES ('MT','02','TRANSPORTE PRIVADO',0  )
+ENDIF
+** Unidades de medida hologada con catalogo Sunat GRE
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','4A','BOBINAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','BJ','BALDE',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','BLL','BARRILES',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','BG','BOLSA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','BO','BOTELLAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','BX','CAJA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','CT','CARTONES',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','CEN','CIENTO DE UNIDADES',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','CY','CILINDRO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','CJ','CONOS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','DZN','DOCENA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','DZP','DOCENA POR 10**6',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','BE','FARDO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','GLI','GALON INGLES (4,545956L)',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','GRM','GRAMO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','GRO','GRUESA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','HLT','HECTOLITRO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','LEF','HOJA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','SET','JUEGO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','KGM','KILOGRAMO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','KWH','KILOVATIO HORA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','KT','KIT',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','CA','LATAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','LBR','LIBRAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','LTR','LITRO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MWH','MEGAWATT HORA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MTR','METRO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MTK','METRO CUADRADO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MTQ','METRO CUBICO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MGM','MILIGRAMOS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MLT','MILILITRO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MMT','MILIMETRO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MMK','MILIMETRO CUADRADO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MMQ','MILIMETRO CUBICO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','MLL','MILLARES',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','UM','MILLON DE UNIDADES',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','ONZ','ONZAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','PF','PALETAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','PK','PAQUETES',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','PR','PAR',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','C62','PIEZAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','PG','PLACAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','ST','PLIEGO',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','INH','PULGADAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','RM','RESMA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','DR','TAMBOR',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','STN','TONELADA CORTA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','LTN','TONELADA LARGA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','TNE','TONELADAS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','TU','TUBOS',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','NIU','UNIDAD (BIENES)',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','ZZ','UNIDAD (SERVICIOS)',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','GLL','US GALON (3,7843 L)',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','YRD','YARDA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+Insert into almtgsis(Tabla,Codigo,Nombre,Digitos,Selec,Respon,Coding,Codsal,Defecto,Coduser,Fchhora,Diavto ) values ( 'UD','YDK','YARDA CUADRADA',0,.F.,'','','',.F.,"Victor",DATETIME(),0)
+
+USE IN ALMTGSIS
+
+WAIT WINDOW "Actualizando tablas detalle en contabilidad "+"CBDMTABL"+"....... " NOWAIT 
+** CBDMTABL **
+** Registros
+SELECT 0
+USE ADDBS(goentorno.tspathcia)+"cbdmtabl"
+LOCATE FOR Tabla='00' AND UPPER(CODIGO)='MG'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( '00','MG','Motivo de traslado GRE',2,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='01'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','01','01 - Ventas',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='02'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','02','02 - Compra',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='03'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','03','03 - Venta con entrega a terceros',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='04'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','04','04 - Traslado entre establecimientos de la misma empresa',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG'  AND UPPER(CODIGO)='05'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','05','05 - Consignación',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='06'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','06','06 - Devolución',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='07'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','07','07 - Recojo de bienes transformados',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='08'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','08','08 - Importación',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='09'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','09','09 - Exportación',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='13'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','13','13 - Otros',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='14'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','14','14 - Venta sujeta a confirmación del comprador',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='17'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','17','17 - Traslado de bienes para transformación',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='MG' AND UPPER(CODIGO)='18'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'MG','18','18 - Traslado emisor itinerante CP',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='01' AND UPPER(CODIGO)='EST'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( '01','EST','ESTABLECIMIENTO PTO. PARTIDA X SEDE Y PUNTO VENTA',4,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='00' AND UPPER(CODIGO)='ES'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( '00','ES','ESTABLECIMIENTOS ANEXOS SUNAT',4,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0000'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0000','DIRECCION PRINCIPAL REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0001'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0001','DIRECCION ESTABLECIMIENTO 0001 REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0002'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0002','DIRECCION ESTABLECIMIENTO 0002 REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0003'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0003','DIRECCION ESTABLECIMIENTO 0003 REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0004'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0004','DIRECCION ESTABLECIMIENTO 0004 REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0005'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0005','DIRECCION ESTABLECIMIENTO 0005 REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0006'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0006','DIRECCION ESTABLECIMIENTO 0006 REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='ES' AND UPPER(CODIGO)='0007'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'ES','0007','DIRECCION ESTABLECIMIENTO 0007 REGISTRADA EN SUNAT',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='0'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','0','DOC.TRIB.NO.DOM.SIN.RUC',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='1'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','1','Documento Nacional de Identidad',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='4'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','4','Carnet de extranjería',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='6'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','6','Registro Unico de Contributentes',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='7'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','7','Pasaporte',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='A'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','A','Cédula Diplomática de identidad',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='B'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','B','DOC.IDENT.PAIS.RESIDENCIA-NO.D',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='C'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','C','Tax Identification Number - TIN – Doc Trib PP.NN',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='D'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','D','Identification Number - IN – Doc Trib PP. JJ',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='E'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','E','TAM- Tarjeta Andina de Migración',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='F'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','F','Permiso Temporal de Permanencia - PTP',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='TD' AND UPPER(CODIGO)='G'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( 'TD','G','Salvoconducto',0,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+LOCATE FOR Tabla='00' AND UPPER(CODIGO)='TD'
+IF !FOUND()
+	Insert into cbdmtabl(Tabla,Codigo,Nombre,Digitos,Codcta,Codadd,Codref,Piddig,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim ) values ( '00','TD','Tipo documento identificación',1,'','','',.F.,"Victor",DATETIME(),'',Ctod([]),'',Ctod([]))
+ENDIF
+USE IN CBDMTABL
+
+WAIT WINDOW "Actualizando clasificacion de auxiliares en contabilidad "+"CBDMAUXI"+"........ " NOWAIT 
+** CBDMAUXI ** 
+** Estructura
+SELECT 0
+USE ADDBS(goentorno.tspathcia)+"CBDMAUXI" EXCLUSIVE ALIAS AUXI
+ALTER TABLE ALIAS() ADD COLUMN PlaTra C(10)
+ALTER TABLE ALIAS() ADD COLUMN Brevet C(20)
+ALTER TABLE ALIAS() ADD COLUMN NroRegMTC C(20)
+ALTER TABLE ALIAS() ADD COLUMN NroAutESP C(50)
+ALTER TABLE ALIAS() ADD COLUMN codestb C(4)
+ALTER TABLE ALIAS() ALTER COLUMN Codzona C(2)
+ALTER TABLE ALIAS() ADD COLUMN Codprovin C(4)
+ALTER TABLE ALIAS() ALTER COLUMN Coddist C(6)
+ALTER TABLE ALIAS() ADD COLUMN Nomurban C(30)
+ALTER TABLE ALIAS() ADD COLUMN Ubigeo C(10)
+ALTER TABLE ALIAS() ADD COLUMN Tpdcond C(1)
+ALTER TABLE ALIAS() ADD COLUMN Dnicond C(15)
+ALTER TABLE ALIAS() ADD COLUMN Nomcond C(40)
+ALTER TABLE ALIAS() ADD COLUMN Apecond C(40)
+ALTER TABLE ALIAS() ADD COLUMN Sede C(3)
+ALTER TABLE ALIAS() ADD COLUMN Ptovta C(3)
+** Registros 
+Insert into cbdmauxi(Clfaux,Codaux,Nomaux,Diraux,Disaux,Rucaux,Nivcom,Libaux,Tpoaux,Locaux,Tlfaux,Fching,Flgsit,Coddep,Coddis,Finanz,Indust,Moroso,Iniaux,Codpos,Nomc_v,Calaux,Flging,Vto_inic,Monto_min,Mon_letra,Inter_letr,Monto_letr,Codfam,Tasa_int,Ubiaux,Tngaux,Coduser,Fchhora,Ap_pater,Ap_mater,Nombre1,Nombre2,Email,Cndpgo,Codpais,Codzona,Codprovin,Coddist,Nomurban,Ubigeo,Codestb,Nroregmtc,Nroautesp,Tpdcond,Dnicond,Nomcond,Apecond,Platra,Brevet,Transport,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim,Sede,Ptovta ) values ( 'EST','0000','DIRECCION PRINCIPAL SEGUN REGISTRO SUNAT','','','','','','','','',Ctod([]),'','','11','','','','','','','','',0,0,0,0,0,'',0,'','','',Ctod([]),'','','','','miemail@hotmail.com; miemail@yahoo.com','','51','15','1501','150121','','150121','0000','','','','','','','','','','Victor',Ctot( [04/01/2024 07:57:03 AM] ),'',Ctod([]),'',Ctod([]),'001','020')
+Insert into cbdmauxi(Clfaux,Codaux,Nomaux,Diraux,Disaux,Rucaux,Nivcom,Libaux,Tpoaux,Locaux,Tlfaux,Fching,Flgsit,Coddep,Coddis,Finanz,Indust,Moroso,Iniaux,Codpos,Nomc_v,Calaux,Flging,Vto_inic,Monto_min,Mon_letra,Inter_letr,Monto_letr,Codfam,Tasa_int,Ubiaux,Tngaux,Coduser,Fchhora,Ap_pater,Ap_mater,Nombre1,Nombre2,Email,Cndpgo,Codpais,Codzona,Codprovin,Coddist,Nomurban,Ubigeo,Codestb,Nroregmtc,Nroautesp,Tpdcond,Dnicond,Nomcond,Apecond,Platra,Brevet,Transport,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim,Sede,Ptovta ) values ( 'EST','0001','DIRECCION ESTABLECIMIENTO 0001 - SI EXISTE, SINO BORRAR REGISTRO','','','','','','','','',Ctod([]),'','','','','','','','','','','',0,0,0,0,0,'',0,'','','',Ctod([]),'','','','','miemail@hotmail.com; miemail@yahoo.com','','51','11','1109','110109','','110109','0002','','','','','','','','','','Victor',Ctot( [04/01/2024 07:57:03 AM] ),'',Ctod([]),'',Ctod([]),'002','010')
+*!*	Insert into cbdmauxi(Clfaux,Codaux,Nomaux,Diraux,Disaux,Rucaux,Nivcom,Libaux,Tpoaux,Locaux,Tlfaux,Fching,Flgsit,Coddep,Coddis,Finanz,Indust,Moroso,Iniaux,Codpos,Nomc_v,Calaux,Flging,Vto_inic,Monto_min,Mon_letra,Inter_letr,Monto_letr,Codfam,Tasa_int,Ubiaux,Tngaux,Coduser,Fchhora,Ap_pater,Ap_mater,Nombre1,Nombre2,Email,Cndpgo,Codpais,Codzona,Codprovin,Coddist,Nomurban,Ubigeo,Codestb,Nroregmtc,Nroautesp,Tpdcond,Dnicond,Nomcond,Apecond,Platra,Brevet,Transport,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim,Sede,Ptovta ) values ( 'EST','0003','DIRECCION ESTABLECIMIENTO 0003 - SI EXISTE, SINO BORRAR REGISTRO','','','','','','','','',Ctod([]),'','','','','','','','','','','',0,0,0,0,0,'',0,'','','',Ctod([]),'','','','','miemail@hotmail.com; miemail@yahoo.com','','51','11','1109','110109','','110109','0003','','','','','','','','','','Victor',Ctot( [04/01/2024 07:57:03 AM] ),'',Ctod([]),'',Ctod([]),'002','05')
+*!*	Insert into cbdmauxi(Clfaux,Codaux,Nomaux,Diraux,Disaux,Rucaux,Nivcom,Libaux,Tpoaux,Locaux,Tlfaux,Fching,Flgsit,Coddep,Coddis,Finanz,Indust,Moroso,Iniaux,Codpos,Nomc_v,Calaux,Flging,Vto_inic,Monto_min,Mon_letra,Inter_letr,Monto_letr,Codfam,Tasa_int,Ubiaux,Tngaux,Coduser,Fchhora,Ap_pater,Ap_mater,Nombre1,Nombre2,Email,Cndpgo,Codpais,Codzona,Codprovin,Coddist,Nomurban,Ubigeo,Codestb,Nroregmtc,Nroautesp,Tpdcond,Dnicond,Nomcond,Apecond,Platra,Brevet,Transport,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim,Sede,Ptovta ) values ( 'EST','0004','DIRECCION ESTABLECIMIENTO 0004 - SI EXISTE, SINO BORRAR REGISTRO','','','','','','','','',Ctod([]),'','','','','','','','','','','',0,0,0,0,0,'',0,'','','',Ctod([]),'','','','','miemail@hotmail.com; miemail@yahoo.com','','51','11','1102','110102','','110102','0004','','','','','','','','','','Victor',Ctot( [04/01/2024 07:57:03 AM] ),'',Ctod([]),'',Ctod([]),'002','05')
+*!*	Insert into cbdmauxi(Clfaux,Codaux,Nomaux,Diraux,Disaux,Rucaux,Nivcom,Libaux,Tpoaux,Locaux,Tlfaux,Fching,Flgsit,Coddep,Coddis,Finanz,Indust,Moroso,Iniaux,Codpos,Nomc_v,Calaux,Flging,Vto_inic,Monto_min,Mon_letra,Inter_letr,Monto_letr,Codfam,Tasa_int,Ubiaux,Tngaux,Coduser,Fchhora,Ap_pater,Ap_mater,Nombre1,Nombre2,Email,Cndpgo,Codpais,Codzona,Codprovin,Coddist,Nomurban,Ubigeo,Codestb,Nroregmtc,Nroautesp,Tpdcond,Dnicond,Nomcond,Apecond,Platra,Brevet,Transport,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim,Sede,Ptovta ) values ( 'EST','0005','DIRECCION ESTABLECIMIENTO 0005 - SI EXISTE, SINO BORRAR REGISTRO','','','','','','','','',Ctod(´´),'','','','','','','','','','','',0,0,0,0,0,'',0,'','','',Ctod([]),'','','','','miemail@hotmail.com; miemail@yahoo.com','','51','11','1102','110102','','110102','0005','','','','','','','','','','Victor',Ctot( [04/01/2024 07:57:03 AM] ),'',Ctod([]),'',Ctod([]),'002','06')
+*!*	Insert into cbdmauxi(Clfaux,Codaux,Nomaux,Diraux,Disaux,Rucaux,Nivcom,Libaux,Tpoaux,Locaux,Tlfaux,Fching,Flgsit,Coddep,Coddis,Finanz,Indust,Moroso,Iniaux,Codpos,Nomc_v,Calaux,Flging,Vto_inic,Monto_min,Mon_letra,Inter_letr,Monto_letr,Codfam,Tasa_int,Ubiaux,Tngaux,Coduser,Fchhora,Ap_pater,Ap_mater,Nombre1,Nombre2,Email,Cndpgo,Codpais,Codzona,Codprovin,Coddist,Nomurban,Ubigeo,Codestb,Nroregmtc,Nroautesp,Tpdcond,Dnicond,Nomcond,Apecond,Platra,Brevet,Transport,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim,Sede,Ptovta ) values ( 'EST','0006','DIRECCION ESTABLECIMIENTO 0006 - SI EXISTE, SINO BORRAR REGISTRO','','','','','','','','',Ctod([]),'','','','','','','','','','','',0,0,0,0,0,'',0,'','','',Ctod([]),'','','','','miemail@hotmail.com; miemail@yahoo.com','','51','15','1503','150123','','150123','0006','','','','','','','','','','Victor',Ctot( [04/01/2024 07:57:03 AM] ),'',Ctod([]),'',Ctod([]),'001','02')
+*!*	Insert into cbdmauxi(Clfaux,Codaux,Nomaux,Diraux,Disaux,Rucaux,Nivcom,Libaux,Tpoaux,Locaux,Tlfaux,Fching,Flgsit,Coddep,Coddis,Finanz,Indust,Moroso,Iniaux,Codpos,Nomc_v,Calaux,Flging,Vto_inic,Monto_min,Mon_letra,Inter_letr,Monto_letr,Codfam,Tasa_int,Ubiaux,Tngaux,Coduser,Fchhora,Ap_pater,Ap_mater,Nombre1,Nombre2,Email,Cndpgo,Codpais,Codzona,Codprovin,Coddist,Nomurban,Ubigeo,Codestb,Nroregmtc,Nroautesp,Tpdcond,Dnicond,Nomcond,Apecond,Platra,Brevet,Transport,Usercrea,Fchcrea,Usermodi,Fchmodi,Userelim,Fchelim,Sede,Ptovta ) values ( 'EST','0007','DIRECCION ESTABLECIMIENTO 0007 - SI EXISTE, SINO BORRAR REGISTRO','','','','','','','','',Ctod([]),'','','','','','','','','','','',0,0,0,0,0,'',0,'','','',Ctod([]),'','','','','miemail@hotmail.com; miemail@yahoo.com','','51','11','1108','110108','','110108','0007','','','','','','','','','','Victor',Ctot( [04/01/2024 07:57:03 AM] ),'',Ctod([]),'',Ctod([]),'002','04')
+USE IN AUXI
+
+WAIT WINDOW "Actualizando maestro de clientes en ventas "+"CCTCLIEN"+"......... " NOWAIT 
+** CCTCLIEN **
+** Estructura **
+SELECT 0
+USE ADDBS(goentorno.tspathcia)+"CCTCLIEN" EXCLUSIVE ALIAS CLIE
+ALTER TABLE ALIAS() ADD COLUMN EMAIL VARCHAR(200)
+USE IN CLIE
+
+WAIT WINDOW "Actualizando maestro de direcciones por cliente en ventas "+"CCTCDIRE"+".......... " NOWAIT 
+** CCTCDIRE **
+** Estructura **
+SELECT 0
+USE ADDBS(goentorno.tspathcia)+"CCTCDIRE" EXCLUSIVE ALIAS CDIRE
+ALTER TABLE ALIAS() ALTER COLUMN Codzona C(2)
+ALTER TABLE ALIAS() ADD COLUMN Codprovin C(4)
+ALTER TABLE ALIAS() ALTER COLUMN Coddist C(6)
+ALTER TABLE ALIAS() ADD COLUMN Nomurban Varchar(60)
+ALTER TABLE ALIAS() ADD COLUMN Ubigeo C(10)
+ALTER TABLE ALIAS() ADD COLUMN Codestb C(4)
+ALTER TABLE ALIAS() ADD COLUMN Emaild Varchar(200)
+ALTER TABLE ALIAS() ADD COLUMN Longitud Float(13,9)
+ALTER TABLE ALIAS() ADD COLUMN Latitud Float(13,9)
+USE IN CDIRE
+
+WAIT WINDOW "Actualizando cabecera de GUIAS en ventas "+"VTAVGUIA"+"........... " NOWAIT 
+SELECT 0
+** VTAVGUIA **
+** Estructura **
+USE ADDBS(goentorno.tspathcia)+"VTAVGUIA" EXCLUSIVE ALIAS GUIA
+ALTER TABLE ALIAS() ALTER COLUMN 	Motivo		N(2)
+ALTER TABLE ALIAS() ALTER COLUMN 	DirEnt		Varchar(200)
+ALTER TABLE ALIAS() ADD COLUMN		UbiPpart	Char(10)
+ALTER TABLE ALIAS() ADD COLUMN		UbiPlleg	Char(10)
+ALTER TABLE ALIAS() ADD COLUMN		ubitransp	Char(10)
+ALTER TABLE ALIAS() ADD COLUMN		CodEstPart	char(4)
+ALTER TABLE ALIAS() ADD COLUMN		CodEstLleg	char(4)
+ALTER TABLE ALIAS() ADD COLUMN		DirRemit	Varchar(200)
+ALTER TABLE ALIAS() ADD COLUMN		UrbRemit	Char(30)
+ALTER TABLE ALIAS() ADD COLUMN		EmailDest	Varchar(40)
+ALTER TABLE ALIAS() ADD COLUMN		PesoBruto	N(10,4)
+ALTER TABLE ALIAS() ADD COLUMN		ModTra		C(2)
+ALTER TABLE ALIAS() ADD COLUMN		UndMed		C(4)
+ALTER TABLE ALIAS() ADD COLUMN		FiniTras	Datetime
+ALTER TABLE ALIAS() ADD COLUMN		DniCond		C(15) 			
+ALTER TABLE ALIAS() ADD COLUMN		TPDCond		C(1)		
+ALTER TABLE ALIAS() ADD COLUMN		NomCond		Char(40)			
+ALTER TABLE ALIAS() ADD COLUMN		ApeCond		Char(40) 			
+ALTER TABLE ALIAS() ADD COLUMN		Brevet		Char(10) 
+ALTER TABLE ALIAS() ADD COLUMN		nroregmtc   Char(20) 
+ALTER TABLE ALIAS() ADD COLUMN		nroautesp   VarChar(50) 
+ALTER TABLE ALIAS() ADD COLUMN		DesMotivo	VarChar(60) 		
+USE IN GUIA
+
+WAIT WINDOW "Actualizando maestro de correlativos en ventas "+"VTATDOCM"+"............ " NOWAIT 
+SELECT 0
+** VTATDOCM **
+** Estructura **
+USE ADDBS(goentorno.tspathcia)+"VTATDOCM" EXCLUSIVE ALIAS TDOC
+ALTER TABLE ALIAS() ALTER COLUMN 	NroDoc		C(15)
+ALTER TABLE ALIAS() ALTER COLUMN 	Serie		C(4)
+USE IN TDOC
+
+WAIT WINDOW "Actualizando cabecera de transacciones de almacen "+"ALMCTRAN"+"............. " NOWAIT 
+SELECT 0
+** ALMCTRAN **
+** Estructura **
+USE ADDBS(goentorno.tspathcia_ano)+"ALMCTRAN" EXCLUSIVE ALIAS CTRA
+DELETE TAG ALL
+ALTER TABLE ALIAS() ALTER COLUMN 	NroDoc		C(15)
+ALTER TABLE ALIAS() ALTER COLUMN 	NroRf1		C(15)
+ALTER TABLE ALIAS() ALTER COLUMN 	NroRf2		C(15)
+ALTER TABLE ALIAS() ALTER COLUMN 	NroRf3		C(15)
+ALTER TABLE ALIAS() ALTER COLUMN 	NroRfb		C(15)
+ALTER TABLE ALIAS() ALTER COLUMN 	Motivo		N(2)
+ALTER TABLE ALIAS() ALTER COLUMN	Brevet		Char(10) 
+ALTER TABLE ALIAS() ALTER COLUMN	Observ		VarChar(200) 
+ALTER TABLE ALIAS() ADD COLUMN		PtoVta		Char(3) 	
+ALTER TABLE ALIAS() ADD COLUMN		UbiPpart	Char(10)
+ALTER TABLE ALIAS() ADD COLUMN		UbiPlleg	Char(10)
+ALTER TABLE ALIAS() ADD COLUMN		ubitransp	Char(10)
+ALTER TABLE ALIAS() ADD COLUMN		CodEstPart	char(4)
+ALTER TABLE ALIAS() ADD COLUMN		CodEstLleg	char(4)
+ALTER TABLE ALIAS() ADD COLUMN		PesoBruto	N(10,4)
+ALTER TABLE ALIAS() ADD COLUMN		ModTra		C(2)
+ALTER TABLE ALIAS() ADD COLUMN		UndMed		C(4)
+ALTER TABLE ALIAS() ADD COLUMN		FiniTras	Datetime
+ALTER TABLE ALIAS() ADD COLUMN		Fentrans	Datetime
+ALTER TABLE ALIAS() ADD COLUMN		DniCond		C(15) 			
+ALTER TABLE ALIAS() ADD COLUMN		TPDCond		C(1)		
+ALTER TABLE ALIAS() ADD COLUMN		NomCond		Char(40)			
+ALTER TABLE ALIAS() ADD COLUMN		ApeCond		Char(40) 			
+
+INDEX ON SUBALM+TIPMOV+CODMOV+NRODOC TAG CTRA01
+INDEX ON NROODT+SUBALM+TIPMOV+CODMOV+NRODOC TAG CTRA02
+INDEX ON TPORF1+NRORF1+SUBALM+TIPMOV+CODMOV+NRODOC TAG CTRA03
+INDEX ON CODPRO+DTOS(FCHDOC)+NRORF1+FLGFAC TAG CTRA04
+INDEX ON DTOS(FCHDOC)+TIPMOV+CODMOV+NRODOC TAG CTRA05
+INDEX ON TPORF1+NRORF1+ALMORI+SUBALM+TIPMOV+CODMOV+NRODOC TAG CTRA06
+INDEX ON TPORFB+NRORFB+SUBALM+TIPMOV+CODMOV+NRODOC TAG CTRA07
+USE IN CTRA
+
+WAIT WINDOW "Actualizando vista de impresion FACT/BOLE/GRE "+"FACT_BOL"+".............. " NOWAIT 
+SELECT 0		
+USE ADDBS(goentorno.locpath)+"FACT_BOL" EXCLUSIVE ALIAS FBOL
+ALTER TABLE ALIAS() ALTER COLUMN	NRODOC		Char(15) 
+USE IN FBOL
+
+WAIT WINDOW "Actualizando archivo de configuración "+"CONFIG.INI"+"............... " NOWAIT 
+=ADD_CONFIG()
+LcLineas = ""
+WAIT WINDOW "Proceso terminado, revisar tareas pendientes" NOWAIT 
+TEXT TO LcLineas 
+	PROCESO TERMINADO
+	======= =========
+	
+	Tareas pendientes:
+	
+	1.	Remover la regla (Rule) "len_id()" del campo "campo_id" en la tabla CIAXXX!VTATDOCM.
+  		XXX es el codigo de la compañia (empresa) EJEM: 
+  		USE CIA001!VTATDOCM EXCL
+  		MODIFY STRUCTURE 
+  		** Posicionarse en el campo CAMPO_ID
+  		** En el lado derecho en el recuadro Field validation:
+  		** Dejar en blanco la casilla RULE y click en OK para grabar.
+	
+	2.  Volver a ejecutar Inicio_Nomcia para probar GRE en ventana de comandos, 
+		EJEM: Do Inicio_oniblom 
+			  DO form Funfun_selec_ventas	
+			  DO Form funalm_transacciones_vta.scx WITH 'S','',gssubalm,[G/R],.t.	 
+		 	
+ENDTEXT
+STRTOFILE(LcLineas,ADDBS(goentorno.Tmppath)+"TODO.TXT") 
+MODIFY COMMAND ADDBS(goentorno.Tmppath)+"TODO.TXT"
+*******************
+FUNCTION ADD_CONFIG
+*******************
+#DEFINE CRLF 			CHR(13)+CHR(10)
+LcFileINI=ADDBS(JUSTPATH(goentorno.tspathadm))+"CONFIG.INI"
+*!*	Leer el Archivo .INI
+LcStringINI	= UPPER( FILETOSTR(LcFileINI) )
+oIniVal=NEWOBJECT("oldinireg","registry.vcx")
+LcValue =''
+oIniVal.getinientry(@lcvalue,'Ruta Interfaces','Path PLE',LcFileIni) 
+IF EMPTY(LcValue)
+	LcLineas=""+CRLF
+	STRTOFILE(LcLineas,LcFileINI,.T.)
+	TEXT TO LcLineas   PRETEXT 7
+	[Ruta Interfaces]
+	Path PLE =\o-negocios\Interface
+	Path SFS =\o-negocios\Interface
+	Path OSE GRE  =D:\POS_Efact\POS_Efact\documents\in\guia-remision
+	Path OSE FACT =D:\POS_Efact\POS_Efact\documents\in\invoice
+	Path OSE CSV  =D:\POS_Efact\POS_Efact\documents\csv
+	ENDTEXT
+
+	STRTOFILE(LcLineas,LcFileINI,.T.) 
+ENDIF
+RELEASE oIniVal

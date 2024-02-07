@@ -8064,6 +8064,42 @@ IF VerifyVar('FiniTras','','CAMPO','CTRA')
 ENDIF   	
 ** VETT: Modalidad de transporte GRE [FIN] 11/12/2023 12:06 PM **
 
+** VETT: GRE: Cod. Establecimiento de partida y punto de venta IDUPD:3129287427-05/01/2024 02:32 PM 
+IF VerifyVar('CodEstPart','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+		CodEstPart = C_CTRA.CodEstPart ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF   	
+IF VerifyVar('PtoVta','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+		PtoVta = C_CTRA.PtoVta ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF  
+IF VerifyVar('NroRegMTC','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+		NroRegMTC = C_CTRA.NroRegMTC ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF	
+IF VerifyVar('NroAutESP','','CAMPO','CTRA')
+	UPDATE CTRA SET  ;
+		NroAutESP = C_CTRA.NroAutESP ;
+    WHERE    Subalm = m.cSubAlm AND ;
+		TipMov = m.cTipMov AND ; 			  	     	
+	   	CodMov = m.sCodMov AND  ;
+	   	NroDoc = m.sNroDoc
+ENDIF	 	
+** VETT: GRE: Cod. Establecimiento de partida y punto de venta [FIN] IDUPD:3129287427-05/01/2024 02:32 PM 
+
+
 ** VETT: Capturamos el numero de G/R que se creado o modificado NroRf1 IDUPD:1455995224-03/01/2024 08:04 AM
 GoCfgAlm.sNroRf1 = C_CTRA.NroRf1 
  

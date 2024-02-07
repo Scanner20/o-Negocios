@@ -1,8 +1,11 @@
-PARAMETERS PoDataCab as Object ,PoDataDet as Object,PoDataAdi as Object, PsRuta as Character, PsVer as Character
+PARAMETERS PoDataCab as Object ,PoDataDet as Object,PoDataAdi as Object, PsRutA as Character, PsRutB as Character,PsVer as Character
 IF VARTYPE(PsVer)<>'C'
 *!*		PsVer = '1.2'
 	** VETT:Actualización v1.3.2 2020/07/01 08:55:39 ** 
 	PsVer = '1.3.2'
+ENDIF
+IF VARTYPE(PsRutB)<>"C"
+	PsRutB	= ""
 ENDIF
 #include const.h 
 IF .f. AND PoDataCab.NroRf1='E' AND INLIST(PoDataCab.TpoRf1,'FACT','BOLE','N/C','N/D')
@@ -16,7 +19,7 @@ LsLetSer	=ICASE(INLIST(PoDataCab.TpoRf1,'FACT','BOLE','G/R'),LEFT(PoDataCab.NroR
 LsSerie		=RIGHT(LsLetSer+LTRIM(SUBSTR(PoDataCab.NroRf1,2,3)),4)
 LsExtFile1	=ICASE(INLIST(LsCodDoc,'01','03','09'),".txt",INLIST(LsCodDoc,'07','08'),".txt") 
 LsExtFile2	=".csv"
-LsNomArc	=GsRucCia+'-'+LsCodDoc+'-'+LsSerie+'-'+RIGHT('000000000'+RTRIM(SUBSTR(PoDataCab.NroRf1,5)),9)+LsExtFile1	&&  '.CAB'
+LsNomArc	=GsRucCia+'-'+LsCodDoc+'-'+LsSerie+'-'+RIGHT('00000000'+RTRIM(SUBSTR(PoDataCab.NroRf1,5)),8)+LsExtFile1	&&  '.CAB'
 
 LlHayCuotas	= .F. 
 
@@ -27,9 +30,15 @@ DO CASE
 	CASE INLIST(LsCodDoc,'01','03')
 		DO Genera_Cadena_CSV_FB WITH  PoDataCab,PsRuta
 	CASE INLIST(LsCodDoc,'07','08')
+	
 		DO Genera_Cadena_CSV_NOT WITH  PoDataCab,PsRuta
 	CASE INLIST(LsCodDoc,'09')
-		DO Genera_Cadena_CSV_GRE WITH  PoDataCab,PsRuta
+		goentorno.open_dbf1("ABRIR","Zonas","Zona","Zona01")
+		goentorno.open_dbf1("ABRIR","Provincias","Prov","Prov01")
+		goentorno.open_dbf1("ABRIR","Distritos","DIST","DIST01")
+		goentorno.open_dbf1("ABRIR","ALMTGSIS","ALMTGSIS","TABL01")
+		goentorno.open_dbf1("ABRIR","CBDMTABL","CBDMTABL","TABL01")
+		DO Genera_Cadena_CSV_GRE WITH  PoDataCab,PsRuta,PsRutB
 ENDCASE
 
 LsMensaje=""
@@ -53,11 +62,26 @@ ELSE
 	=MESSAGEBOX(LsMensaje,64,'Envio de archivos a EFACT')
 ENDIF
 
+IF USED('PROV')
+	USE IN PROV
+ENDIF
+IF USED('DIST')
+	USE IN DIST
+ENDIF
+IF USED('ZONA')
+	USE IN ZONA
+ENDIF
+IF USED('ALMTGSIS')
+	USE IN ALMTGSIS
+ENDIF
+IF USED('CBDMTABL')
+	USE IN CBDMTABL
+ENDIF
 
-
-
+********************************
 PROCEDURE Genera_Cadena_CSV_GRE 
-PARAMETERS PoDataCab,PsRuta
+********************************
+PARAMETERS PoDataCab,PsRuta,PsRutB
 
 	Lsruta   = ADDBS(TRIM(PsRuta)) && curdir()+lruta   
 	IF !DIRECTORY(Lsruta)
@@ -71,8 +95,8 @@ PARAMETERS PoDataCab,PsRuta
 	LsCodDoc	=ICASE(PoDataCab.TpoRf1='FACT','01',PoDataCab.TpoRf1='BOLE','03',PoDataCab.TpoRf1='N/C','07',PoDataCab.TpoRf1='N/D','08',PoDataCab.TpoRf1='G/R','09',"")
 	LsLetSer	=ICASE(INLIST(PoDataCab.TpoRf1,'FACT','BOLE','G/R'),LEFT(PoDataCab.NroRf1,1),INLIST(PoDataCab.TpoRf1,'N/C','N/D'),LEFT(PoDataCab.NroRf1,1),'X')
 	LsSerie		=RIGHT(LsLetSer+LTRIM(SUBSTR(PoDataCab.NroRf1,2,3)),4)
-	LsNomArc	=GsRucCia+'-'+LsCodDoc+'-'+LsSerie+'-'+RIGHT('000000000'+RTRIM(SUBSTR(PoDataCab.NroRf1,5)),9)+'.txt'
-	LsNroDoc    =LsSerie+'-'+RIGHT('000000000'+RTRIM(SUBSTR(PoDataCab.NroRf1,5)),9)
+	LsNomArc	=GsRucCia+'-'+LsCodDoc+'-'+LsSerie+'-'+RIGHT('00000000'+RTRIM(SUBSTR(PoDataCab.NroRf1,5)),8)+'.txt'
+	LsNroDoc    =LsSerie+'-'+RIGHT('00000000'+RTRIM(SUBSTR(PoDataCab.NroRf1,5)),8)
 	** Datos Adicionales **
 	LsCodFac	=	ICASE(PoDataAdi.CodFac='FACT','01',PoDataAdi.CodFac='BOLE','03',PoDataAdi.CodFac='N/C','07',PoDataAdi.CodFac='N/D','08',PoDataAdi.CodFac='G/R','09',"")
 	LsNroFac	=	PoDataAdi.NroFac
@@ -84,6 +108,14 @@ PARAMETERS PoDataCab,PsRuta
 	   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Cabecera de venta')
 	   RETURN .f.
 	ENDIF
+	
+	** VETT: Convertimos a cursor el objeto que tiene los datos del detalle del documento IDUPD:3854169577-11/01/2024 04:10 PM 
+	gocfgvta.odatadm.obj2cur(PoDataDet,'cDVta')
+	
+	LnTotItmGR = cursor_esta_vacio("cDVta",.t.)
+	IF VARTYPE(LnTotItmGR)<>"N"
+		LnTotItmGR = 0
+	ENDIF
 		
 	DIMENSION aFila(30)
 	STORE "" TO aFila
@@ -94,7 +126,8 @@ PARAMETERS PoDataCab,PsRuta
 	LfTotVta	= 0  && PoDataCab.ImpBto+PoDataCab.ImpIgv+PoDataCab.ImpAdm-PoDataCab.ImpDto-LnTotAnt
 	LsFecha		= TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##")
 	LsFchVto	= {} && IIF(!EMPTY(PoDataCab.FchVto),TRANSFORM(DTOS(PoDataCab.FchVto), "@R ####-##-##"),"-")
-	LsDesMot	= 	'Venta' && Falta asociar descripcion segun tabla (catalogo nro. 20)
+	LsDesMot	= IIF(SEEK(PADR(GsMotivo,LEN(CBDMTABL.Tabla))+TRANSFORM(PoDataCab.Motivo,"@L ##"),"CBDMTABL","TABL01"),ALLTRIM(STUFF(CBDMTABL.Nombre,1,ATC("-",CBDMTABL.Nombre),"")),'Descripción motivo traslado') 
+	LsDesMot	= IIF(!EMPTY(PoDataAdi.Desmotivo),PoDataAdi.Desmotivo,LsDesMot)
 	LnCnGRef	= 0
 	IF !EMPTY(LsCodFac) AND !EMPTY(LsNroFac)
 		LnCnDRel = 1
@@ -122,9 +155,9 @@ PARAMETERS PoDataCab,PsRuta
 	LsUbiRemit  = PoDataAdi.UbiPpart    && Codigo Ubigeo remitente (Empresa), obtenerlo de suscursales/establecimiento de la empresa (CIAXXX)  
 	LsDirRemit  = PoDataAdi.DirRemit	&& Dirección segun sucursal o establecimiento de la empresa
 	LsUrbRemit  = PoDataAdi.UrbRemit	&& Urbanizacion remitente
-	LsPrvRemit  = ""				&& Provincia remitente
-	LsDepRemit	= ""				&& Departamento remitente
-	LsDisRemit  = ""				&& Distrito remitente	
+	LsPrvRemit  = IIF(SEEK(LEFT(LsUbiRemit,4),"PROV"),UPPER(PROV.DesPRovin),"")				&& Provincia remitente
+	LsDepRemit	= IIF(SEEK(LEFT(LsUbiRemit,2),"ZONA"),UPPER(ZONA.deszona),"")				&& Departamento remitente
+	LsDisRemit  = IIF(SEEK(LEFT(LsUbiRemit,6),"DIST"),UPPER(DIST.desdist),"")				&& Distrito remitente	
 	LsCodPaisR 	= "PE"				&& Codigo Pais remitente
 	LsAutRemit	= ""				&& Número de autorización especial - remitente
 	LsCdEntEmiR = "06"
@@ -136,9 +169,9 @@ PARAMETERS PoDataCab,PsRuta
 	LsUbiDest	=	PoDataAdi.UbiPlleg 				&& Codigo Ubigeo Destinatario (Cliente/Empresa) obtenerlo de sucursal/establecimiento cliente
 	LsDirDest	=	PoDataAdi.DirEnt
 	LsUrbDest	=	""
-	LsPrvDest	=	""
-	LsDepDest	=	""
-	LsDisDest	=	""
+	LsPrvDest	=	IIF(SEEK(LEFT(LsUbiDest,4),"PROV"),UPPER(PROV.DesPRovin),"")
+	LsDepDest	=	IIF(SEEK(LEFT(LsUbiDest,2),"ZONA"),UPPER(ZONA.deszona),"")
+	LsDisDest	=	IIF(SEEK(LEFT(LsUbiDest,6),"DIST"),UPPER(DIST.desdist),"")
 	LsCdPaisD	=	"PE"
 	LsEmailDest	=	PoDataAdi.EmailDest
 	LsCodEstDes =	PoDataAdi.CodEstLleg
@@ -176,7 +209,7 @@ PARAMETERS PoDataCab,PsRuta
 	LsDisPLleg  =	LsDisDest								&& Distrito punto de llegada
 	LnNroBultos =   0										&& Diferente de cero si Motivo es "08" o "09"	
 	LsRegMTC	=	LsNroRegMTC								&& Numero de registro MTC transportista
-	LsNroAutTra	=	""										&& Numero de Autorizacion especial transportista
+	LsNroAutTra	=	PoDataAdi.NroAutESP						&& Numero de Autorizacion especial transportista
 	LsEntEmiTra	=	LsCdEntEmiR								&& 
 	LsCodEstPart=	PoDataAdi.CodEstPart
 	LsLongPart  =   0
@@ -187,7 +220,7 @@ PARAMETERS PoDataCab,PsRuta
 	
 	
 	DO CASE
-		CASE INLIST(TRANSFORM(PoDataCab.Motivo,'@L ##') , '01','03',"13")
+		CASE INLIST(TRANSFORM(PoDataCab.Motivo,'@L ##') , '01','03',"13","07","17")
 			LsDniCond 	= "" 
 			LsTPDCond 	= "" 
 			LsNomCond 	= "" 
@@ -198,7 +231,9 @@ PARAMETERS PoDataCab,PsRuta
 			LsNroAutv 	= ""		
 			LsCdEntemiV	= "" 	
 			LsNContene	= ""				
-			LsNPrecint	= ""		
+			LsNPrecint	= ""	
+			LnCnCdRel	= 0
+			LnCnPlRel	= 0	
 		CASE INLIST(TRANSFORM(PoDataCab.Motivo,'@L ##') , '04')
 			IF LsModTra = '02'   && Modalidad de traslado Privado
 				LsDniCond	= PoDataAdi.DNICond 			&& Dni conductor (Chofer)
@@ -206,6 +241,15 @@ PARAMETERS PoDataCab,PsRuta
 				LsNomCond	= PoDataAdi.NomCond 			&& Nombres conductor
 				LsApeCond	= PoDataAdi.ApeCond 			&& Apellidos conductor
 				LsLicCond	= PoDataAdi.Brevet				&& Licencia de conducir conductor	
+			ELSE
+				LsDniCond	= "" 			&& Dni conductor (Chofer)
+				LsTPDCond	= "" 			&& Tipo documento conductor
+				LsNomCond	= "" 			&& Nombres conductor
+				LsApeCond	= "" 			&& Apellidos conductor
+				LsLicCond	= ""			&& Licencia de conducir conductor	
+				LsPlaTra	= ""
+				LsCdEntemiV = ""
+				LsNroAutv	= ""	
 			ENDIF
 					
 		OTHERWISE 	
@@ -216,7 +260,7 @@ PARAMETERS PoDataCab,PsRuta
 	LsCadena = 				TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##") 					+","  && Fecha 
 	LsCadena = LsCadena + 	LsNroDoc															+","  && NroDoc 
 	LsCadena = LsCadena +	LsCodDoc															+","  && Codigo Documento Sunat 
-	LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.NroItm,3))									+","  && Nro de items de G/R
+	LsCadena = LsCadena +	ALLTRIM(STR(LnTotItmGR,3))									+","  && Nro de items de G/R
 	LsCadena = LsCadena +	IIF(!EMPTY(LnCnGRef),ALLTRIM(STR(LnCnGRef,3)),"" )					+","  && Cantidad G/Rs referencia
 	LsCadena = LsCadena +	IIF(!EMPTY(LnCnDRel),ALLTRIM(STR(LnCnDRel,3)),"" )					+","  && Cantidad Docs relacionados
 	LsCadena = LsCadena +	IIF(!EMPTY(LnCnCdRel),ALLTRIM(STR(LnCnCdRel,3)),"" )				+","  && Cantidad conductores relacionados
@@ -230,11 +274,11 @@ PARAMETERS PoDataCab,PsRuta
 	LsCadena = LsCadena +	ALLTRIM(LsDRBaja)										+","		
 	LsCadena = LsCadena +   CRLF		
 	LsCadena = LsCadena +	aFila(3)	
-	LsCadena = LsCadena +   ALLTRIM(IIF(!EMPTY(LsNroFac),STUFF(LsNroFac, 5, 0, '-'),''))						+","
-	LsCadena = LsCadena +   ALLTRIM(LsCodFac)										+","
-	LsCadena = LsCadena +  	ALLTRIM(LsDesDREL)										+","
-	LsCadena = LsCadena +	IIF(EMPTY(LsCodFac),"",ALLTRIM(GsRucCia))				+","
-	LsCadena = LsCadena +	'ATTACH_DOC'											+","
+	LsCadena = LsCadena +   ALLTRIM(IIF(!EMPTY(LsNroFac),STUFF(LsNroFac, 5, 0, '-'),''))	+","
+	LsCadena = LsCadena +   IIF(EMPTY(LsNroFac),"",ALLTRIM(LsCodFac))						+","
+	LsCadena = LsCadena +  	IIF(EMPTY(LsNroFac),"",ALLTRIM(LsDesDREL))						+","
+	LsCadena = LsCadena +	IIF(EMPTY(LsCodFac),"",ALLTRIM(GsRucCia))						+","
+	LsCadena = LsCadena +	'ATTACH_DOC'													+","
 	LsCadena = LsCadena +   CRLF	
 	LsCadena = LsCadena +	aFila(4)		
 	LsCadena = LsCadena +	ALLTRIM(LsDniCond)	+","
@@ -242,7 +286,7 @@ PARAMETERS PoDataCab,PsRuta
 	LsCadena = LsCadena +	ALLTRIM(LsNomCond)	+","
 	LsCadena = LsCadena +	ALLTRIM(LsApeCond)	+","
 	LsCadena = LsCadena +	ALLTRIM(LsLicCond) 	+","
-	LsCadena = LsCadena +	'ATTACH_DOC'											+","
+	LsCadena = LsCadena +	'ATTACH_DOC'		+","
 	LsCadena = LsCadena +   CRLF	
 	LsCadena = LsCadena +	aFila(5)	
 	LsCadena = LsCadena +	ALLTRIM(LsPlaTra)	+","
@@ -332,8 +376,8 @@ PARAMETERS PoDataCab,PsRuta
 			LsCadena = LsCadena +',,,,,,,,,,,,,,,,,,,'						+","
 			LsCadena = LsCadena + ALLTRIM(GsRucCia)							+","
 			LsCadena = LsCadena + ALLTRIM(LsCodEstPart)						+","
-			LsCadena = LsCadena + ALLTRIM(STR(LsLongPart,3,8))				+","
-			LsCadena = LsCadena + ALLTRIM(STR(LsLatiPart,3,8))				+","	
+			LsCadena = LsCadena + IIF(!EMPTY(LsLongPart),ALLTRIM(STR(LsLongPart,3,8)),"")	+","
+			LsCadena = LsCadena + IIF(!EMPTY(LsLatiPart),ALLTRIM(STR(LsLatiPart,3,8)),"")	+","	
 			LsCadena = LsCadena + ALLTRIM(GsRucCia)							+","
 			LsCadena = LsCadena + ALLTRIM(LsCodEstLleg)						+","
 			LsCadena = LsCadena + ',,,,,,,,,,,,,,,'							+","
@@ -348,12 +392,12 @@ PARAMETERS PoDataCab,PsRuta
 			LsCadena = LsCadena +	',,,,,,,,,,,,'							+","
 			LsCadena = LsCadena + ALLTRIM(GsRucCia)							+","
 			LsCadena = LsCadena + ALLTRIM(LsCodEstPart)						+","
-			LsCadena = LsCadena + ALLTRIM(STR(LsLongPart,3,8))				+","
-			LsCadena = LsCadena + ALLTRIM(STR(LsLatiPart,3,8))				+","	
+			LsCadena = LsCadena + IIF(!EMPTY(LsLongPart),ALLTRIM(STR(LsLongPart,3,8)),"")	+","
+			LsCadena = LsCadena + IIF(!EMPTY(LsLatiPart),ALLTRIM(STR(LsLatiPart,3,8)),"")	+","	
 			LsCadena = LsCadena + ALLTRIM(PoDataAdi.RucCli)					+","
 			LsCadena = LsCadena + ALLTRIM(LsCodEstDes)						+","
-			LsCadena = LsCadena + ALLTRIM(STR(LsLongPLleg,3,8))				+","
-			LsCadena = LsCadena + ALLTRIM(STR(LsLatiPLleg,3,8))				+","	
+			LsCadena = LsCadena + IIF(!EMPTY(LsLongPLleg),ALLTRIM(STR(LsLongPLleg,3,8)),"")	+","
+			LsCadena = LsCadena + IIF(!EMPTY(LsLatiPLleg),ALLTRIM(STR(LsLatiPLleg,3,8)),"")	+","	
 	ENDCASE
 	LsCadena = LsCadena +   CRLF	
 	LsCadena = LsCadena +	aFila(11)
@@ -361,8 +405,9 @@ PARAMETERS PoDataCab,PsRuta
 	LsCadena = LsCadena +   CRLF	
 	LsCadena = LsCadena +	aFila(12)
 	** VETT: Agregamos items del detalle de  G/R IDUPD:659158006-28/12/2023 08:50 PM 
-	gocfgvta.odatadm.obj2cur(PoDataDet,'cDVta')
+	
 	SELECT cDVta
+	LOCATE
 	SCAN
 		LsCadena = LsCadena + ALLTRIM(STR(cDvta.nroitm,4,0))				+","
 		LsCadena = LsCadena + ALLTRIM(ICASE(cDVta.UndVta='KG','KGM',cDVta.UndVta='MTS','MTR',cDVta.UndVta='ROL','RO','NIU'))				+","
@@ -401,458 +446,57 @@ ENDIF
 LcString = FILETOSTR(LsRuta+LsNomArc)	
 LcFileCSV=ADDBS(JUSTPath(LsRuta+LsNomArc))+JUSTSTEM(LsRuta+LsNomArc)+LsExtFile2
 STRTOFILE(STRCONV(lcString,9),LcFileCSV)	
-	
-RETURN
-***************************
-PROCEDURE Genera_Cadena_CAB
-*************************** 
-PARAMETERS PoDataCab,PsRuta
+** VETT: [FIN] IDUPD:1861213826-28/12/2023 07:20 PM
 
-	Lsruta   = ADDBS(TRIM(PsRuta)) && curdir()+lruta   
-	IF !DIRECTORY(Lsruta)
-		MKDIR (Lsruta)
-	ENDIF	
-	
-	LsCodDoc	=ICASE(PoDataCab.CodDoc='FACT','01',PoDataCab.CodDoc='BOLE','03',PoDataCab.CodDoc='N/C','07',PoDataCab.CodDoc='N/D','08')
-	LsLetSer	=ICASE(INLIST(PoDataCab.CodDoc,'FACT','BOLE'),LEFT(PoDataCab.CodDoc,1),INLIST(PoDataCab.CodDoc,'N/C','N/D'),LEFT(PoDataCab.CodRef,1),'X')
-	LsSerie		=RIGHT(LsLetSer+LTRIM(LEFT(PoDataCab.NroDoc,3)),4)
-	LsNomArc	=GsRucCia+'-'+LsCodDoc+'-'+LsSerie+'-'+RIGHT('00000000'+RTRIM(SUBSTR(PoDataCab.NroDoc,4)),8)+'.CAB'
-	IF FILE(Lsruta+LsNomArc)
-		DELETE FILE (Lsruta+LsNomArc)
-	ENDIF
+** VETT: Grabamos copia de respaldo en ruta secundaria IDUPD:2454762601-11/01/2024 03:22 PM 	
+IF !EMPTY(PsRutB)	
+	COPY FILE (LcFileCSV) TO ADDBS(goentpub.tspath_ose_csv)+JUSTFNAME(LcFileCSV)
+ENDIF	
+** VETT: [FIN] IDUPD:2454762601-11/01/2024 03:22 PM 	
 
-	LnControlArc = fcreate(Lsruta+LsNomArc)
-
-	if LnControlArc<0
-	   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Cabecera de venta')
-	   RETURN .f.
-	endif
-	DO CASE 
-		CASE PsVer='1.2'
-			LsVerDOC = "2.0"
-			LsVerUBL = "2.1"
-			LnTotAnt = 0
-			LfTotVta = PoDataCab.ImpBto+PoDataCab.ImpIgv+PoDataCab.ImpAdm-PoDataCab.ImpDto-LnTotAnt
-			LsFecha	 = TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##")
-			LsFchVto = IIF(!EMPTY(PoDataCab.FchVto),TRANSFORM(DTOS(PoDataCab.FchVto), "@R ####-##-##"),"-")
-			LsCadena =				ALLTRIM('01'+TRANSFORM(PoDataCab.TpoVta,'@L ##'))					+"|"
-			LsCadena = LsCadena +	TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##") 					+"|"
-			LsCadena = LsCadena + 	SUBSTR(TTOC(gdoc.fchmodi,3),12)										+"|"
-			LsCadena = LsCadena +	LsFchVto															+"|"  && fecVencimiento / "-" si es vacio
-			LsCadena = LsCadena +	'001'																+"|" && '001' GsCodSed 
-			LsCadena = LsCadena +	ICASE(LEN(trim(PoDataCab.RucCli))=11,'6',LEN(TRIM(PoDataCab.RucCli))=8,'1','0')	+"|"
-			LsCadena = LsCadena +	ALLTRIM(PoDataCab.RucCli)											+"|"
-			LsCadena = LsCadena +	ALLTRIM(PoDataCab.NomCli)											+"|"
-			LsCadena = LsCadena +	ICASE(PoDataCab.CodMon=1,'PEN',PoDataCab.CodMon=2,'USD','')			+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpIgv,15,2))									+"|"	&& IGV
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpBto,15,2))									+"|"	&& Ventas Gravadas
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpBto+PoDataCab.ImpIgv,15,2)) 				+"|"    && IGV + Ventas Gravadas (TaxInclusiveAmount )
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpDto,15,2))									+"|"	&& AllowanceTotalAmount/Total Descuentos
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpAdm,15,2))									+"|"    && ChargeTotalAmount/Otros Cargos
-			LsCadena = LsCadena +	ALLTRIM(STR(LnTotAnt,15,2))											+"|"    && PrepaidAmount/Anticipos 
-			LsCadena = LsCadena +	ALLTRIM(STR(LfTotVta,15,2))											+"|"    && PayableAmount/Total Venta 
-			LsCadena = LsCadena +	ALLTRIM(LsVerUBL)													+"|"   	&& ublVersionId
-			LsCadena = LsCadena +	ALLTRIM(LsVerDOC)													+"|"   	&& customizationId
-			**LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpTot,15,2))									+"|"	&& Importe total
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)
-
-
-			LsNomArc=JUSTSTEM(LsNomArc)+".ACA"
-			IF FILE(Lsruta+LsNomArc)
-				DELETE FILE (Lsruta+LsNomArc)
-			ENDIF
-
-			LnControlArc = fcreate(Lsruta+LsNomArc)
-
-			if LnControlArc<0
-			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,': Adicionales de cabecera')
-			   RETURN .f.
-			ENDIF
-			
-			LsCadena = "|"														+"|"	
-			LsCadena = LsCadena +												+"|"	
-			LsCadena = LsCadena +												+"|"	
-			LsCadena = LsCadena +												+"|"	
-			LsCadena = LsCadena + 'PE'											+"|"
-			LsCadena = LsCadena + '000000'										+"|"		
-			LsCadena = LsCadena + ALLTRIM(PoDataCab.DirCli)						+"|"		
-			LsCadena = LsCadena +   '-'											+"|"
-			LsCadena = LsCadena +   '-'											+"|"
-			LsCadena = LsCadena +   '-'											+"|"
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)		
-				
-			LsNomArc=JUSTSTEM(LsNomArc)+".LEY"
-			IF FILE(Lsruta+LsNomArc)
-				DELETE FILE (Lsruta+LsNomArc)
-			ENDIF
-
-			LnControlArc = fcreate(Lsruta+LsNomArc)
-
-			if LnControlArc<0
-			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,' Leyendas')
-			   RETURN .f.
-			endif
-			LsCadena = '1000'												+"|"	
-			LsCadena = LsCadena +NUMERO(LfTotVta,2,1)						+"|"
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)		
-			
-			LsNomArc=JUSTSTEM(LsNomArc)+".TRI"
-			IF FILE(Lsruta+LsNomArc)
-				DELETE FILE (Lsruta+LsNomArc)
-			ENDIF
-
-			LnControlArc = fcreate(Lsruta+LsNomArc)
-
-			if LnControlArc<0
-			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Tributos Generales')
-			   RETURN .f.
-			endif
-			LsCadena = '1000'												+"|"	
-			LsCadena = LsCadena + 'IGV'										+"|"
-			LsCadena = LsCadena + 'VAT'										+"|"
-			LsCadena = LsCadena +ALLTRIM(STR(PoDataCab.ImpBto,15,2))		+"|"
-			LsCadena = LsCadena +ALLTRIM(STR(PoDataCab.ImpIgv,15,2))		+"|"
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)			
-			** VETT:Actualización SFS v1.3.2 2020/07/01 08:54:04 ** 
-		CASE PsVer='1.3.2'
-		
-			LsVerDOC = "2.0"
-			LsVerUBL = "2.1"
-			LnTotAnt = 0
-			LfTotVta = PoDataCab.ImpBto+PoDataCab.ImpIgv+PoDataCab.ImpAdm-PoDataCab.ImpDto-LnTotAnt
-			LsFecha	 = TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##")
-			LsFchVto = IIF(!EMPTY(PoDataCab.FchVto),TRANSFORM(DTOS(PoDataCab.FchVto), "@R ####-##-##"),"-")
-			LsCadena =				ALLTRIM('01'+TRANSFORM(PoDataCab.TpoVta,'@L ##'))					+"|"
-			LsCadena = LsCadena +	TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##") 					+"|"
-			LsCadena = LsCadena + 	SUBSTR(TTOC(gdoc.fchmodi,3),12)										+"|"
-			LsCadena = LsCadena +	LsFchVto															+"|"  && fecVencimiento / "-" si es vacio
-			LsCadena = LsCadena +	'001'																+"|" && '001' GsCodSed 
-			LsCadena = LsCadena +	ICASE(LEN(trim(PoDataCab.RucCli))=11,'6',LEN(TRIM(PoDataCab.RucCli))=8,'1','0')	+"|"
-			LsCadena = LsCadena +	ALLTRIM(PoDataCab.RucCli)											+"|"
-			LsCadena = LsCadena +	ALLTRIM(PoDataCab.NomCli)											+"|"
-			LsCadena = LsCadena +	ICASE(PoDataCab.CodMon=1,'PEN',PoDataCab.CodMon=2,'USD','')			+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpIgv,15,2))									+"|"	&& IGV
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpBto,15,2))									+"|"	&& Ventas Gravadas
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpBto+PoDataCab.ImpIgv,15,2)) 				+"|"    && IGV + Ventas Gravadas (TaxInclusiveAmount )
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpDto,15,2))									+"|"	&& AllowanceTotalAmount/Total Descuentos
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpAdm,15,2))									+"|"    && ChargeTotalAmount/Otros Cargos
-			LsCadena = LsCadena +	ALLTRIM(STR(LnTotAnt,15,2))											+"|"    && PrepaidAmount/Anticipos 
-			LsCadena = LsCadena +	ALLTRIM(STR(LfTotVta,15,2))											+"|"    && PayableAmount/Total Venta 
-			LsCadena = LsCadena +	ALLTRIM(LsVerUBL)													+"|"   	&& ublVersionId
-			LsCadena = LsCadena +	ALLTRIM(LsVerDOC)													+"|"   	&& customizationId
-			**LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpTot,15,2))									+"|"	&& Importe total
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)
-
-
-			LsNomArc=JUSTSTEM(LsNomArc)+".ACA"
-			IF FILE(Lsruta+LsNomArc)
-				DELETE FILE (Lsruta+LsNomArc)
-			ENDIF
-
-			LnControlArc = fcreate(Lsruta+LsNomArc)
-
-			if LnControlArc<0
-			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,': Adicionales de cabecera')
-			   RETURN .f.
-			ENDIF
-			
-			LsCadena = "|"														+"|"	
-			LsCadena = LsCadena +												+"|"	
-			LsCadena = LsCadena +												+"|"	
-			LsCadena = LsCadena +												+"|"	
-			LsCadena = LsCadena + 'PE'											+"|"
-			LsCadena = LsCadena + '000000'										+"|"		
-			LsCadena = LsCadena + ALLTRIM(PoDataCab.DirCli)						+"|"		
-			LsCadena = LsCadena +   '-'											+"|"
-			LsCadena = LsCadena +   '-'											+"|"
-			LsCadena = LsCadena +   '-'											+"|"
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)		
-				
-			LsNomArc=JUSTSTEM(LsNomArc)+".LEY"
-			IF FILE(Lsruta+LsNomArc)
-				DELETE FILE (Lsruta+LsNomArc)
-			ENDIF
-
-			LnControlArc = fcreate(Lsruta+LsNomArc)
-
-			if LnControlArc<0
-			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,' Leyendas')
-			   RETURN .f.
-			endif
-			LsCadena = '1000'												+"|"	
-			LsCadena = LsCadena +NUMERO(LfTotVta,2,1)						+"|"
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)		
-			
-			LsNomArc=JUSTSTEM(LsNomArc)+".TRI"
-			IF FILE(Lsruta+LsNomArc)
-				DELETE FILE (Lsruta+LsNomArc)
-			ENDIF
-
-			LnControlArc = fcreate(Lsruta+LsNomArc)
-
-			if LnControlArc<0
-			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Tributos Generales')
-			   RETURN .f.
-			endif
-			LsCadena = '1000'												+"|"	
-			LsCadena = LsCadena + 'IGV'										+"|"
-			LsCadena = LsCadena + 'VAT'										+"|"
-			LsCadena = LsCadena +ALLTRIM(STR(PoDataCab.ImpBto,15,2))		+"|"
-			LsCadena = LsCadena +ALLTRIM(STR(PoDataCab.ImpIgv,15,2))		+"|"
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)			
-
-			LsNomArc=JUSTSTEM(LsNomArc)+".PAG"
-			IF FILE(Lsruta+LsNomArc)
-				DELETE FILE (Lsruta+LsNomArc)
-			ENDIF
-
-			LnControlArc = fcreate(Lsruta+LsNomArc)
-
-			if LnControlArc<0
-			   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Tributos Generales')
-			   RETURN .f.
-			endif
-			LsCndPgo=PoDataCab.CndPgo
-			LnDiaVto=PoDataCab.Diavto
-			LsFchVto=IIF(!EMPTY(PoDataCab.FchVto),TRANSFORM(DTOS(PoDataCab.FchVto), "@R ####-##-##"),"-")			
-			LsFmaPgo=ICASE(LsCndPgo="C/E","Contado",LnDiavto>0 and !empty(LsCndPgo),"Credito")
-			LsMoneda=ICASE(PoDataCab.CodMon=1,'PEN',PoDataCab.CodMon=2,'USD','')	
-			
-			LsCadena = LsFmaPgo												+"|"	
-			LsCadena = LsCadena + ALLTRIM(STR(LfTotVta,15,2))				+"|"
-			LsCadena = LsCadena + LsMoneda									+"|"
-			
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)			
-
-			IF LsFmaPgo="Credito"
-				LsNomArc=JUSTSTEM(LsNomArc)+".DPA"
-				IF FILE(Lsruta+LsNomArc)
-					DELETE FILE (Lsruta+LsNomArc)
-				ENDIF
-
-				LnControlArc = fcreate(Lsruta+LsNomArc)
-
-				if LnControlArc<0
-					=messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Tributos Generales')
-					RETURN .f.
-				endif
-
-				*Verificamos si hay sistema de cuotas*
-				
-				IF verifyvar('VTARCUOT','TABLE','INDBC','P'+GsCodCia+STR(_ANO,4,0))
-					IF !USED("RCUO")
-						goentorno.open_dbf1('ABRIR','VTARCUOT','RCUO','FACT','')
-					ENDIF
-					LlHayCuotas	= .T. 
-					SELECT RCUO
-					=SEEK(PoDataCab.TpoDoc+PoDataCab.CodDoc+PoDataCab.NroDoc,'RCUO','FACT')
-					SCAN WHILE TpoRef+CodRef+NroRef=PoDataCab.TpoDoc+PoDataCab.CodDoc+PoDataCab.NroDoc 
-						LsFchVto=TRANSFORM(DTOS(FchCob), "@R ####-##-##")
-
-						LsCadena = ALLTRIM(STR(Import,15,2))							+"|"	
-						LsCadena = LsCadena + LsFchVto									+"|"
-						LsCadena = LsCadena + LsMoneda									+"|"
-
-						=fput(LnControlArc,LsCadena) 
-					ENDSCAN
-				ELSE
-					LsCadena = ALLTRIM(STR(LfTotVta,15,2))							+"|"	
-					LsCadena = LsCadena + LsFchVto									+"|"
-					LsCadena = LsCadena + LsMoneda									+"|"
-					=fput(LnControlArc,LsCadena) 
-				ENDIF
-				=fclose(LnControlArc)			
-			ENDIF
-	OTHERWISE
-			LsFecha		= TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##")
-			LsCadena =				ALLTRIM(TRANSFORM(PoDataCab.TpoVta,'@L 99'))						+"|"
-			LsCadena = LsCadena +	TRANSFORM(DTOS(PoDataCab.FchDoc), "@R ####-##-##") 					+"|"
-			LsCadena = LsCadena +	'001'																+"|" && '001' GsCodSed 
-			LsCadena = LsCadena +	ICASE(LEN(trim(PoDataCab.RucCli))=11,'6',LEN(TRIM(PoDataCab.RucCli))=8,'1','0')	+"|"
-			LsCadena = LsCadena +	ALLTRIM(PoDataCab.RucCli)											+"|"
-			LsCadena = LsCadena +	ALLTRIM(PoDataCab.NomCli)											+"|"
-			LsCadena = LsCadena +	ICASE(PoDataCab.CodMon=1,'PEN',PoDataCab.CodMon=2,'USD','')			+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpDto,15,2))									+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpAdm,15,2))									+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(0,15,2))												+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpBto,15,2))									+"|"	&& Ventas Gravadas
-			LsCadena = LsCadena +	ALLTRIM(STR(0,15,2))												+"|"    && Ventas Inafectas
-			LsCadena = LsCadena +	ALLTRIM(STR(0,15,2))												+"|"	&& Ventas Exoneradas
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpIgv,15,2))									+"|"	&& IGV
-			LsCadena = LsCadena +	ALLTRIM(STR(0.0,15,2))												+"|"   	&& ISC
-			LsCadena = LsCadena +	ALLTRIM(STR(0.0,15,2))												+"|"   	&& Otros tributos
-			LsCadena = LsCadena +	ALLTRIM(STR(PoDataCab.ImpTot,15,2))									+"|"	&& Importe total
-			=fput(LnControlArc,LsCadena)    
-			=fclose(LnControlArc)
-
-	ENDCASE
 RETURN
 
 
 
+**************************
+FUNCTION cursor_esta_vacio
+**************************
+PARAMETERS Pc_Tabla,Pl_NumReg
+IF VARTYPE(Pl_NumReg)<>'L'
+	Pl_NumReg=.F.
+ENDIF
 
-PROCEDURE Genera_Cadena_DET
-PARAMETERS PoDataDet,PsRuta,PoDataCab
+IF PARAMETERS()=0
+	Pc_Tabla=ALIAS()
+ENDIF
+IF EMPTY(Pc_Tabla)
+	RETURN .T.
+ENDIF
+LOCAL LcArea_Act,LnNumReg,LnRegAct
+*LcArea_Act=ALIAS()
+*LnNumReg = IIF(EMPTY(LcArea_Act),0,RECNO())
 
-	LOCAL LoDatAdm as dataadmin OF SYS(5)+'\aplvfp\classgen\vcxs\dosvr.vcx' 
-	LoDatAdm = CREATEOBJECT('Dosvr.DataAdmin')
-	
-	LoDatAdm.Obj2Cur(PoDataDet,'cDVta')
-
-	SELECT CDVTA
-	LOCATE
-	LsCodDoc	=ICASE(CDVTA.CodDoc='FACT','01',CDVTA.CodDoc='BOLE','03',CDVTA.CodDoc='N/C','07',CDVTA.CodDoc='N/D','08')
-
-	LsLetSer	=ICASE(INLIST(CDVTA.CodDoc,'FACT','BOLE'),LEFT(CDVTA.CodDoc,1),INLIST(CDVTA.CodDoc,'N/C','N/D'),LEFT(PoDataCab.CodRef,1),'X')
-	LsSerie		=RIGHT(LsLetSer+LTRIM(LEFT(CDVTA.NroDoc,3)),4)
-*!*		LsSerie		=RIGHT('0'+LTRIM(LEFT(CDVTA.NroDoc,3)),4)
-	LsNomArc	=GsRucCia+'-'+LsCodDoc+'-'+LsSerie+'-'+RIGHT('00000000'+RTRIM(SUBSTR(CDVTA.NroDoc,4)),8)+'.DET'
-
-
-	Lsruta   = ADDBS(TRIM(PsRuta)) && curdir()+lruta   
-	IF !DIRECTORY(Lsruta)
-		MKDIR (Lsruta)
-	ENDIF	
-	IF FILE(Lsruta+LsNomArc)
-		DELETE FILE (Lsruta+LsNomArc)
+IF !EMPTY(Pc_Tabla) AND USED(Pc_Tabla)
+	SELECT * FROM (pc_tabla) INTO CURSOR xTmp
+	USE IN xTmp
+	SELECT(pc_tabla)
+	** VETT  25/08/2014 12:59 PM : Retornamos el numero de registros del cursor o tabla evaluada 
+	IF Pl_NumReg
+		RETURN _TALLY
+	ELSE
+		RETURN EMPTY(_TALLY)
 	ENDIF
-	
-	
-	
-	LnControlArc = fcreate(Lsruta+LsNomArc)
-
-	if LnControlArc<0
-	   =messagebox("Error en la creación de "+Lsruta+LsNomArc,48,'Cabecera de venta')
-	   RETURN .f.
+ELSE
+** VETT  25/08/2014 12:59 PM :  No esta definida o no se encontro la tabla o cursor
+	IF Pl_NumReg
+		RETURN -1	
+	ELSE
+		RETURN .T.
 	ENDIF
-	LfPorIgv=GoCfgVta.XfPorigv
-	LfPorIsc=GoCfgVta.XfPorISC
-	SELECT cDVta
-	SCAN 
-		DO CASE 
-		CASE PsVer='1.2'
-			LfPreuni = IIF(cDVta.CodDoc='FACT',cDVta.PreUni,ROUND(cDVta.PreUni/(1+LfPorIgv/100),3))
-			LfBaseIgv = IIF(cDVta.CodDoc='FACT',cDVta.ImpLin,ROUND(cDVta.implin/(1+LfPorIgv/100),2))
-			LfIgvItem = ROUND(LfBaseIgv *LfPorIgv/100 ,2)
-			LfImpISC  = 0.00	
-			LfPreIGV = ROUND(LfPreUni *( 1+LfPorIgv/100),4)
-			LfPreRef = 0.00
-			LsCadena =				ALLTRIM(ICASE(cDVta.UndVta='KG','KGM',cDVta.UndVta='MTS','MTR',cDVta.UndVta='ROL','RO','NIU'))	+"|" && KG=KGM,MTS=MTR,ROL=RO,OTROS=NIU
-			LsCadena = LsCadena +	ALLTRIM(STR(cDVta.CanFac,15,4))									+"|"
-			LsCadena = LsCadena +	ALLTRIM(cDVta.CodMat)											+"|"
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +	ALLTRIM(cDVta.DesMat)											+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(LfPreUni,15,3))										+"|"	
-			LsCadena = LsCadena +	ALLTRIM(STR(LfIgvItem,15,2))									+"|"	
-			LsCadena = LsCadena +	'1000'															+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(LfIgvItem,15,2))									+"|"	
-			LsCadena = LsCadena +	ALLTRIM(STR(LfBaseIgv,15,2))									+"|"	
-			LsCadena = LsCadena +	'IGV'															+"|"
-			LsCadena = LsCadena +	'VAT'															+"|"
-			LsCadena = LsCadena +	'10'															+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(LfPorIgv,15,2))										+"|"
-			LsCadena = LsCadena +   '-'																+"|" && Bloque para ISC - SIN ISC por defecto -
-			LsCadena = LsCadena +   ALLTRIM(STR(LfImpISC,15,2))										+"|"
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +   '-'																+"|" && Bloque para Otros tirbutos - SIN otros por defecto -
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +																	+"|"	
-			LsCadena = LsCadena +   ALLTRIM(STR(LfPreIGV,15,4))										+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(LfBaseIgv,15,2))									+"|"
-			LsCadena = LsCadena +   ALLTRIM(STR(LfPreRef,15,4))										+"|"	
-			
-*!*				LsCadena = LsCadena +	ALLTRIM(STR(IIF(cDVta.CodDoc='FACT',cDVta.ImpLin*(1+LfPorIgv/100),cDVta.ImpLin ),15,2))		+"|"					
-*!*				LsCadena = LsCadena +	ALLTRIM(STR(cDVta.D1+cDVta.D2+cDVta.D3,15,2))					+"|"
-		CASE PsVer='1.3.2'
-			LfPreuni = IIF(cDVta.CodDoc='FACT',cDVta.PreUni,ROUND(cDVta.PreUni/(1+LfPorIgv/100),3))
-			LfBaseIgv = IIF(cDVta.CodDoc='FACT',cDVta.ImpLin,ROUND(cDVta.implin/(1+LfPorIgv/100),2))
-			LfIgvItem = ROUND(LfBaseIgv *LfPorIgv/100 ,2)
-			LfImpISC  = 0.00	
-			LfPreIGV = ROUND(LfPreUni *( 1+LfPorIgv/100),4)
-			LfPreRef = 0.00
-			** VETT:Actualización SFS v1.3.2 2020/07/01 11:03:23 ** 
-			LsUndVta =  ALLTRIM(ICASE(cDVta.UndVta='KG','KGM',cDVta.UndVta='MTS','MTR',cDVta.UndVta='ROL','RO','NIU'))  && KG=KGM,MTS=MTR,ROL=RO,OTROS=NIU
-			LsCadena = LsUndVta																	+"|"  && 1
-			LsCadena = LsCadena +	ALLTRIM(STR(cDVta.CanFac,15,4))								+"|"  && 2
-			LsCadena = LsCadena +	ALLTRIM(cDVta.CodMat)											+"|"  && 3
-			LsCadena = LsCadena +																	+"|"	 && 4
-			LsCadena = LsCadena +	ALLTRIM(cDVta.DesMat)											+"|"  && 5
-			LsCadena = LsCadena +	ALLTRIM(STR(LfPreUni,15,3))										+"|"	 && 6
-			LsCadena = LsCadena +	ALLTRIM(STR(LfIgvItem,15,2))								      	        +"|"	 && 7
-			LsCadena = LsCadena +	'1000'															+"|"  && 8
-			LsCadena = LsCadena +	ALLTRIM(STR(LfIgvItem,15,2))									        +"|"	 && 9
-			LsCadena = LsCadena +	ALLTRIM(STR(LfBaseIgv,15,2))									+"|"	 && 10
-			LsCadena = LsCadena +	'IGV'															+"|"  && 11
-			LsCadena = LsCadena +	'VAT'															+"|"  && 12
-			LsCadena = LsCadena +	'10'															        +"|"  && 13
-			LsCadena = LsCadena +	ALLTRIM(STR(LfPorIgv,15,2))										+"|"  && 14
-			LsCadena = LsCadena +   '-'																+"|"  && 15    && Bloque para ISC - SIN ISC por defecto -
-			LsCadena = LsCadena +   ALLTRIM(STR(LfImpISC,15,2))										+"|"  && 16
-			LsCadena = LsCadena +																	+"|"	 && 17
-			LsCadena = LsCadena +																	+"|"	 && 18
-			LsCadena = LsCadena +																	+"|"	 && 19
-			LsCadena = LsCadena +																	+"|"	 && 20
-			LsCadena = LsCadena +	ALLTRIM(STR(LfPorISC,15,2))										+"|"	 && 21
-			LsCadena = LsCadena +   '-'																+"|"   && 22  && Bloque para Otros tirbutos - SIN otros por defecto -
-			LsCadena = LsCadena +																	+"|"	 && 23
-			LsCadena = LsCadena +																	+"|"	 && 24
-			LsCadena = LsCadena +																	+"|"	 && 25
-			LsCadena = LsCadena +																	+"|"	 && 26
-			LsCadena = LsCadena +	ALLTRIM(STR(LfPorISC,15,2))										+"|"	 && 27
-			LsCadena = LsCadena +	'-'																+"|"	 && 28
-			LsCadena = LsCadena +																	+"|"	 && 29
-			LsCadena = LsCadena +																	+"|"	 && 30
-			LsCadena = LsCadena +																	+"|"	 && 31
-			LsCadena = LsCadena +																	+"|"	 && 32
-			LsCadena = LsCadena +																	+"|"	 && 33	
-			LsCadena = LsCadena +   ALLTRIM(STR(LfPreIGV,15,4))										+"|"	 && 34  
-			LsCadena = LsCadena +	ALLTRIM(STR(LfBaseIgv,15,2))									+"|"	 && 35
-			LsCadena = LsCadena +   ALLTRIM(STR(LfPreRef,15,4))										+"|"	 && 36	
+ENDIF
 
-		OTHERWISE 
-	
-			LsCadena =				ALLTRIM(ICASE(cDVta.UndVta='KG','KGM',cDVta.UndVta='MTS','MTR',cDVta.UndVta='ROL','RO','NIU'))	+"|" && KG=KGM,MTS=MTR,ROL=RO,OTROS=NIU
-			LsCadena = LsCadena +	ALLTRIM(STR(cDVta.CanFac,15,4))									+"|"
-			LsCadena = LsCadena +	ALLTRIM(cDVta.CodMat)											+"|"
-			LsCadena = LsCadena +																		+"|"	
-			LsCadena = LsCadena +	ALLTRIM(cDVta.DesMat)											+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(IIF(cDVta.CodDoc='FACT',cDVta.PreUni,ROUND(cDVta.PreUni/(1+LfPorIgv/100),3)),15,3))	+"|"	
-			LsCadena = LsCadena +	ALLTRIM(STR(cDVta.D1+cDVta.D2+cDVta.D3,15,2))			+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(IIF(cDVta.CodDoc='FACT',ROUND(cDVta.ImpLin*LfPorIgv/100,2),ROUND(cDVta.implin*LfPorIgv/(100+LfPorIgv),2))  ,15,2))	+"|"	
-			LsCadena = LsCadena +	'10'																+"|"
-			LsCadena = LsCadena +	ALLTRIM(STR(0,15,2))												+"|"	
-			LsCadena = LsCadena +	'01'																+"|"				
-			LsCadena = LsCadena +	ALLTRIM(STR(IIF(cDVta.CodDoc='FACT',cDVta.ImpLin,ROUND(cDVta.implin/(1+LfPorIgv/100),2)),15,2))		+"|"	
-			LsCadena = LsCadena +	ALLTRIM(STR(IIF(cDVta.CodDoc='FACT',cDVta.ImpLin*(1+LfPorIgv/100),cDVta.ImpLin ),15,2))		+"|"					
-		ENDCASE
-		=fput(LnControlArc,LsCadena)  
-		  
-	ENDSCAN
-	
-	
-	
-	
-	=fclose(LnControlArc)
-	RETURN
-	
-
-
+*LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio("C_DTRA")
+RETURN
 
 PROCEDURE Junk_code
 
@@ -872,4 +516,3 @@ LOCAL LReturOk
 Modificar  = gosvrcbd.mescerrado(_mes)
 
 LReturnOk=LoDatAdm.abrirtabla('ABRIR','CBDMCTAS','CTAS','CTAS01','')
-

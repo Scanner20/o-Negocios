@@ -1,4 +1,4 @@
-*!*	DO TEST_CSV IN csv_varios WITH "G/R ","T005000000002" 
+*!*	DO TEST_CSV IN csv_varios WITH "G/R ","T00500000001" 
 ******************
 PROCEDURE Test_CSV
 ******************
@@ -30,11 +30,18 @@ ELSE
 	RETURN
 ENDIF
 
-IF EMPTY(gocfgvta.RutaSEE_SFS)
-	gocfgvta.Ruta_Factura_SEE_SFS()
+*!*	IF EMPTY(gocfgvta.RutaSEE_SFS)
+*!*		gocfgvta.Ruta_Factura_SEE_SFS()
+*!*	ENDIF
+*!*	LsRuta=gocfgvta.RutaSEE_SFS
+IF EMPTY(goentpub.rutasee_sfs)
+	goentpub.ruta_interfaces_see_ose_csv()
 ENDIF
-LsRuta=gocfgvta.RutaSEE_SFS
-do vta_genera_txt_csv-efact_v1 WITH oData1,odata2,odata3,LsRuta
+
+LsRuta1=goentpub.tspath_ose_gre
+LsRuta2=goentpub.tspath_ose_csv
+
+do vta_genera_txt_csv-efact_v1 WITH oData1,odata2,odata3,LsRuta1,LsRuta2
 USE IN CTRA
 USE IN DTRA
 USE IN GUIA
@@ -406,7 +413,7 @@ FUNCTION DBF2CSV5-SIM_BOM_UTF8
 *!*	STRTOFILE(STRCONV(lcXML,9),"customer.xml")
 *!*	XMLTOCURSOR("customer.xml","curCustomer",512)
 
-** VETT: Esta es la forma de convertir un archivo CSV a formato encode "UTF-8 sin BOM" IDUPD:3318093114-21/12/2023 03:08 PM
+** VETT:  Esta es la forma de convertir un archivo CSV a formato encode "UTF-8 sin BOM" IDUPD:3318093114-21/12/2023 03:08 PM
 lcFile="b:\users\victor\documents\o-negocios\queirolo\gre\envio directo csv\guia de remision remitente csv\01 motivo de traslado venta\ejemplo 1 - venta con traslado privado\prueba_ansi.csv"
 LcString = FILETOSTR(LcFile)
 ADDBS(JUSTPATH(lcfile))+"prueba_utf8.csv"

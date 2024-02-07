@@ -7,22 +7,26 @@ SET SYSMENU TO DEFA
 	IF INLIST(SYS(5),'F','E','D')
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
 		SET DEFA TO \AplVfp\bsinfo
-		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG')
+		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
 		ACTIVATE WINDOW desktop2
 	ELSE
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
 		SET DEFA TO \AplVfp\bsinfo
-		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60 TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG')
-		ACTIVATE WINDOW desktop2
+		DEFINE WINDOW desktop2  FROM 0+5,0+60 TO 22.5+5,64.875+60 TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
+		ACTIVATE WINDOW desktop2 
  	ENDIF
 *!*	Activar los Paths para sus formularios personales.... (xUsuario)
 SET PATH TO .\Forms , ; 
+			.\Forms2, ; 
             .\Progs , ;
+            .\Progs2, ;
             .\Reports , ;
+            .\Reports2, ;
             .\Menus , ;
+            .\Menus2 , ;
             .\vcxs , ;
-	     	D:\o-negocios\IDC , ;
-            D:\o-negocios\IDC\Data , ;
+	     	O:\o-negocios\IDC , ;
+            O:\o-negocios\IDC\Data , ;
 			..\classgen\vcxs , ;
 			..\classgen\Forms ,;
 			..\classgen\Reports ,;
@@ -113,13 +117,17 @@ DO config_almacen
 
 && Clasificacion auxiliar de clientes y proveedores de la tabla CBDMAUXI
 DO FORM gen4_login.scx WITH 'ADM'
+** VETT:Inicio rapido escoger Login, Empresa(Compañia) y Modulo 2022/02/19 15:22:39 ** 
+READ EVENTS
 *!*	Goentorno.User.Login= 'Prueba'
 *!*	GoEntorno.USER.GroupName		= 'Ventas'
 *!*	GsUsuario = 'Prueba'
 =BuildAccessCursor()
 xAcceso = .T.
-*
-**
+DO FORM funfun_compañias.scx
+DO FORM funfun_selec_contab.scx
+** VETT: 2022/02/19 15:22:39 **
+
 ************************
 PROCEDURE Config_almacen
 ************************
