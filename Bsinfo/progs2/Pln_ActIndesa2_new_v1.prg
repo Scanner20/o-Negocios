@@ -1,81 +1,83 @@
-PARAMETERS PsRutaCIAOrig,PsRutaAAAAOrig,PsRutaCiaDest,PsRutaAAAADest 
+PARAMETERS PsRutaCIAOrig,PsRutaAAAAOrig,PsRutaCiaDest,PsRutaAAAADest
+*!*	do  pln_actindesa2_new_v1.prg with "O:\o-negocios\indesa\data\cia001","O:\o-negocios\indesa\data\P0012023","O:\o-negocios\Queirolo\data\cia001","O:\o-negocios\Queirolo\data\P0012023"
 *!*	PsrutaCiaOrig="O:\o-negocios\indesa\data\cia001"
 *!*	PsRutaAAAAOrig="O:\o-negocios\indesa\data\P0012023"
 
-
+CLOSE TABLES ALL
 **JUSTPATH(DBF())
 **LsRutaDestDBF=JUSTPATH(DBF())
 *!*	PsRutaCiaDest="O:\o-negocios\queirolo\data\cia001"
 *!*	PsRutaAAAADest="O:\o-negocios\queirolo\data\P0012024"
-LsDBCCIADest  = JUSTFNAME(PsRutaCiaDest)
-LsRutaAAAADest = ADDBS(PsRutaCiaDest)+"C"+RIGHT(JUSTFNAME(PsRutaAAAADest),4)
-LsDBCAAAADest =  JUSTFNAME(PsRutaAAAADest)
+LsDBCCIADest    = UPPER(JUSTFNAME(PsRutaCiaDest))
+LsRutaAAAADest  = ADDBS(PsRutaCiaDest)+"C"+RIGHT(JUSTFNAME(PsRutaAAAADest),4)
+LsDBCAAAADest   = UPPER(JUSTFNAME(PsRutaAAAADest))
+LsRutaAAAAOrig=ADDBS(JUSTPATH(PsRutaAAAAOrig))+"C"+SUBSTR(JUSTSTEM(PsRutaAAAAOrig),5)
 
-OPEN DATABASE &PsRutaCiaDest
-REMOVE TABLE plnarafp DELETE
-REMOVE TABLE plnbanco DELETE
-REMOVE TABLE plnbancr DELETE
-REMOVE TABLE plncofg0 DELETE
-REMOVE TABLE plncoope DELETE
-REMOVE TABLE plndjtf1 DELETE
-REMOVE TABLE plndjtf2 DELETE
-REMOVE TABLE plnmpcts DELETE
-REMOVE TABLE plnmtabl DELETE
-
-
-OPEN DATABASE &PsrutaCiaOrig
-SELECT 0
-USE plnarafp
-COPY TO ADDBS(PsRutaCiaDest)+"plnarafp.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plnarafp
- 
-SELECT 0
-USE plnbanco
-COPY TO ADDBS(PsRutaCiaDest)+"plnbanco.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plnbanco
-
-SELECT 0
-USE plnbancr
-COPY TO ADDBS(PsRutaCiaDest)+"plnbancr.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plnbancr
-
-SELECT 0
-USE plncofg0
-COPY TO ADDBS(PsRutaCiaDest)+"plncofg0.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plncofg0
-
-SELECT 0
-USE plncoope
-COPY TO ADDBS(PsRutaCiaDest)+"plncoope.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plncoope
-
-SELECT 0
-USE plndjtf1
-COPY TO ADDBS(PsRutaCiaDest)+"plndjtf1.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plndjtf1
-
-SELECT 0
-USE plndjtf2
-COPY TO ADDBS(PsRutaCiaDest)+"plndjtf2.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plndjtf2
-
-SELECT 0
-USE plnmpcts
-COPY TO ADDBS(PsRutaCiaDest)+"plnmpcts.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plnmpcts
-
-SELECT 0
-USE plnmtabl
-COPY TO ADDBS(PsRutaCiaDest)+"plnmtabl.dbf" WITH CDX DATABASE &LsDBCCIADest
-USE IN plnmtabl
-
-USE cia001! IN 0
+*!*	OPEN DATABASE &PsRutaCiaDest
+*!*	REMOVE TABLE plnarafp DELETE
+*!*	REMOVE TABLE plnbanco DELETE
+*!*	REMOVE TABLE plnbancr DELETE
+*!*	REMOVE TABLE plncofg0 DELETE
+*!*	REMOVE TABLE plncoope DELETE
+*!*	REMOVE TABLE plndjtf1 DELETE
+*!*	REMOVE TABLE plndjtf2 DELETE
+*!*	REMOVE TABLE plnmpcts DELETE
+*!*	REMOVE TABLE plnmtabl DELETE
 
 
+*!*	OPEN DATABASE &PsrutaCiaOrig
+*!*	SELECT 0
+*!*	USE plnarafp
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plnarafp.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plnarafp
+*!*	 
+*!*	SELECT 0
+*!*	USE plnbanco
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plnbanco.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plnbanco
 
-OPEN DATABASE  &PsRutaAAAAOrig
+*!*	SELECT 0
+*!*	USE plnbancr
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plnbancr.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plnbancr
 
-COPY TO ADDBS(LsRutaAAAADest)+"PLNANLAB.DBF" WITH CDX DATABASE &LsDBCAAAADest
+*!*	SELECT 0
+*!*	USE plncofg0
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plncofg0.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plncofg0
+
+*!*	SELECT 0
+*!*	USE plncoope
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plncoope.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plncoope
+
+*!*	SELECT 0
+*!*	USE plndjtf1
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plndjtf1.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plndjtf1
+
+*!*	SELECT 0
+*!*	USE plndjtf2
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plndjtf2.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plndjtf2
+
+*!*	SELECT 0
+*!*	USE plnmpcts
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plnmpcts.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plnmpcts
+
+*!*	SELECT 0
+*!*	USE plnmtabl
+*!*	COPY TO ADDBS(PsRutaCiaDest)+"plnmtabl.dbf" WITH CDX DATABASE &LsDBCCIADest
+*!*	USE IN plnmtabl
+
+*!*	USE cia001! IN 0
+
+
+
+*!*	OPEN DATABASE  &PsRutaAAAAOrig
+
+*!*	COPY TO ADDBS(LsRutaAAAADest)+"PLNANLAB.DBF" WITH CDX DATABASE &LsDBCAAAADest
 
 DIMENSION aDBFPLN(100)
 STORE "" TO aDBFPLN
@@ -129,4 +131,47 @@ aDBFPLN(47)="CIA:plncoope.DBF"
 aDBFPLN(48)="CIA:plndjtf1.DBF"
 aDBFPLN(49)="CIA:plndjtf2.DBF"
 aDBFPLN(50)="CIA:plnmpcts.DBF"
-aDBFPLN(51)="CIA:plnmtabl.DBF"                                                
+aDBFPLN(51)="CIA:plnmtabl.DBF"
+
+FOR K = 1 TO ALEN(aDBFPLN)
+	DO CASE
+        CASE aDBFPLN[K]="INI" 
+
+        CASE aDBFPLN[K]="CIA"
+            LsRutaCiaIni= ADDBS(PsRutaCIAOrig)+SUBSTR(aDBFPLN[K],5)
+            LsRutaCiaDes= PsRutaCiaDest
+            IF !DBUSED(PsRutaCiaDest)
+                OPEN DATABASE (PsRutaCiaDest)
+            ENDIF
+            SET DATABASE TO (PsRutaCiaDest)
+            IF INDBC(JUSTSTEM(SUBSTR(aDBFPLN[K],5)),"Table")
+            	REMOVE TABLE JUSTSTEM(SUBSTR(aDBFPLN[K],5)) DELETE 
+			ELSE
+			
+			ENDIF
+            
+            OPEN DATABASE &PsrutaCiaOrig
+            SELECT 0
+            USE (SUBSTR(aDBFPLN[K],5))
+            COPY TO ADDBS(PsRutaCiaDest)+"SUBSTR(aDBFPLN[K],4)"+".dbf" WITH CDX DATABASE &LsDBCCIADest
+            USE IN (SUBSTR(aDBFPLN[K],5))
+
+        CASE aDBFPLN[K]="PER"
+            IF !DBUSED(PsRutaAAAADest)
+                OPEN DATABASE (PsRutaAAAADest)
+            ENDIF
+            SET DATABASE TO (PsRutaAAAADest)
+            IF INDBC(JUSTSTEM(SUBSTR(aDBFPLN[K],5)),"Table")
+            	REMOVE TABLE JUSTSTEM(SUBSTR(aDBFPLN[K],5)) DELETE 
+			ELSE
+			
+			ENDIF
+            OPEN DATABASE &PsRutaAAAAOri
+            SELECT 0
+            USE (SUBSTR(aDBFPLN[K],5))
+            COPY TO ADDBS(LsRutaAAAADest)+"SUBSTR(aDBFPLN[K],4)"+".dbf" WITH CDX DATABASE &LsDBCAAAADest 
+            USE IN (SUBSTR(aDBFPLN[K],5))
+        OTHER
+
+    ENDCASE    
+ENDFOR                                                

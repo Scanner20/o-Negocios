@@ -67,7 +67,7 @@ ENDIF
 
 SELE 0
 CREATE TABLE &Arch. FREE ( NomCli C(50) , VenNac N(12,2) , VenUsa N(12,2) ,;
-                      CodCli C(5), PVenNac N(12,2) , PVenUsa N(12,2) )
+                      CodCli C(LEN(GDOC.CodCli)), PVenNac N(12,2) , PVenUsa N(12,2) )
 USE &Arch ALIAS TEMPO EXCLUSIVE 
 INDEX ON NomCli TO &Arch.
 ** variables a usar **

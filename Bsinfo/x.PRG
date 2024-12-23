@@ -102,3 +102,80 @@ PROCEDURE decl
 
     DECLARE INTEGER PrinterProperties IN winspool.drv; 
         INTEGER hWnd, INTEGER hPrinter 
+
+
+        LsTitMensaje = "Respuesta de CPE enviado"
+        LuRpta	=  Leer_Respuesta.get('tipo_de_comprobante')
+		LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta)="N",STR(LuRpta,3,0),LuRpta )+CRLF
+		LuRpta	=  Leer_Respuesta.get('serie')
+		LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta)="N",STR(LuRpta,3,0),LuRpta )+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('numero')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('enlace')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('aceptada_por_sunat')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('sunat_description')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('sunat_note')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('sunat_responsecode')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('sunat_soap_error')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('pdf_zip_base64')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('xml_zip_base64')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('cdr_zip_base64')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('cadena_para_codigo_qr')+CRLF
+		LsMensaje = LsMensaje + Leer_Respuesta.get('codigo_hash')+CRLF
+		LnMsjTipo = 64
+		
+		
+		
+		
+		
+	STORE "" TO LsMensaje , LsTitMensaje
+	LnMsjTipo = 0
+	IF EMPTY(Leer_Respuesta.get('errors')) THEN
+		LsTitMensaje = "Respuesta de CPE enviado"
+	    LuRpta = Leer_Respuesta.get('tipo_de_comprobante')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('serie')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('numero')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('enlace')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('aceptada_por_sunat')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('sunat_description')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('sunat_note')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('sunat_responsecode')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('sunat_soap_error')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('pdf_zip_base64')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('xml_zip_base64')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('cdr_zip_base64')   
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('cadena_para_codigo_qr')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF    
+	    LuRpta = Leer_Respuesta.get('codigo_hash')    
+	    LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta) = "N", STR(LuRpta, 3, 0), LuRpta) + CRLF
+		LnMsjTipo = 64
+	ELSE
+		LsTitMensaje = "Envio de CPE con errores"
+		LsMensaje = LsMensaje + Leer_Respuesta.get('errors')
+		LnMsjTipo = 16
+	ENDIF
+	LnRpta=MESSAGEBOX(LsMensaje,LnMsjTipo,LsTitMensaje)    
+		
+	
+		
+	** El codigo anterior estoy usando una funcion Leer_Respuesta.get que retorna valores tipo caracter o numerico,
+	** entonces cuando retorna un valor numerico si lo concateno con una variable CRLF que es de tipo caracter me va a
+	** generar un error, he planeado hacer el siguiente cambio :
+	LsTitMensaje = "Respuesta de CPE enviado"
+    LuRpta	=  Leer_Respuesta.get('tipo_de_comprobante')
+	LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta)="N",STR(LuRpta,3,0),LuRpta )+CRLF
+	LuRpta	=  Leer_Respuesta.get('serie')
+	LsMensaje = LsMensaje + IIF(VARTYPE(LuRpta)="N",STR(LuRpta,3,0),LuRpta )+CRLF
+	
+	** Podrias entonces reescribir el codigo completo que resultaria haciendo lo que menciono ?

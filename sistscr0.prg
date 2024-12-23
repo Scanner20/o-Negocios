@@ -27,6 +27,7 @@ ENDCASE
 DO CASE 
 	CASE JUSTSTEM(SYS(2023))=='TEMP2'
 		_screen.Icon= SYS(5)+'\APLVFP\GRAFGEN\ICONOS\MOTIF\ALIEN Motif.ico'
+
 		IF VERSION(5)>700
 *!*				_SCREEN.BACKCOLOR=RGB(130,170,232)	
 
@@ -74,7 +75,7 @@ _Vfp.Caption = _vfp.Caption + ' - '+SYS(0)
 *!* Setup Advanced Object Oriented
 DEFINE BAR 10 OF _MSYSTEM KEY ALT+F1 PROMPT "Advanced Object Oriented"
 ON SELECTION BAR 10 OF _MSYSTEM RUN /N3 hh.EXE k:\aplvfp\ayudas\o.CHM
-SET CLOCK TO 0,136
+SET CLOCK TO 0,SCOLS()-18
 SET HOURS TO 24
 
 DEFINE BAR 30 OF _MSM_TOOLS PROMPT "\-"

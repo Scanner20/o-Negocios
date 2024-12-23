@@ -1,8 +1,8 @@
-D:\AplVfp\Libv\*.*
-D:\AplVfp\Sounds\*.*
-D:\AplVfp\Ejemplos\*.*
-D:\AplVfp\Help\*.*
-D:\AplVfp\Delfines\*.*
+\AplVfp\Libv\*.*
+\AplVfp\Sounds\*.*
+\AplVfp\Ejemplos\*.*
+\AplVfp\Help\*.*
+\AplVfp\Delfines\*.*
 \AplVfp\.git\
 \AplVfp\Admin\*.*
 \AplVfp\ModeloDB\*.*
@@ -25,4 +25,19 @@ D:\AplVfp\Delfines\*.*
 \AplVfp\Ayudas\*.exe
 \AplVfp\Ayudas\*.zip
 \AplVfp\Ayudas\*.rar
-\AplVfp\Ayudas\Tools\*.*
+\AplVfp\Ayudas\Tools\
+\AplVfp\Tools\
+\AplVfp\Bsinfo1\
+\AplVfp\Bsinfo2\
+\AplVfp\Bsinfo3\
+\AplVfp\Bsinfo4\
+\AplVfp\Chavito1.2_archivos\
+\AplVfp\Classgen3\
+\AplVfp\Classgen4\
+\AplVfp\Consorcio\
+\AplVfp\Consorcio2
+\AplVfp\wwClient\
+\AplVfp\Framework\
+\AplVfp\Framework\Bk_Foxcode\
+\AplVfp\Classgen\vcxs - copia\
+\AplVfp\Classgen\Progs\001\

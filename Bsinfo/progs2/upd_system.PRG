@@ -287,7 +287,76 @@ ALTER table ALIAS() add  COLUMN fchmodi T
 ALTER table ALIAS() add  COLUMN userelim C(10)
 ALTER table ALIAS() add  COLUMN fchelim T
 
+
 USE
+
+******************
+PROCEDURE VTARCUOT  && CUOTAS
+******************
+PARAMETERS PsNomDBCia
+IF VARTYPE(PsNomDBCia)<>"C"
+	PsNomDBCia = "CIA"+GsCodCia
+ENDIF
+IF !DBUSED(PsNomDBCia)
+	OPEN DATABASE (PsNomDBCia)
+ENDIF
+SET DATABASE TO (PsNomDBCia)
+LsCurPath=SYS(5)+CURDIR()
+IF verifyvar('VTARCUOT',"TABLE",'INDBC','CIA'+GsCodCia)
+	REMOVE TABLE 'VTARCUOT' DELETE
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"VTARCUOT.dbf")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"VTARCUOT.dbf"
+ENDIF
+IF FILE(ADDBS(goentorno.Tspathcia)+"VTARCUOT.cdx")
+	DELETE FILE ADDBS(goentorno.Tspathcia)+"VTARCUOT.cdx"
+ENDIF
+SET DEFAULT TO ADDBS(goentorno.Tspathcia)
+DO MakeTable_VTARCUOT IN k:\aplvfp\bsinfo\progs\CIA001.PRG
+SET DEFAULT TO ADDBS(LsCurPath)
+
+
+IF !USED("DBFS")
+	SELECT 0
+	USE ADMIN!SISTDBFS ALIAS DBFS
+	SET ORDER TO ARCHIVO	&& ARCHIVO
+ENDIF
+SELECT DBFS
+IF !SEEK("VTARCUOT","DBFS","ARCHIVO")
+	INSERT INTO DBFS (Sistema,Archivo,Concepto,ALIAS,Trans_str,Ubicacion,Basedatos,servidor,connect) VALUES ("VENTAS",'VTARCUOT','Tabla de cuotas CXC','RCUO',.T.,'CIA','','(Local)','FOXPRO.DBC')
+ENDIF
+IF !USED("CDXS")
+	SELECT 0
+	USE ADMIN!SISTCDXS ALIAS CDXS
+	SET ORDER TO SISTEMA	 && SISTEMA+ARCHIVO+INDICE
+ENDIF
+SELECT CDXS
+SEEK PADR('VENTAS',LEN(sistema))+PADR("VTARCUOT",LEN(ARCHIVO))+"FACT"
+IF !FOUND()
+	Insert into sistcdxs(Sistema,Archivo,Indice,Llave,Marca,Descend,Primary,Candidato ) values ( 'VENTAS','VTARCUOT','FACT','TPOREF+CODREF+NROREF','X',.F.,.F.,.F.)
+ENDIF
+SEEK PADR('VENTAS',LEN(sistema))+PADR("VTARCUOT",LEN(ARCHIVO))+"FCHCOB"
+IF !FOUND()
+	Insert into sistcdxs(Sistema,Archivo,Indice,Llave,Marca,Descend,Primary,Candidato ) values ( 'VENTAS','VTARCUOT','FCHCOB','DTOS(FCHCOB)+NRODOC','X',.F.,.F.,.F.)
+ENDIF
+SEEK PADR('VENTAS',LEN(sistema))+PADR("VTARCUOT",LEN(ARCHIVO))+"FCHFAC"
+IF !FOUND()
+	Insert into sistcdxs(Sistema,Archivo,Indice,Llave,Marca,Descend,Primary,Candidato ) values ( 'VENTAS','VTARCUOT','FCHFAC','DTOS(FCHFAC)+NRODOC','X',.F.,.F.,.F.)
+ENDIF
+SEEK PADR('VENTAS',LEN(sistema))+PADR("VTARCUOT",LEN(ARCHIVO))+"RCUO01"
+IF !FOUND()
+	Insert into sistcdxs(Sistema,Archivo,Indice,Llave,Marca,Descend,Primary,Candidato ) values ( 'VENTAS','VTARCUOT','RCUO01','NRODOC+NROCTA','X',.F.,.F.,.F.)
+ENDIF
+SEEK PADR('VENTAS',LEN(sistema))+PADR("VTARCUOT",LEN(ARCHIVO))+"RCUO02"
+IF !FOUND()
+	Insert into sistcdxs(Sistema,Archivo,Indice,Llave,Marca,Descend,Primary,Candidato ) values ( 'VENTAS','VTARCUOT','RCUO02','NRODOC+NROCTA+DTOC(FCHENT,1)','X',.F.,.F.,.F.)
+ENDIF
+SEEK PADR('VENTAS',LEN(sistema))+PADR("VTARCUOT",LEN(ARCHIVO))+"RCUO03"
+IF !FOUND()
+	Insert into sistcdxs(Sistema,Archivo,Indice,Llave,Marca,Descend,Primary,Candidato ) values ( 'VENTAS','VTARCUOT','RCUO03','FLGEST+NRODOC+NROCTA','X',.F.,.F.,.F.)
+ENDIF
+
+RETURN
 ***************
 PROCEDURE ZONAS  && Departamentos
 ***************
@@ -413,9 +482,9 @@ ENDIF
 
 CREATE TABLE ADDBS(goentorno.Tspathcia)+"Provincias" ;
 (codProvin c(4) NOT NULL, Desprovin c(45) NOT NULL, Codzona c(2) NOT NULL, coduser C(8), fchhora T)
-INDEX ON CODPROVIN TAG PROVI01
-INDEX ON UPPER(DESPROVIN)  TAG PROVI02
-INDEX ON CODZONA+CODPROVIN TAG PROVI03
+INDEX ON CODPROVIN TAG PROV01
+INDEX ON UPPER(DESPROVIN)  TAG PROV02
+INDEX ON CODZONA+CODPROVIN TAG PROV03
 
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('0101', 'Chachapoyas', '01')
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('0102', 'Bagua', '01')
@@ -615,6 +684,7 @@ INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('2503', 'Padre Ab
 INSERT INTO Provincias (codProvin, Desprovin, Codzona) VALUES ('2504', 'Purús', '25')
 USE IN Provincias
 IF !USED("DBFS")
+	SELECT 0
 	USE ADMIN!SISTDBFS ALIAS DBFS
 	SET ORDER TO ARCHIVO
 ENDIF
@@ -3031,6 +3101,8 @@ WAIT WINDOW "Actualizando Provincias.... " NOWAIT
 DO Provincias	WITH PsNomCia
 WAIT WINDOW "Actualizando Distritos.... " NOWAIT 
 DO Distritos	WITH PsNomCia
+WAIT WINDOW "Actualizando Cuotas.... " NOWAIT 
+DO VTARCUOT		WITH PsNomCia   && DO vtarcuot WITH "CIA001" IN k:\aplvfp\bsinfo\progs2\upd_system.prg
 
 
 IF !DBUSED(PsNomBdAno)
@@ -3095,6 +3167,22 @@ ENDIF
 LOCATE FOR CodCfg='CFG' AND UPPER(Variable)='GSMOTIVO'
 IF !FOUND()
 	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux) VALUES ('CFG', 'Motivos de traslado GRE', 'GsMotivo', 'MG')
+ENDIF
+LOCATE FOR CodCfg='CFG' AND UPPER(Variable)='GSCLFSEE'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux,CodAux1,CodAux2,CodAux3,CodAux4) VALUES ('CFG', 'Sistema de emisión electrónica 1', 'GsClfSEE', 'SEE','OSE','EFACT','CSV'	,'v1.0')
+ENDIF
+LOCATE FOR CodCfg='CF2' AND UPPER(Variable)='GSCLFSEE'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux,CodAux1,CodAux2,CodAux3,CodAux4) VALUES ('CF2', 'Sistema de emisión electrónica 2', 'GsClfSEE', 'SEE','PSE','SENDA','CSV'	,'v1.0')
+ENDIF
+LOCATE FOR CodCfg='CF3' AND UPPER(Variable)='GSCLFSEE'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux,CodAux1,CodAux2,CodAux3,CodAux4) VALUES ('CF3', 'Sistema de emisión electrónica 3', 'GsClfSEE', 'SEE','SFS','SUNAT','TXT'	,'v2.0')
+ENDIF
+LOCATE FOR CodCfg='CF4' AND UPPER(Variable)='GSCLFSEE'
+IF !FOUND()
+	INSERT INTO ADMTCNFG (codcfg, glocfg, variable, clfaux,CodAux1,CodAux2,CodAux3,CodAux4) VALUES ('CF4', 'Sistema de emisión electrónica 4', 'GsClfSEE', 'SEE','OWN','XML'  ,'vO-N696','v2.0')
 ENDIF
 USE IN ADMTCNFG
 
@@ -3387,6 +3475,12 @@ USE IN CDIRE
 WAIT WINDOW "Actualizando cabecera de GUIAS en ventas "+"VTAVGUIA"+"........... " NOWAIT 
 SELECT 0
 ** VTAVGUIA **
+IF USED("VTAVGUIA")
+	USE IN VTAVGUIA
+ENDIF
+IF USED("GUIA")
+	USE IN GUIA
+ENDIF
 ** Estructura **
 USE ADDBS(goentorno.tspathcia)+"VTAVGUIA" EXCLUSIVE ALIAS GUIA
 ALTER TABLE ALIAS() ALTER COLUMN 	Motivo		N(2)
@@ -3410,7 +3504,10 @@ ALTER TABLE ALIAS() ADD COLUMN		ApeCond		Char(40)
 ALTER TABLE ALIAS() ADD COLUMN		Brevet		Char(10) 
 ALTER TABLE ALIAS() ADD COLUMN		nroregmtc   Char(20) 
 ALTER TABLE ALIAS() ADD COLUMN		nroautesp   VarChar(50) 
-ALTER TABLE ALIAS() ADD COLUMN		DesMotivo	VarChar(60) 		
+ALTER TABLE ALIAS() ADD COLUMN		DesMotivo	VarChar(60)
+ALTER TABLE ALIAS() ADD COLUMN		CodTra		Char(3)
+
+ 		
 USE IN GUIA
 
 WAIT WINDOW "Actualizando maestro de correlativos en ventas "+"VTATDOCM"+"............ " NOWAIT 
@@ -3418,9 +3515,53 @@ SELECT 0
 ** VTATDOCM **
 ** Estructura **
 USE ADDBS(goentorno.tspathcia)+"VTATDOCM" EXCLUSIVE ALIAS TDOC
-ALTER TABLE ALIAS() ALTER COLUMN 	NroDoc		C(15)
+ALTER TABLE ALIAS() ALTER COLUMN 	NroDoc		N(15)
 ALTER TABLE ALIAS() ALTER COLUMN 	Serie		C(4)
+** VETT: Activa/Desactiva envios a sunat 	IDUPD:3020348537-05/11/2024 01:54 PM
+ALTER TABLE ALIAS() ADD		COLUMN	infsunat	L
+** VETT:  									IDUPD:3020348537-05/11/2024 01:54 PM
+
+** VETT: Agregando la serie al indice DOCM01 y actualizamos DBFS y CDXS IDUPD:4157984881-11/09/2024 03:59 PM 
+DELETE TAG DOCM01
+INDEX ON SEDE+CODDOC+PTOVTA+SERIE TAG DOCM01
+** Actualizamos en maestro de tablas (DBFS)
+IF !USED("DBFS")
+	SELECT 0
+	USE ADMIN!SISTDBFS ALIAS DBFS
+	SET ORDER TO ARCHIVO
+ENDIF
+SELECT DBFS
+IF !SEEK("VTATDOCM","DBFS","ARCHIVO")
+	INSERT INTO DBFS (Sistema,Archivo,Concepto,ALIAS,GRUPO,Trans_str,Ubicacion,Basedatos,servidor,connect) VALUES ("VENTAS",'VTATDOCM','Correlativo de documentos de ventas','DOCM',"TR_VTA",.F.,'CIA','','(Local)','FOXPRO.DBC')
+ENDIF
+UPDATE DBFS SET eval_valor_pk = "THIS.CodSed +THIS.XsCodDoc +THIS.XsPtoVta +THIS.XsSerie",eval_campo_id = "NRODOC" WHERE ARCHIVO="VTATDOCM"
+
+** Actualizamos en maestro de indices (CDXS)
+IF !USED("CDXS")
+	SELECT 0
+	USE ADMIN!SISTCDXS ALIAS CDXS
+	SET ORDER TO SISTEMA	&& SISTEMA+ARCHIVO+INDICE
+ENDIF
+SELECT CDXS
+SEEK PADR('VENTAS',LEN(sistema))+PADR("VTATDOCM",LEN(ARCHIVO))+"DOCM01"
+IF !FOUND()
+	Insert into sistcdxs(Sistema,Archivo,Indice,Llave,Marca,Descend,Primary,Candidato ) values ( 'VENTAS','VTATDOCM','DOCM01','SEDE+CODDOC+PTOVTA','X',.F.,.F.,.F.)
+ENDIF
+UPDATE CDXS SET LLAVE="SEDE+CODDOC+PTOVTA+SERIE" WHERE ARCHIVO="VTATDOCM" AND INDICE = "DOCM01"
+
+** VETT: [FIN] IDUPD:4157984881-11/09/2024 03:59 PM
 USE IN TDOC
+
+SELECT 0
+** CCBRGDOC **
+** Estructura **
+USE ADDBS(goentorno.tspathcia)+"CCBRGDOC" EXCLUSIVE ALIAS GDOC
+ALTER TABLE ALIAS() ADD COLUMN 	N_CUOTAS   N(3)
+ALTER TABLE ALIAS() ADD COLUMN 	PORDETR    N(5,2)
+ALTER TABLE ALIAS() ADD COLUMN 	impdetr    N(14,4)
+ALTER TABLE ALIAS() ADD COLUMN 	cat54detr  C(3)
+USE IN GDOC
+
 
 WAIT WINDOW "Actualizando cabecera de transacciones de almacen "+"ALMCTRAN"+"............. " NOWAIT 
 SELECT 0
@@ -3428,7 +3569,7 @@ SELECT 0
 ** Estructura **
 USE ADDBS(goentorno.tspathcia_ano)+"ALMCTRAN" EXCLUSIVE ALIAS CTRA
 DELETE TAG ALL
-ALTER TABLE ALIAS() ALTER COLUMN 	NroDoc		C(15)
+*ALTER TABLE ALIAS() ALTER COLUMN 	NroDoc		C(15)   && Esto NO va ** VETT:  IDUPD:3007946141-05/04/2024 11:34 AM
 ALTER TABLE ALIAS() ALTER COLUMN 	NroRf1		C(15)
 ALTER TABLE ALIAS() ALTER COLUMN 	NroRf2		C(15)
 ALTER TABLE ALIAS() ALTER COLUMN 	NroRf3		C(15)
@@ -3459,7 +3600,47 @@ INDEX ON CODPRO+DTOS(FCHDOC)+NRORF1+FLGFAC TAG CTRA04
 INDEX ON DTOS(FCHDOC)+TIPMOV+CODMOV+NRODOC TAG CTRA05
 INDEX ON TPORF1+NRORF1+ALMORI+SUBALM+TIPMOV+CODMOV+NRODOC TAG CTRA06
 INDEX ON TPORFB+NRORFB+SUBALM+TIPMOV+CODMOV+NRODOC TAG CTRA07
-USE IN CTRA
+*!*	***** Change properties for ALMCTRAN *****
+*!*	CREATE TRIGGER ON 'ALMCTRAN' FOR DELETE AS del_guia()
+*!*	CREATE TRIGGER ON 'ALMCTRAN' FOR INSERT AS add_guia()
+*!*	CREATE TRIGGER ON 'ALMCTRAN' FOR UPDATE AS upd_guia()
+
+USE IN CTRA 
+
+** VETT: Campos adicionales para homologar correlativo de almacenes con Gen_ID IDUPD:3446567357-02/04/2024 10:04 AM
+WAIT WINDOW "Actualizando cabecera de transacciones de almacen "+"ALMDTRAN"+"............. " NOWAIT 
+SELECT 0
+** ALMDTRAN **
+** Estructura **
+USE ADDBS(goentorno.tspathcia_ano)+"ALMDTRAN" EXCLUSIVE ALIAS DTRA
+DELETE TAG ALL
+*ALTER TABLE ALIAS() ALTER COLUMN 	NroDoc		C(15)
+INDEX ON SUBALM+TIPMOV+CODMOV+NRODOC+STR(NROITM,3,0) TAG DTRA01
+INDEX ON SUBALM+CODMAT+DTOS(FCHDOC)+TIPMOV+CODMOV+NRODOC TAG DTRA02
+INDEX ON CODMAT+DTOS(FCHDOC)+TIPMOV+CODMOV+NRODOC TAG DTRA03
+INDEX ON TPOREF+NROREF+CODMAT+SUBALM+TIPMOV+CODMOV+NRODOC TAG DTRA04
+INDEX ON SUBALM+TIPMOV+CODMOV+CODMAT+NRODOC+DTOS(FCHDOC) TAG DTRA05
+INDEX ON TIPMOV+CODMOV+CODMAT+DTOS(FCHDOC) TAG DTRA06
+INDEX ON ALMORI+SUBALM+TIPMOV+CODMOV+NRODOC+CODMAT TAG DTRA07
+INDEX ON CODOPE+NROAST+ANOAST+TPORFB+NRORFB+TPOREF+NROREF+CODMAT TAG DTRA08
+INDEX ON CODSED+CODMAT+DTOS(FCHDOC)+TIPMOV+CODMOV+NRODOC TAG DTRA09
+INDEX ON DTOS(FCHDOC)+CODMAT+TIPMOV+CODMOV+NRODOC TAG DTRA10
+INDEX ON CODPRD TAG DTRA11
+USE IN DTRA 
+
+WAIT WINDOW "Actualizando cabecera de transacciones de almacen "+"ALMCDOCM"+"............. " NOWAIT 
+SELECT 0
+** ALMCDOCM **
+** Estructura **
+USE ADDBS(goentorno.tspathcia_ano)+"ALMCDOCM" EXCLUSIVE ALIAS DOCM
+ALTER TABLE ALMCDOCM ADD COLUMN LEN_ID N(3)
+ALTER TABLE ALMCDOCM ADD COLUMN CORR_U L
+REPLACE ALL Len_ID WITH 10
+REPLACE ALL ant_mes WITH 1
+REPLACE ALL corr_u WITH .T.
+REPLACE ALL Campo_ID WITH "NRODOC"
+REPLACE ALL T_DESTINO WITH "CTRA"
+USE IN DOCM
 
 WAIT WINDOW "Actualizando vista de impresion FACT/BOLE/GRE "+"FACT_BOL"+".............. " NOWAIT 
 SELECT 0		

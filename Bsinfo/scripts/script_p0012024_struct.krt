@@ -1,0 +1,563 @@
+*** WARNING *** DO NOT MODIFY THIS FILE IN ANY WAY! *** WARNING ***
+*********************
+FUNCTION Num_Registro
+*********************
+m.Nreg =  RECNO()
+IF EMPTY(nroreg_1)
+	replace nroreg_1 WITH m.Nreg
+ENDIF
+
+RETURN .t.
+*****************
+FUNCTION ADD_GUIA
+*****************
+*!*	SCATTER MEMVAR MEMO <
+*!*	LsTabla=RUTATABLA('RUTA','VTAVGUIA','','','')
+*!*	m.GloDoc 	= m.Observ	
+*!*	m.CodDoc	= m.TpoRf1	
+*!*	m.NroDoc	= m.NroRf1	
+*!*	INSERT INTO (LsTabla) FROM MEMVAR 
+
+*****************
+FUNCTION UPD_GUIA
+*****************
+SCATTER MEMVAR MEMO 
+
+IF !(M.TPORF1='G/R'	AND M.TIPMOV='S' )
+	RETURN .T.
+ENDIF
+IF EMPTY(M.TPORF1) OR EMPTY(M.NRORF1)
+	RETURN .T.
+ENDIF
+lCerrarTabla= .f.	
+IF !USED('GUIA')
+	LsTabla=RUTATABLA('ABRIR','VTAVGUIA','GUIA','VGUI01','')
+	IF !USED('GUIA')
+		RETURN .T. 
+	ENDIF
+	lCerrarTabla= .T.
+ENDIF
+
+LOCAL LsDirecc ,LlOpenDirec
+LlOpenDirec = .F.
+IF !USED('CDIRE1')
+	LsDirecc = RUTATABLA('ABRIR','CCTCDIRE','CDIRE1','DIRE01','')
+	IF !USED('CDIRE1')
+		RETURN .T. 
+	ENDIF
+	LlOpenDirec = .T.
+ENDIF
+
+LlOpenClie = .F.
+IF !USED('CCTCLIEN')
+	LsDirecc = RUTATABLA('ABRIR','CCTCLIEN','CCTCLIEN','CLIEN04','')
+	IF !USED('CCTCLIEN')
+		RETURN .T. 
+	ENDIF
+	LlOpenClie = .T.
+ENDIF
+SELECT CCTCLIEN
+IF SEEK(GSClfCli+m.CodCli,"CCTCLIEN","CLIEN04")
+	m.NomCli	= CCTCLIEN.RazSoc
+ELSE
+	m.NomCli	= "ERROR:Revisar datos del cliente"	
+ENDIF
+
+** VETT: Completamos datos de destino y/o punto de llegada IDUPD:1761301869-04/01/2024 02:33 PM 
+m.DesDire = ''
+SELECT CDIRE1
+*!*	IF !LlOpenDirec   && El cursor ya fue creado y solo contiene direcciones del cliente  
+*!*		LOCATE FOR codDire = m.CodDire
+*!*	ELSE  && Tenemos que seleccionar segun la llave 
+	LsLLave = GSClfCli+m.CodCli
+	LOCATE FOR ClfAux+CodAux = LsLlave AND codDire = m.CodDire
+*!*	ENDIF
+IF FOUND()
+	m.DesDire		=	DesDire
+	m.DirEnt		=	DesDire
+	m.UbiPlleg		=	UbiGeo
+	m.CodEstLleg	=	CodEstb
+	m.EmailDest		=	EmailD
+ENDIF
+
+lCerrarAUXI2= .f.	
+IF !USED('AUXI2')
+	LsTabla=RUTATABLA('ABRIR','CBDMAUXI','AUXI2','AUXI01','')
+	IF !USED('AUXI2')
+		RETURN .T. 
+	ENDIF
+	lCerrarAuxi2= .T.
+ENDIF
+lCerrarSEDE= .f.	
+IF !USED('SEDES')
+	LsTabla=RUTATABLA('ABRIR','SEDES','SEDES','SEDE01','')
+	IF !USED('SEDES')
+		RETURN .T. 
+	ENDIF
+	lCerrarSEDE= .T.
+ENDIF
+
+** VETT: Completamos datos del establecimiento emisor (remitente) IDUPD:3552534242-04/01/2024 02:32 PM 
+IF VARTYPE("GsClfEst")<>"C"
+	GsClfEst = []
+ENDIF
+IF VARTYPE("m.PtoVta")<>"C"
+	m.PtoVta = []
+ENDIF
+IF !EMPTY(m.PtoVta) AND !EMPTY(m.CodEstPart)
+	SELECT AUXI2
+	Locate FOR Sede+PtoVta+CodEstb=m.CodSed+m.PtoVta+m.CodEstPart
+	IF FOUND()
+		m.UbiPpart = AUXI2.Ubigeo
+		m.DirRemit = AUXI2.NomAUx
+		m.UrbRemit = AUXI2.NomUrban
+	ENDIF
+ELSE
+	SELECT SEDES	
+	SEEK GoCfGAlm.CodSed
+	IF FOUND()
+		m.UbiPpart		= SEDES.Ubigeo
+		m.DirRemit		= SEDES.Nombre
+		m.CodEstPart	= SEDES.CodEstb
+		m.UrbRemit		= SEDES.NomUrban
+	ENDIF	
+ENDIF
+
+** VETT: Completamos datos del transportista y conductor IDUPD:181878888-04/01/2024 02:32 PM
+
+SELECT AUXI2
+SEEK GsClfTra+m.CodTra
+IF FOUND()
+	IF !EMPTY(m.DNICond) AND m.DniCond<>TRIM(AUXI2.DNICond)
+		=RLOCK()
+		replace DniCond		WITH	m.DNICond ,; 			
+		TPDCond		WITH	m.TPDCond ,; 			
+		NomCond		WITH	m.NomCond ,; 			
+		ApeCond		WITH	m.ApeCond ,; 			
+		BreVet		WITH	m.Brevet
+		
+		FLUSH IN AUXI2
+		UNLOCK IN AUXI2
+	ELSE
+		m.DniCond	= DNICond 			
+		m.TPDCond	= TPDCond 			
+		m.NomCond	= NomCond 			
+		m.ApeCond	= ApeCond 			
+		m.Brevet	= Brevet	
+	ENDIF
+	m.nroregmtc = nroregmtc
+	m.nroautesp = nroautesp
+ENDIF
+
+SELECT guia
+
+lExiste=SEEK(m.TpoRf1+m.NroRf1,'GUIA')
+IF !lExiste
+	APPEND BLANK 
+ELSE
+	=RLOCK()
+ENDIF
+m.Desmotivo = IIF(VARTYPE(GoCfgVta.cDesmotivo)='C' AND !ISNULL(GoCfgVta.cDesmotivo) AND !EMPTY(GoCfgVta.cDesmotivo),GoCfgVta.cDesmotivo,"")
+
+m.NroRegMTC = IIF(VARTYPE(GoCfgVta.cNroRegMTC)='C' AND !ISNULL(GoCfgVta.cNroRegMTC) AND !EMPTY(GoCfgVta.cNroRegMTC),GoCfgVta.cNroRegMTC,m.NroRegMTC)
+m.NroAutESP = IIF(VARTYPE(GoCfgVta.cNroAutESP)='C' AND !ISNULL(GoCfgVta.cNroAutESP) AND !EMPTY(GoCfgVta.cNroAutESP),GoCfgVta.cNroAutESP,m.NroAutESP)
+
+replace CodDoc		WITH	m.TpoRf1	,;
+		NroDoc		WITH	m.NroRf1	,;
+		CodCli		WITH	m.CodCli	,;
+		NomCli		WITH	m.NomCli	,;
+		FchDoc		WITH	m.FchDoc	,;
+		GloDoc 		WITH	m.Observ	,;
+		Motivo		WITH	m.Motivo	,;
+		CodVen		WITH	m.CodVen 	,;
+		CodMon		WITH	m.CodMon	,;						
+		NomTra		WITH	m.NomTra	,;
+		DirTra		WITH	m.DirTra	,;
+		RucTra		WITH	m.RucTra	,;
+		PlaTra		WITH	m.PlaTra	,;
+		DirCLi  	WITH	m.DesDire	,;  
+		CodTra		WITH	m.CodTra	,;
+		UbiPpart	WITH	m.UbiPpart ,;
+		CodEstPart	WITH	m.CodEstPart,;
+		DirRemit	WITH	m.DirRemit	,;	
+		DirEnt		WITH	m.DirEnt ,;
+		UrbRemit	WITH	m.UrbRemit ,;
+		UbiPlleg	WITH	m.UbiPlleg ,;
+		CodEstLleg	WITH	m.CodEstLleg ,;
+		EmailDest	WITH	m.EmailDest ,;
+		PesoBruto	WITH	m.PesoBruto ,;
+		ModTra		WITH	m.ModTra ,;
+		UndMed		WITH	m.UndMed ,;
+		FiniTras	WITH	m.FiniTras ,;
+		NomTra		WITH	m.NomTra ,;
+		RucTra		WITH	m.RucTra ,;
+		DniCond		WITH	m.DNICond ,; 			
+		TPDCond		WITH	m.TPDCond ,; 			
+		NomCond		WITH	m.NomCond ,; 			
+		ApeCond		WITH	m.ApeCond ,; 			
+		Brevet		WITH	m.Brevet , ;
+		nroregmtc   WITH	m.nroregmtc ,;
+		nroautesp   WITH    m.nroautesp,; 
+		DesMotivo	WITH	m.Desmotivo	
+		
+** Grabamos la direccion segun codDire de almctran		
+		
+IF lExiste 		
+	** No tocamos el flag	
+*  	REPLACE FlgEst	WITH m.FlgEst
+*!*		IF m.FlgEst='A'
+*!*			REPLACE FlgEst	WITH 'A'
+*!*		ENDIF
+ELSE
+	REPLACE FlgEst	WITH 'E'
+ENDIF		
+FLUSH IN GUIA				
+UNLOCK IN GUIA
+
+IF lCerrarTabla
+	USE IN GUIA
+ENDIF
+IF LlOpenDirec
+	USE IN CDIRE1
+ENDIF
+IF lCerrarSEDE
+	USE IN SEDES
+ENDIF
+IF lCerrarAUXI2
+	USE IN AUXI2
+ENDIF
+IF LlOpenClie
+	USE IN CCTCLIEN
+ENDIF
+RETURN .T.						
+*****************
+FUNCTION DEL_GUIA
+*****************
+LsTabla=RUTATABLA('RUTA','VTAVGUIA','','','')
+SCATTER MEMVAR
+DELETE FROM (LsTabla) WHERE	CodDoc	= m.TpoRf1	;
+									AND NroDoc	= m.NroRf1	
+******************
+FUNCTION RUTATABLA
+******************
+LPARAMETERS cAccion as String ,cArchivo as String ,cAlias as String ,cTag as String ,cExclu as String ,cPk as String as Boolean
+LOCAL LsRutaTabla,LsArea_Act,LcArcTmp
+IF PARAMETERS()<2
+	RETURN -1
+ENDIF
+LsArea_Act=SELECT()
+
+IF UPPER(cAccion) ='TEMP'
+	DO CASE 
+		CASE UPPER(cAccion) ='TEMP_STR'
+			IF EMPTY(cArchivo) or ISNULL(cArchivo)
+				RETURN .f.
+			ENDIF
+			IF !USED(cArchivo)
+				RETURN .f.
+			ENDIF
+			
+			LcArcTmp = this.tmppath +SYS(3)
+			SELECT (cArchivo)
+			COPY STRUCTURE TO (LcArcTmp) with cdx
+			SELECT 0
+			use (LcArcTmp) ALIAS (cAlias) EXCLU  
+		CASE UPPER(cAccion) ='TEMP_SQL'
+			IF EMPTY(cArchivo) or ISNULL(cArchivo)
+				RETURN .f.
+			ENDIF
+			IF !USED(cArchivo)
+				RETURN .f.
+			ENDIF
+			LcArcTmp = this.tmppath +SYS(3)
+			IF VERSION(5) < 700    
+				select * from (cArchivo) where 0>1 into Cursor temporal
+				SELE Temporal
+				COPY TO (LcArcTmp)
+				USE IN TEMPORAL
+				SELE 0
+				USE (LcArcTmp) ALIAS (cAlias) EXCLUSIVE
+			ELSE
+				SELECT * from (cArchivo) where 0>1 into cursor (cAlias) readwrite 	
+			ENDIF
+					
+	ENDCASE
+	IF !EMPTY(LsArea_act)
+		SELE (LsArea_Act)
+	ENDIF
+	RETURN .t.	
+ENDIF
+
+
+	IF USED('DBFS')
+		SELECT DBFS
+	ELSE
+		SELECT 0
+		use admin!sistdbfs ORDER archivo ALIAS dbfs
+	ENDIF
+	**SEEK PADR(UPPER(cSistema),LEN(DBFS.SISTEMA))+UPPER(cArchivo)
+	SEEK TRIM(UPPER(cArchivo))
+	IF !FOUND()
+		this.serror = 'No esta definida la tabla '+cArchivo+ ' en el registro de entidades SISTDBFS'
+		RETURN ''
+	ENDIF
+	*** Ubico la base de datos a la que pertenece la tabla ***
+	DO CASE
+		CASE dbfs.connect = 'FOXPRO.DBC'
+			DO CASE	
+				CASE 	!(EMPTY(DBFS.Basedatos) OR ISNULL(DBFS.Basedatos))	 
+					LsRutaTabla=TRIM(Basedatos)+'!'+cArchivo 
+				CASE	EMPTY(DBFS.Basedatos) OR ISNULL(DBFS.Basedatos)
+					DO CASE
+						CASE DBFS.Ubicacion='INI'
+							LsRutaTabla='ADMIN!'+cArchivo 	
+						CASE DBFS.Ubicacion='CIA'
+							LsRutaTabla=TRIM(DBFS.Ubicacion)+GsCodCia+'!'+cArchivo	
+						CASE DBFS.Ubicacion='PER'
+							LsRutaTabla=LEFT(TRIM(DBFS.Ubicacion),1)+GsCodCia+LEFT(GsPeriodo,4)+'!'+cArchivo
+					ENDCASE
+			ENDCASE		
+		CASE dbfs.CONNECT = 'FOXPRO'				
+					LsRutaTabla=PATH_001+cArchivo
+	ENDCASE
+	***
+	IF UPPER(cAccion)='RUTA' 
+		IF !EMPTY(LsArea_act)
+			SELE (LsArea_Act)
+		ENDIF
+		RETURN TRIM(LsRutaTabla)	 
+	ENDIF
+
+	SELE 0
+	DO CASE
+		CASE !EMPTY(cArchivo) AND !EMPTY(cAlias) AND !EMPTY(cExclu)
+			USE (LsRutaTabla) ALIAS (cAlias) EXCLU
+		CASE !EMPTY(cArchivo) AND !EMPTY(cAlias) AND EMPTY(cExclu)
+			IF !USED(cAlias)
+				USE (LsRutaTabla) ALIAS (cAlias) SHARED AGAIN
+			ELSE
+				SELECT  (cAlias)
+			ENDIF
+
+		CASE !EMPTY(cArchivo) AND EMPTY(cAlias) AND !EMPTY(cExclu)
+			USE (LsRutaTabla) EXCLU
+		CASE !EMPTY(cArchivo) AND EMPTY(cAlias) AND EMPTY(cExclu)
+			USE (LsRutaTabla) SHARED AGAIN
+			
+		OTHER 		
+			IF !EMPTY(LsArea_act)
+				SELE (LsArea_Act)
+			ENDIF
+			RETURN .F.
+	ENDCASE
+	IF !USED()
+		IF !EMPTY(LsArea_act)
+			SELE (LsArea_Act)
+		ENDIF
+		RETURN .F.
+	ENDIF
+	IF !EMPTY(cTag)
+		SET ORDER TO (cTag)
+	ENDIF
+	
+RETURN .t.
+**********************
+PROCEDURE act_almrmovm
+**********************
+IF VARTYPE(GsSigCia)='C'
+	IF INLIST(GsSigCia,'AROMAS')
+		LnSelect=SELECT()
+		SCATTER MEMVAR MEMO 
+		lCerrarTabla= .f.	
+		IF !USED('RMOV')
+			LsTabla=RUTATABLA('ABRIR','ALMRMOVM','RMOV','RMOV01','')
+			IF !USED('RMOV')
+				RETURN .T. 
+			ENDIF
+			lCerrarTabla= .T.
+		ENDIF
+		SEEK m.SubAlm+m.TipMov+m.CodMov+m.NroDoc+STR(NroItm,3)
+		IF !lExiste
+			APPEND BLANK 
+		ELSE
+			=RLOCK()
+		ENDIF
+		GATHER MEMVAR MEMO	
+		
+		SELECT (LnSelect)						
+	ENDIF
+ENDIF
+**********************
+PROCEDURE act_almvmovm
+**********************
+IF VARTYPE(GsSigCia)='C'
+	IF INLIST(GsSigCia,'AROMAS')
+		LnSelect=SELECT()
+		SCATTER MEMVAR MEMO 
+		lCerrarTabla= .f.	
+		IF !USED('VMOV')
+			LsTabla=RUTATABLA('ABRIR','ALMVMOVM','VMOV','VMOV01','')
+			IF !USED('VMOV')
+				RETURN .T. 
+			ENDIF
+			lCerrarTabla= .T.
+		ENDIF
+		SELECT VMOV
+		lExiste=SEEK(m.SubAlm+m.TipMov+m.CodMov+m.NroDoc,'VMOV')
+		IF !lExiste
+			APPEND BLANK 
+		ELSE
+			=RLOCK()
+		ENDIF
+		GATHER MEMVAR MEMO	
+		SELECT (LnSelect)						
+	ENDIF
+ENDIF
+***********************
+PROCEDURE act_almmmatg
+**********************
+IF VARTYPE(GsSigCia)='C'
+	IF INLIST(GsSigCia,'AROMAS')
+		LnSelect=SELECT()
+		SCATTER MEMVAR MEMO 
+		lCerrarTabla= .f.	
+		IF !USED('MATG')
+			LsTabla=RUTATABLA('ABRIR','ALMMMATG','MATG','MATG01','')
+			IF !USED('MATG')
+				RETURN .T. 
+			ENDIF
+			lCerrarTabla= .T.
+		ENDIF
+		SELECT MATG
+		lExiste=SEEK(m.CodMat,'MATG')
+		IF !lExiste
+			APPEND BLANK 
+		ELSE
+			=RLOCK()
+		ENDIF
+		GATHER MEMVAR MEMO	
+		SELECT (LnSelect)		
+	ENDIF
+ENDIF
+***********************
+PROCEDURE act_almmmate
+**********************
+IF VARTYPE(GsSigCia)='C'
+	IF INLIST(GsSigCia,'AROMAS')
+		LnSelect=SELECT()
+		SCATTER MEMVAR MEMO 
+		lCerrarTabla= .f.	
+		IF !USED('MATE')
+			LsTabla=RUTATABLA('ABRIR','ALMMMATE','MATE','MATE01','')
+			IF !USED('MATG')
+				RETURN .T. 
+			ENDIF
+			lCerrarTabla= .T.
+		ENDIF
+		SELECT MATE
+		lExiste=SEEK(m.SubAlm+m.CodMat,'MATE')
+		IF !lExiste
+			APPEND BLANK 
+		ELSE
+			=RLOCK()
+		ENDIF
+		GATHER MEMVAR MEMO	
+		SELECT (LnSelect)		
+	ENDIF
+ENDIF
+FUNCTION Grb_Nombres
+m.NomBre = Nombres
+IF _triggerlevel =1
+endif
+replace Nombre WITH m.Nombre
+RETURN .t.
+þòÿ    u   u                         Q
+   %   ö      œ  m  Â          ü  U  :  Tõ÷  üCOýþ %üC÷ ¡ýù, þ >÷ Ñüõ÷  ýþ þ Büaýþ U  NREG NROREG_1  U  :
+ ^Âþ& %üõ÷  û G/Rð õ÷ û S	
+ýù3 þ Büaýþ þ %üCõ÷  ¡ñ Cõ÷ ¡ýùZ þ Büaýþ þ T÷ ü-ýþ %üCû GUIAª
+ýùÛ þ4 T÷ üCû ABRIRû VTAVGUIAû GUIAû VGUI01û  ö ýþ %üCû GUIAª
+ýùÌ þ Büaýþ þ T÷ üaýþ þ ®÷ ÷ þ T÷ ü-ýþ %üCû CDIRE1ª
+ýùmþ6 T÷ üCû ABRIRû CCTCDIREû CDIRE1û DIRE01û  ö ýþ %üCû CDIRE1ª
+ýù^þ Büaýþ þ T÷ üaýþ þ T÷ ü-ýþ %üCû CCTCLIENª
+ýùûþ9 T÷ üCû ABRIRû CCTCLIENû CCTCLIENû CLIEN04û  ö ýþ %üCû CCTCLIENª
+ýùìþ Büaýþ þ T÷ üaýþ þ F÷	 þ* %üC÷
+ õ÷ Ù CCTCLIENÙ CLIEN04ŠýùBþ Tõ÷ üô	 ÷ ýþ ùxþ. Tõ÷ üÙ ERROR:Revisar datos del clienteýþ þ Tõ÷ üû  ýþ F÷ þ T÷ ü÷
+ õ÷ ýþ -ü÷ ÷ ÷ ð
+ ÷ õ÷ 	ýþ %üC4ýùþ Tõ÷ ü÷ ýþ Tõ÷ ü÷ ýþ Tõ÷ ü÷ ýþ Tõ÷ ü÷ ýþ Tõ÷ ü÷ ýþ þ T÷ ü-ýþ %üCû AUXI2ª
+ýùŸþ5 T÷ üCû ABRIRû CBDMAUXIû AUXI2û AUXI01û  ö ýþ %üCû AUXI2ª
+ýùþ Büaýþ þ T÷ üaýþ þ T÷ ü-ýþ %üCû SEDESª
+ýù þ2 T÷ üCû ABRIRû SEDESû SEDESû SEDE01û  ö ýþ %üCû SEDESª
+ýùþ Büaýþ þ T÷ üaýþ þ %üCÙ GsClfEstêÙÙ CýùNþ T÷ üû  ýþ þ %üCÙ m.PtoVtaêÙÙ Cýù~þ Tõ÷ üû  ýþ þ %üCõ÷ ¡
+ð	 Cõ÷ ¡
+	ýùþ F÷  þ$ -ü÷! ÷ ÷ õ÷" õ÷ õ÷ ýþ %üC4ýùþ Tõ÷# üô  ÷ ýþ Tõ÷$ üô  ÷% ýþ Tõ÷& üô  ÷' ýþ þ ù„þ F÷( þ Eüô) ÷" ýþ %üC4ýù€þ Tõ÷# üô( ÷ ýþ Tõ÷$ üô( ÷* ýþ Tõ÷ üô( ÷ ýþ Tõ÷& üô( ÷' ýþ þ þ F÷  þ Eü÷+ õ÷, ýþ %üC4ýùšþ$ %üCõ÷- ¡
+ð õ÷- Cô  ÷- `	ýù%þ †üCSýþ? >÷- Ñüõ÷- ý÷. Ñüõ÷. ý÷/ Ñüõ÷/ ý÷0 Ñüõ÷0 ý÷1 Ñüõ÷1 ýþ [÷  þ Z÷  þ ùxþ Tõ÷- ü÷- ýþ Tõ÷. ü÷. ýþ Tõ÷/ ü÷/ ýþ Tõ÷0 ü÷0 ýþ Tõ÷1 ü÷1 ýþ þ Tõ÷2 ü÷2 ýþ Tõ÷3 ü÷3 ýþ þ F÷4 þ T÷5 üCõ÷  õ÷ û GUIAŠýþ %ü÷5 
+ýùÖþ þ ùæþ †üCSýþ þE Tõ÷6 üCCô7 ÷8 êÙû Cð
+ Cô7 ÷8 Ñ
+	ð
+ Cô7 ÷8 ¡
+	ò	 ô7 ÷8 ó Ù  6ýþG Tõ÷2 üCCô7 ÷9 êÙû Cð
+ Cô7 ÷9 Ñ
+	ð
+ Cô7 ÷9 ¡
+	ò	 ô7 ÷9 ó õ÷2 6ýþG Tõ÷3 üCCô7 ÷: êÙû Cð
+ Cô7 ÷: Ñ
+	ð
+ Cô7 ÷: ¡
+	ò	 ô7 ÷: ó õ÷3 6ýþ¿>÷; Ñüõ÷  ý÷< Ñüõ÷ ý÷ Ñüõ÷ ý÷ Ñüõ÷ ý÷= Ñüõ÷= ý÷> Ñüõ÷? ý÷@ Ñüõ÷@ ý÷A Ñüõ÷A ý÷B Ñüõ÷B ý÷C Ñüõ÷C ý÷D Ñüõ÷D ý÷E Ñüõ÷E ý÷F Ñüõ÷F ý÷G Ñüõ÷ ý÷, Ñüõ÷, ý÷# Ñüõ÷# ý÷ Ñüõ÷ ý÷$ Ñüõ÷$ ý÷ Ñüõ÷ ý÷& Ñüõ÷& ý÷ Ñüõ÷ ý÷ Ñüõ÷ ý÷ Ñüõ÷ ý÷H Ñüõ÷H ý÷I Ñüõ÷I ý÷J Ñüõ÷J ý÷K Ñüõ÷K ý÷C Ñüõ÷C ý÷E Ñüõ÷E ý÷- Ñüõ÷- ý÷. Ñüõ÷. ý÷/ Ñüõ÷/ ý÷0 Ñüõ÷0 ý÷1 Ñüõ÷1 ý÷2 Ñüõ÷2 ý÷3 Ñüõ÷3 ý÷6 Ñüõ÷6 ýþ %ü÷5 ýù‰	þ ùŸ	þ >÷L Ñüû Eýþ þ [÷4 þ Z÷4 þ %ü÷ ýùÈ	þ Q÷4 þ þ %ü÷ ýùá	þ Q÷ þ þ %ü÷ ýùú	þ Q÷( þ þ %ü÷ ýù
+þ Q÷  þ þ %ü÷ ýù,
+þ Q÷	 þ þ Büaýþ UM  TPORF1 TIPMOV NRORF1 LCERRARTABLA LSTABLA	 RUTATABLA LSDIRECC LLOPENDIREC
+ LLOPENCLIE CCTCLIEN GSCLFCLI CODCLI NOMCLI RAZSOC DESDIRE CDIRE1 LSLLAVE CLFAUX CODAUX CODDIRE DIRENT UBIPLLEG UBIGEO
+ CODESTLLEG CODESTB	 EMAILDEST EMAILD LCERRARAUXI2 LCERRARSEDE GSCLFEST PTOVTA
+ CODESTPART AUXI2 SEDE CODSED UBIPPART DIRREMIT NOMAUX URBREMIT NOMURBAN SEDES GOCFGALM NOMBRE GSCLFTRA CODTRA DNICOND TPDCOND NOMCOND APECOND BREVET	 NROREGMTC	 NROAUTESP GUIA LEXISTE	 DESMOTIVO GOCFGVTA
+ CDESMOTIVO
+ CNROREGMTC
+ CNROAUTESP CODDOC NRODOC FCHDOC GLODOC OBSERV MOTIVO CODVEN CODMON NOMTRA DIRTRA RUCTRA PLATRA DIRCLI	 PESOBRUTO MODTRA UNDMED FINITRAS FLGESTU ) T÷  üCû RUTAû VTAVGUIAû  û  û  ö ýþ ^Âþ$ qü÷  ýÆü÷ õ÷ ð
+ ÷ õ÷ 	ýþ U  LSTABLA	 RUTATABLA CODDOC TPORF1 NRODOC NRORF1¨W ¯÷  Qû STRING÷ Qû STRING÷ Qû STRING÷ Qû STRING÷ Qû STRING÷ Qû STRINGþ ®÷ ÷ ÷ þ %üCÄøýù€ þ
+ Büùÿÿýþ þ T÷ üCWýþ %üC÷  fû TEMPýù‚þ Hù´ ùYþ üC÷  fû TEMP_STRýùTþ %üC÷ ¡ñ C÷ Ñýùî þ Bü-ýþ þ %üC÷ ª
+ýù	þ Bü-ýþ þ T÷ üô	 ÷
+ Cø]ýþ
+ Fü÷ ýþ (ü÷ ýÌÒþ Fù  þ Q¼ü÷ ýü÷ ýþ üC÷  fû TEMP_SQLýùYþ %üC÷ ¡ñ C÷ ÑýùŽþ Bü-ýþ þ %üC÷ ª
+ýù©þ Bü-ýþ þ T÷ üô	 ÷
+ Cø]ýþ %üCøhù¼ýù.þ# oü÷ ýÇÆüø øý¼½û temporalþ F÷ þ (ü÷ ýþ Q÷ þ Fù  þ Q¼ü÷ ýü÷ ýþ ùUþ oü÷ ýÇÆüø øý¼½ü÷ ý×þ þ þ %üC÷ ¡
+ýùwþ
+ Fü÷ ýþ þ Büaýþ þ %üCû DBFSªýù þ F÷ þ ùÔþ Fù  þ$ Qû admin!sistdbfs÷ Ãû archivoþ þ EüCC÷ f`ýþ %üC4
+ýùRþW Tô	 ÷ üû No esta definida la tabla ÷ û%  en el registro de entidades SISTDBFSýþ	 Büû  ýþ þ HùcùÌþ üô ÷ û
+ FOXPRO.DBCýù¡þ HùŽùþ  üCô ÷ ¡ñ	 Cô ÷ Ñ
+ýùÆþ T÷ üC÷ `û !÷ ýþ üCô ÷ ¡ñ	 Cô ÷ Ñýùþ Hùñù™þ üô ÷ û INIýùþ T÷ üû ADMIN!÷ ýþ üô ÷ û CIAýùUþ T÷ üCô ÷ `÷ û !÷ ýþ üô ÷ û PERýù™þ- T÷ üCCô ÷ `ø=÷ C÷ ø=û !÷ ýþ þ þ üô ÷ û FOXPROýùÌþ T÷ ü÷ ÷ ýþ þ %üC÷  fû RUTAýùþ %üC÷ ¡
+ýùþ
+ Fü÷ ýþ þ BüC÷ `ýþ þ Fù  þ Hù)ùDþ$ üC÷ ¡
+ð C÷ ¡
+	ð C÷ ¡
+	ýù_þ Q¼ü÷ ýü÷ ýþ# üC÷ ¡
+ð C÷ ¡
+	ð C÷ ¡	ýù»þ %üC÷ ª
+ýù¥þ QÂü÷ ý¼ü÷ ýþ ù·þ
+ Fü÷ ýþ þ# üC÷ ¡
+ð C÷ ¡	ð C÷ ¡
+	ýùéþ Q¼ü÷ ýþ" üC÷ ¡
+ð C÷ ¡	ð C÷ ¡	ýùþ QÂü÷ ý¼þ 2ùDþ %üC÷ ¡
+ýù9þ
+ Fü÷ ýþ þ Bü-ýþ þ %üCª
+ýùzþ %üC÷ ¡
+ýùoþ
+ Fü÷ ýþ þ Bü-ýþ þ %üC÷ ¡
+ýùšþ G((ü÷ ýþ þ Büaýþ U  CACCION CARCHIVO CALIAS CTAG CEXCLU CPK LSRUTATABLA
+ LSAREA_ACT LCARCTMP THIS TMPPATH TEMPORAL DBFS ADMIN ARCHIVO SERROR CONNECT	 BASEDATOS	 UBICACION GSCODCIA	 GSPERIODO PATH_001( %üC÷  êÙû Cýù!þ %üC÷  û AROMAS­ýùþ T÷ üCWýþ ^Âþ T÷ ü-ýþ %üCû RMOVª
+ýù¼ þ4 T÷ üCû ABRIRû ALMRMOVMû RMOVû RMOV01û  ö ýþ %üCû RMOVª
+ýù­ þ Büaýþ þ T÷ üaýþ þ& Eüõ÷ õ÷ õ÷ õ÷ C÷	 øZýþ %ü÷
+ 
+ýùù þ þ ù	þ †üCSýþ þ _Âþ
+ Fü÷ ýþ þ þ U  GSSIGCIA LNSELECT LCERRARTABLA LSTABLA	 RUTATABLA SUBALM TIPMOV CODMOV NRODOC NROITM LEXISTE3 %üC÷  êÙû Cýù,þ %üC÷  û AROMAS­ýù(þ T÷ üCWýþ ^Âþ T÷ ü-ýþ %üCû VMOVª
+ýù¼ þ4 T÷ üCû ABRIRû ALMVMOVMû VMOVû VMOV01û  ö ýþ %üCû VMOVª
+ýù­ þ Büaýþ þ T÷ üaýþ þ F÷ þ* T÷ üCõ÷ õ÷ õ÷	 õ÷
+ û VMOVŠýþ %ü÷ 
+ýùþ þ ùþ †üCSýþ þ _Âþ
+ Fü÷ ýþ þ þ U  GSSIGCIA LNSELECT LCERRARTABLA LSTABLA	 RUTATABLA VMOV LEXISTE SUBALM TIPMOV CODMOV NRODOC! %üC÷  êÙû Cýùþ %üC÷  û AROMAS­ýùþ T÷ üCWýþ ^Âþ T÷ ü-ýþ %üCû MATGª
+ýù¼ þ4 T÷ üCû ABRIRû ALMMMATGû MATGû MATG01û  ö ýþ %üCû MATGª
+ýù­ þ Büaýþ þ T÷ üaýþ þ F÷ þ T÷ üCõ÷ û MATGŠýþ %ü÷ 
+ýùò þ þ ùþ †üCSýþ þ _Âþ
+ Fü÷ ýþ þ þ U  GSSIGCIA LNSELECT LCERRARTABLA LSTABLA	 RUTATABLA MATG LEXISTE CODMAT' %üC÷  êÙû Cýù þ %üC÷  û AROMAS­ýùþ T÷ üCWýþ ^Âþ T÷ ü-ýþ %üCû MATEª
+ýù¼ þ4 T÷ üCû ABRIRû ALMMMATEû MATEû MATE01û  ö ýþ %üCû MATGª
+ýù­ þ Büaýþ þ T÷ üaýþ þ F÷ þ T÷ üCõ÷ õ÷ û MATEŠýþ %ü÷ 
+ýùø þ þ ùþ †üCSýþ þ _Âþ
+ Fü÷ ýþ þ þ U	  GSSIGCIA LNSELECT LCERRARTABLA LSTABLA	 RUTATABLA MATE LEXISTE SUBALM CODMAT<  Tõ÷  ü÷ ýþ %üí=øýù þ þ >÷  Ñüõ÷  ýþ Büaýþ U  NOMBRE NOMBRES Num_Registro,     ÿÿ ADD_GUIAz     ÿÿ UPD_GUIA     ÿÿ DEL_GUIA…    ÿÿ	 RUTATABLA    ÿÿ act_almrmovm„    ÿÿ act_almvmovm    ÿÿ act_almmmatg³    ÿÿ act_almmmate%    ÿÿ Grb_Nombres¥    ÿÿ2 â ñ ñ A r 2 : b bq A Áq A ± AAAq A ± A ² ± aaaq A ± A ² ‘q A ± A q ¡! áA ó q 4ñÂ ñ ñ ñ ñ ñ A ² QQQq A ± A ± Q!Qq A ± A ÓÑ A Ññ A áq AÁ !!!A  q Á Á !!!!A A t ñ Á A õ‚   ñ ñ ñ ñ ñ A ñ ñ A r âá Q   A QrqPñÔ † á A   Ò  A Ñ  A Ñ  A Ñ  A Ñ  A q 2 ’Q B2 rñ ¡ A Á rÑ ±q A q A b¡ Ñ  !±q A q A aA1q ±   ! ñA B ¡ A q A 3q   AA Ò Ñ q‘ A Ò áÑ áÑ qqqñqÑA A ¡A r¡ A ± A ‚ Ñ A!11 ¡ A 2± !Á ‚ ¡ A q A Ñ ¡ A q A Á A r 2 RÁ a ± AAAq A ± A aá Q   A a ¢ A A 2 RÁ a ± AAAq A ± A q ¡á Q   A a ¡ A A 2 RÁ a ± AAAq A ± A q á Q   A a ¡ A A 2 RÁ a ± AAAq A ± A q áá Q   A a ¡ A A 1 ñ A ñ q 1                    .   ±         Æ   ±        Æ  8     –   M    é   š     I#  ð     c#  k%  l    …%  ›'  †  7  µ'  ¬)     O  Æ)  ­+  º  g  Å+  ,  Ó   )   u                   

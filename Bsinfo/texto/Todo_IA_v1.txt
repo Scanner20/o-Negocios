@@ -1,0 +1,559 @@
+Con respecto al archivo FACTURAE001-90420563045923.XML  puedes hacer hacer un programa en VFP 9 que cargue el contenido de dicho archivo y lo pueda parsear para convertirlo en un cursor dbf ignorando el contenido que esta entre los tags <ext:UBLExtensions>   </ext:UBLExtensions> , puedes usar programas con rutinas similares a las siguiente: 
+************************************************************************************
+* nfXMLread ( VFP XML PARSER  )
+* Marco Plaza , 2013-2018  @nfTools
+* Last Update: 2019/06/13
+* Nota: Si requieres mas informacion puedes revisar en https://github.com/VFPX
+**************************************************************************************
+Parameters cxml,_arrayslist,xpathexp,_xpaths
+
+**#include nfxml.h
+#DEFINE NODETEXTTAG '_nodetext_'
+#Define ATTRIBUTETAG '_attr_'
+#define escapeList ':,_c_,(,_l_,),_r_,-,_,.,_p_'
+#define escapeCount 5
+#Define crlf Chr(13)+Chr(10)
+
+_arrayslist = Lower(','+Evl(m._arrayslist,'')+',')
+
+Private All
+
+stacklevels=Astackinfo(aerrs)
+
+If m.stacklevels > 1
+	calledfrom = 'called From '+aerrs(m.stacklevels-1,4)+' line '+Transform(aerrs(m.stacklevels-1,5))
+Else
+	calledfrom = ''
+Endif
+
+Do Case
+Case Vartype(m.cxml) # 'C'
+	Error 'Must supply a valid Xml string or file name'
+Otherwise
+	oxml = nfxmlread2( cxml,_arrayslist,xpathexp , @_xpaths )
+Endcase
+
+If Vartype(m.oxml) = 'O'
+	If Type('m.oxml.xml') = 'O'
+		m.oxml = m.oxml.XML
+	Endif
+	Return m.oxml
+Else
+	Return .Null.
+Endif
+
+
+*---------------------------------------------------------------
+Procedure nfxmlread2( cxml,_arrayslist,xpathexp,_xpaths )
+*---------------------------------------------------------------
+
+omsxml = Createobject('msXml.domdocument')
+cerror = ''
+
+With omsxml As msxml.domdocument
+
+	.Async = .F.
+	
+	Do Case
+	Case '<' $ m.cxml
+		.LoadXML( m.cxml )
+	Case File(m.cxml)
+		.Load(m.cxml)
+	Other
+		Error 'nfXML '+m.calledfrom+': Invalid file or xml string '
+		Return .F.
+	Endcase
+
+	
+
+	If !Empty(.parseerror.reason)
+
+		cerror =  'msxml parseerror parsing XML line '+Transform(.parseerror.Line)+' : "'+Rtrim(.parseerror.reason)+'"'
+		Lineno = 0
+
+	Else
+
+		If Vartype(m.xpathexp) = 'C'
+
+			Try
+
+				oxmlnodes = .selectnodes(m.xpathexp)
+
+			Catch
+
+				cerror =  ' invalid XPATH expression ('+m.xpathexp+')'
+				Lineno = 0
+
+			Endtry
+
+		Else
+
+			oxmlnodes = .childnodes()
+
+		Endif
+
+		If Vartype(m.oxmlnodes) = 'O' And Empty(m.cerror)
+
+			Try
+				ovfp = Createobject('empty')
+				recnodo(m.oxmlnodes,m.ovfp,'',_arrayslist,@_xpaths)
+			Catch To oerr
+				cerror = oerr.Message+' '+Transform(oerr.Lineno)
+				Lineno = oerr.Lineno
+			Endtry
+
+		Endif
+
+
+	Endif
+
+Endwith
+
+If !Empty(m.cerror)
+	Error 'nfXML '+m.calledfrom+': '+m.cerror
+	Return .F.
+Else
+	Return m.ovfp
+Endif
+
+
+*---------------------------------------------------------------------------------
+Procedure recnodo( onodos, esteo , _parentnode , _arrayslist , _xpaths )
+*---------------------------------------------------------------------------------
+
+Private All
+
+For Each nodo In onodos
+
+	With nodo
+
+		If ( .nodetype # 1 And .nodetype # 3  ) Or .nodename = '#text'
+			Loop
+		Endif
+
+		estextnode = .nodetype = 3 Or ( .childnodes.Length = 1 And ( .firstchild.nodetype = 3 Or .firstchild.nodetype = 4 ) )
+		emptynode = .childnodes.Length = 0
+
+		Try
+			tieneatributos = .Attributes.Length > 0
+		Catch
+			tieneatributos = .F.
+		Endtry
+
+		Do Case
+		Case m.emptynode And !m.tieneatributos
+			nuevovalor = ''
+		Case m.estextnode And !m.tieneatributos
+			nuevovalor = .firstchild.nodevalue
+		Otherwise
+			nuevovalor = Createobject('empty')
+		Endcase
+
+		propertyname = conv2asc(.nodename)
+
+
+		If Type("m.esteo."+m.propertyname) = 'U' And Type("m.esteo._"+m.propertyname) = 'U'
+
+			isUsrArray = Lower(','+_parentnode+'/'+.nodename+'[]') $ m._arrayslist
+
+			If !m.isUsrArray
+				siblings = .selectnodes('../'+.nodename)
+				isArray = Vartype(m.siblings) = 'O' And m.siblings.Length >  1
+			Endif
+
+			If m.isUsrArray Or m.isArray
+
+				Try
+
+					AddProperty(m.esteo,(m.propertyname+'(1)'))
+
+				Catch
+
+					propertyname = '_'+m.propertyname
+
+					AddProperty(m.esteo,(m.propertyname+'(1)'))
+
+				Endtry
+
+				esteo.&propertyname(1) = m.nuevovalor
+				elemproc = 'esteo.'+m.propertyname+'(1)'
+				arrayindicator = '[]'
+
+			Else
+
+				AddProperty(m.esteo,m.propertyname,m.nuevovalor)
+				elemproc = 'esteo.'+m.propertyname
+				arrayindicator = ''
+
+			Endif
+
+		Else
+
+			If Type('esteo.'+m.propertyname) = 'U'
+				propertyname = '_'+m.propertyname
+			Endif
+
+			nvoelem = Alen(esteo.&propertyname)+1
+			nelemx  = Alen(esteo.&propertyname)
+
+			Dimension esteo.&propertyname( m.nvoelem )
+			esteo.&propertyname( nvoelem ) = m.nuevovalor
+			elemproc = 'esteo.'+m.propertyname+'('+Transform(m.nvoelem)+')'
+
+		Endif
+
+		If Vartype(m._xpaths) = 'C'
+
+			currentxpath = m._parentnode+'/'+.nodename+m.arrayindicator
+
+			If Not m.currentxpath $ m._xpaths
+				_xpaths = m._xpaths+ m.currentxpath+crlf
+			Endif
+
+		Endif
+
+
+		If m.tieneatributos
+
+			If m.estextnode
+				AddProperty(&elemproc,nodetexttag,.firstchild.nodevalue)
+
+				If Vartype(m._xpaths) = 'C'
+					currentxpath = m._parentnode
+					If Not m.currentxpath $ m._xpaths
+						_xpaths = m._xpaths+m.currentxpath+crlf
+					Endif
+				Endif
+
+
+			Endif
+
+			AddProperty(&elemproc,attributetag,Createobject('empty'))
+
+			oa = m.elemproc+'.'+attributetag
+
+			For Each atributo In .Attributes
+
+				nombreatr = conv2asc(atributo.Name)
+
+				Try
+					AddProperty(&oa,m.nombreatr,atributo.Value)
+				Catch
+					m.nombreatr = '_'+m.nombreatr
+					AddProperty(&oa,m.nombreatr,atributo.Value)
+				Endtry
+
+				If Vartype(m._xpaths) = 'C'
+					currentxpath = m._parentnode+'/'+.nodename+m.arrayindicator+'/@'+m.atributo.Name
+					If Not m.currentxpath $ m._xpaths
+						_xpaths = m._xpaths+m.currentxpath+crlf
+					Endif
+				Endif
+
+			Endfor
+
+		Endif
+
+		If !m.estextnode And .childnodes.Length > 0
+			=recnodo( .childnodes(), &elemproc , _parentnode+'/'+.nodename+m.arrayindicator, _arrayslist , @_xpaths )
+		Endif
+
+	Endwith
+
+
+Endfor
+
+
+*------------------------------
+Function conv2asc( ctag )
+*------------------------------
+
+Local N
+
+ctag = Strtran(m.ctag,'_','__')
+
+For N = 2 To escapecount*2 Step 2
+	m.ctag = Strtran(m.ctag,Getwordnum(escapelist,m.n-1,','), Getwordnum(escapelist,m.n,',') )
+Endfor
+
+Return m.ctag
+
+
+
+*************************************************************************
+* XMLPARSER.PRG
+* Parser XML para VFP (6.0 o superior)
+*
+* Autor: Victor Espina
+* Version: 1.3
+* Fecha: Jul 2023
+*
+* USO:
+* DO xmlparser
+*
+* archivo.xml
+* <documento>
+*    <cliente codigo="001"  nombre="VICTOR ESPINA" />
+*    <facturas>
+*       <factura>
+*          <numero>02002</numero>
+*          <fecha>01/01/2019</fecha>
+*          <monto>23.25</monto>
+*       </factura>
+*       <factura>
+*          <numero>02003</numero>
+*          <fecha>01/02/2019</fecha>
+*          <monto>50.00</monto>
+*       </factura>
+*    </facturas>
+* </documento>
+*
+* oXML = XMLParser.Parse("archivo.xml")
+* IF ISNULL(oXML)
+*   MESSAGEBOX(oXMLParser.lastError)
+*   RETURN
+* ENDIF
+*
+* ?oXML.cliente.codigo --> "001"
+* ?oXML.facturas.count --> 2
+* oFactura = oXML.Facturas.Items[1]
+* ?oFactura.numero  -->  "02002"
+*
+*
+* CHANGE HISTORY
+* Jul 8, 2023  VES     Se integro VFPLEGACY.PRG dentro del PRG principal
+* Dic 7, 2022  VES     Correccion para caso de nodos con prefijo
+* Ago 9, 2022  VES     Mejoras varias
+* Jun 2, 2019  VES     Version inicial
+*
+
+* Load XMLParser
+SET PROC TO xmlParser ADDITIVE
+
+PUBLIC xmlParser
+xmlParser = CREATE("xmlParser")
+
+
+RETURN 
+PROCEDURE xmlParser
+DEFINE CLASS xmlParser AS Custom
+
+     ******************************************
+     **          P R O P I E D A D E S       **
+     ******************************************
+     lastError = ""
+   
+   
+   
+     ******************************************
+     **             M E T O D O S            **
+     ******************************************
+   
+     PROCEDURE Parse(pcXMLFile)
+       LOCAL oXML,oData
+       oXML = CREATEOBJECT('MSXML2.DOMdocument')
+       oData = NULL
+       pcXMLFile = FULLPATH(pcXMLFile)
+       IF !FILE(pcXMLFile)
+         THIS.lastError = "File [" + LOWER(pcXMLFile) + "] does not exists"
+         RETURN NULL
+       ENDIF
+       oXML.Load( FULLPATH(pcXMLFile) )
+       IF oXML.parseError.errorCode <> 0
+         THIS.lastError = "Bad formed: " + oXML.parseError.reason
+         RETURN NULL
+       ENDIF
+   
+       LOCAL oRootNode,cRootTagName,oMainNode
+       oRootNode = oXML.documentElement
+       cRootTagName = oRootNode.tagName
+       oMainNode = oXML.selectSingleNode("//"+cRootTagName)
+  
+       oData = THIS._parseNode(oMainNode)
+   
+       RETURN oData
+     ENDPROC
+
+
+     PROCEDURE parseString(pcString)
+     	LOCAL cTempFile,oResult
+     	cTempFile = ADDBS(GETENV("TEMP")) + "$" + SYS(2015) + ".XML"  
+     	STRTOFILE(pcString, cTempFile)
+     	oResult = THIS.Parse(cTempFile)
+     	ERASE (cTempFile)
+     	RETURN oResult
+     	
+   
+     HIDDEN PROCEDURE _parseNode(poNode)
+        LOCAL oData,cNodeName,i,oNode,oAttr,lHasChildren,cAttrName,cNodeName
+        cNodeName = LOWER(poNode.nodeName)
+        lHasChildren = (TYPE("poNode.childNodes.Length") = "N" AND poNode.childNodes.Length > 0)
+
+   
+        * Determinamos si es una coleccion. Es importante hacerlo aqui porque
+        * si es una coleccion no se leeran los atributos que pueda tener definidos
+        LOCAL lIsCollection,oCollection
+        lIsCollection = .F.
+   
+        IF lHasChildren
+          * Asumimos que es una coleccion a menos que los hijos tengan distinto nombre
+          * o el nombre del unico hijo no sea el plural del padre
+          lIsCollection = .T.
+          LOCAL cChildrenName
+          cChildrenName = ""    
+          FOR i = 1 TO poNode.childNodes.Length
+            oNode = poNode.childNodes.Item(i - 1)
+            IF oNode.nodeType = 8  && Comentario
+              LOOP
+            ENDIF
+            IF EMPTY(cChildrenName)
+            	cChildrenName = LOWER(oNode.nodeName)
+            ELSE
+            	IF NOT LOWER(oNode.nodeName) == cChildrenName
+            		cChildrenName = ""
+            		EXIT
+            	ENDIF
+            ENDIF
+          ENDFOR
+          IF EMPTY(cChildrenName) OR (poNode.childNodes.Length == 1 AND !(cChildrenName + "s" == cNodeName))
+              lIsCollection = .F.
+          ENDIF          
+        ENDIF
+        oData = IIF(lISCollection, CREATEOBJECT("Collection"), THIS._createEmpty())
+        IF lIsCollection
+          oCollection = oData
+        ENDIF
+   
+   
+        * Si no es una coleccion, leemos los atributos que se puedan haber definido
+        IF !lISCollection AND TYPE("poNode.Attributes.Length")="N"
+          FOR i = 1 TO poNode.Attributes.Length
+           oAttr = poNode.Attributes.Item(i - 1)
+           cAttrName = LOWER(CHRT(oAttr.nodeName,":","_"))           
+           IF !INLIST(cAttrNAme, "#text")
+             THIS._ADDPROPERTY(@oData, cAttrName, oAttr.nodeValue)
+           ENDIF
+          ENDFOR
+        ENDIF
+   
+ 		IF cNodeName == "div"
+ 			*SET STEP ON 
+ 		ENDIF
+ 		  
+        * Si el nodo tiene hijos, se procesan
+        LOCAL lHasAttr
+        IF lHasChildren
+          FOR i = 1 TO poNode.ChildNodes.Length
+            oNode = poNode.childNodes.Item(i - 1)
+            IF oNode.nodeType = 8  && Comentario
+              LOOP
+            ENDIF
+            oValue = NULL
+            cNodeName = LOWER(oNode.nodeName)
+            lHasAttr = (!ISNULL(oNode.Attributes) AND oNode.Attributes.Length > 0)
+            DO CASE
+               CASE oNode.childNodes.Length = 1 AND oNode.childNodes.Item[0].nodeType = 3 AND !lHasAttr
+                    oValue = oNode.childNodes.Item[0].text     
+                    cNodeName = "text"               
+
+               CASE oNode.childNodes.Length = 1 AND oNode.childNodes.Item[0].nodeType = 4 AND !lHasAttr
+                    oValue = oNode.childNodes.Item[0].text     
+                    cNodeName = "cdata" 
+                                   
+               CASE oNode.childNodes.Length = 0 AND !lHasAttr
+                    oValue = oNode.Text
+                    cNodeName = "text"
+   
+   	           CASE !lIsCollection AND TYPE("oDate." + oNode.nodeName)<>"U"
+   	                lIsCollection = .T.
+         			oCollection = CREATEOBJECT("Collection")
+         			oCollection.Add(GETPEM(oData, oNode.nodename))
+         			STORE oCollection TO ("oData." + oNode.nodeName)
+         			   	                
+               OTHERWISE
+                    oValue = THIS._parseNode(oNode)
+            ENDCASE
+            IF lIsCollection
+              oCollection.Add(oValue)
+            ELSE
+              THIS._ADDPROPERTY(@oData, cNodeName, oValue)
+            ENDIF
+          ENDFOR
+        ENDIF
+   
+        RETURN oData
+     ENDPROC
+   
+   
+     HIDDEN PROCEDURE _createEmpty(pcColList)
+       #IF VERSION(5) >= 900
+       	   LOCAL oTarget,i,cProp
+       	   pcColList = EVL(pcColList,"")
+       	   oTarget = CREATEOBJECT("Empty")
+       	   FOR i = 1 TO GETWORDCOUNT(pcColList,",")
+       	   	   cProp = GETWORDNUM(pcColList,i,",")
+       	   	   ADDPROPERTY(oTarget,cProp,.F.)
+       	   ENDFOR
+       	   RETURN oTarget
+	   #ELSE
+	       LOCAL nWkArea,oEmpty,cSQL
+	       nWkArea = SELECT()
+	       IF EMPTY(pcColList)
+	         pcColList = "name"
+	       ENDIF
+	       cSQL = "CREATE CURSOR QEMPTY (" + STRT(LOWER(pcColList),[,],[ L,]) + " L)"
+	       SELECT 0
+	       &cSQL
+	       APPEND BLANK
+	       SCATTER NAME oEmpty
+	       USE
+	       SELECT (nWkArea)
+	   #ENDIF
+       RETURN oEmpty
+     ENDPROC
+   
+   
+     HIDDEN PROCEDURE _addProperty(poTarget, pcProperty, puValue)
+       LOCAL cType
+       pcProperty = CHRTRAN(CHRT(pcProperty,":-","__"), "#", "")
+       cType = TYPE("poTarget." + pcProperty)
+       IF cType<>"U"
+          IF cType = "C"
+          	poTarget.Text = poTarget.Text + puValue
+          ELSE
+       	  	STORE puValue TO ("poTarget." + pcProperty)
+       	  ENDIF
+       	  RETURN poTarget
+       ENDIF
+       #IF VERSION(5) >= 800
+       	   ADDPROPERTY(poTarget, pcPRoperty, puValue)
+       #ELSE
+	       LOCAL nWkArea
+	       nWkArea = SELECT()
+	       LOCAL ARRAY aProps[1]
+	       LOCAL nPropCount,cProp,i,cPropList
+	       cPropList = ""
+	       nPropCount = AMEMBERS(aProps, poTarget)
+	       FOR i = 1 TO nPropCount
+	        cProp = LOWER(aProps[i])
+	        cProp = CHRT(cProp,":","_")
+	        IF !INLIST(cProp, "#text") 
+	          cPropList = cPropList + IIF(i=1,"",",") + cProp
+	        ENDIF
+	       ENDFOR
+	       cPropList = cPropList + "," + LOWER(pcProperty)
+	       LOCAL oClone
+	       oClone = THIS._createEmpty(cPropList)
+	       FOR i = 1 TO nPropCount
+	         cProp = aProps[i]
+	         cProp = CHRT(cProp,":","_")
+	         STORE GETPEM(poTarget, cProp) TO ("oClone." + cProp)
+	       ENDFOR
+	       STORE puValue TO ("oClone." + pcProperty)
+	       poTarget = oClone
+	       SELECT (nWkArea)
+	   #ENDIF
+       RETURN poTarget
+     ENDPROC
+ENDDEFINE         
+puedes sustituir el uso la funcion XMLtocursor de tu respuesta anterior por la rutina xmlparser detallada lineas arriba y refactorizar el codigo de tu respuesta anterior para obtener un cursor dbf mas preciso en base al archivo xml "FACTURAE001-90420563045923.XML:

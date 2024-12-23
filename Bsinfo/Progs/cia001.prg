@@ -4497,7 +4497,48 @@ CREATE TABLE 'VTARFACT.DBF' NAME 'VTARFACT' (SUBALM C(3) NOT NULL, ;
 
 ***** Change properties for VTARFACT *****
 ENDFUNC
-
+FUNCTION MakeTable_VTARCUOT
+	CREATE TABLE 'VTARCUOT.DBF' NAME 'VTARCUOT' ( ;
+		NRODOC               C(8) NOT NULL, ;
+		NROCTA               C(2) NOT NULL, ;
+		IMPORT               N(12, 2) NOT NULL, ;
+		FCHFAC               D NOT NULL, ;
+		FCHCOB               D NOT NULL, ;
+		FLGEST               C(1) NOT NULL, ;
+		FLGFAC               C(1) NOT NULL, ;
+		FCHENT               D NOT NULL, ;
+		D1                   N(5, 2) NOT NULL, ;
+		D2                   N(5, 2) NOT NULL, ;
+		D3                   N(5, 2) NOT NULL, ;
+		NRO_REG              N(11, 0) NOT NULL, ;
+		NRO_ITM              N(5, 0) NOT NULL, ;
+		CODDOC               C(4) NOT NULL, ;
+		TPODOC               C(5) NOT NULL, ;
+		TPOREF               C(5) NOT NULL, ;
+		CODREF               C(4) NOT NULL, ;
+		NROREF               C(15) NOT NULL, ;
+		SELEC                L NOT NULL, ;
+		USERCREA             C(10) NOT NULL, ;
+		FCHCREA              D NOT NULL, ;
+		USERMODI             C(10) NOT NULL, ;
+		FCHMODI              D NOT NULL, ;
+		USERELIM             C(10) NOT NULL, ;
+		FCHELIM              D NOT NULL ;
+	)
+	***** Create each index for VTARCUOT *****
+	SET COLLATE TO 'MACHINE'
+	INDEX ON NRODOC+NROCTA+DTOC(FCHENT,1) TAG RCUO02
+	INDEX ON FLGEST+NRODOC+NROCTA TAG RCUO03
+	INDEX ON NRODOC+NROCTA TAG RCUO01
+	INDEX ON DTOS(FCHFAC)+NRODOC TAG FCHFAC
+	INDEX ON DTOS(FCHCOB)+NRODOC TAG FCHCOB
+	INDEX ON TPOREF+CODREF+NROREF TAG FACT
+	
+	** VETT: Cerramos la tabla IDUPD:1566449562-04/09/2024 09:22 PM 
+	USE IN VTARCUOT
+	** VETT: [FIN] IDUPD:1566449562-04/09/2024 09:22 PM 
+	
+ENDFUNC
 FUNCTION MakeTable_VTARITEM
 ***** Table setup for VTARITEM *****
 CREATE TABLE 'VTARITEM.DBF' NAME 'VTARITEM' (TPODOC C(5) NOT NULL, ;

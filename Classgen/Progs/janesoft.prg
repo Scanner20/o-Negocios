@@ -11519,7 +11519,7 @@ define class table_parser as custom
     NumberOfRecords=0
     MemoCount=0
     FieldsCount=0
-
+	FieldsExcept=""	
     declare arrstru(1)
     declare arrdata(1)
     declare arrmemo(1)
@@ -11539,7 +11539,7 @@ define class table_parser as custom
         acopy(lcArrStru,this.arrstru)
 
         this.MemoCount = this.count_memo_fields()
-
+		LsExcept = IIF(EMPTY(THIS.FieldsExcept),"","FIELDS EXCEPT "+THIS.FieldsExcept)
         if eof()
             this.NumberOfRecords=0
             return
@@ -11571,7 +11571,12 @@ define class table_parser as custom
         ENDIF
         scan  for &cForCondition while &cWhileCondition
             scatter memvar memo
-            insert into tmpCursor from memvar
+*!*	            insert into tmpCursor from memvar 
+            ** VETT: Usaremos GATHER para poder excluir los campos tipo Int autoincrement IDUPD:1006150247-13/03/2024 03:50 PM 
+            SELECT tmpCursor
+            APPEND BLANK
+            GATHER MEMVAR &LsExcept
+            SELECT (cAlias)
         endscan
 
         select tmpCursor
@@ -11616,9 +11621,16 @@ define class table_parser as custom
         for i=1 to alen(this.arrstru,1)
             if this.arrstru(i,2) = 'M'
                 j=j+1
-            endif
-        next
-        return j
+            ENDIF
+            ** VETT: Capturamos los campos que son tipo Int autoincrement IDUPD:1006150247-13/03/2024 03:50 PM 
+            if this.arrstru(i,2) = 'I' AND this.arrstru(i,18)>0
+                This.FieldsExcept = This.FieldsExcept + this.arrstru(i,1) + ","
+            ENDIF
+            
+        NEXT
+        pos_coma=RAT(",",ALLTRIM(this.FieldsExcept))
+        This.FieldsExcept=SUBSTR( This.FieldsExcept,1,pos_coma-1)
+    return j
 
 
 

@@ -1,0 +1,16 @@
+ISSUES XML - FACTURA 
+Recientemente, he experimentado un problema al procesar facturas electrónicas . Con el error "0306 - No se puede leer (parsear) el archivo XML", acompañado del detalle "unrecognized element {} Invoice".
+Encontre una solución para resolver este inconveniente. Parece que la SUNAT ahora requiere un tag adicional en el archivos XML, que antes no era necesario. Agregue ese tag y la factura fue aprobado.
+Simplemente agregue el siguiente tag en mi archivo XML:
+xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2 2.1\maindoc\UBL-Invoice-2.1.xsd"
+
+Cesar Vilca
+Admin
+Top contributor
+Creo que varios de ustedes incorporaron un prefijo en el tag Invoice: <prefijo:Invoice> no sé de dónde sacaron el ejemplo pero no debería ir, lo mismo para otros XMLs.
+
+
+GUIA REMISION:
+OCTUBRE 2023
+Guias Electronicas Sunat WEB MVC C# Visual Studio 
+https://youtu.be/auL8jIeozHQ?si=s6ge-_mAy-j75AOg

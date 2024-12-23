@@ -1,0 +1,862 @@
+*!*	Clase: DoSvr
+*!*	Objeto: Contabilidad
+*!*	Metodo: Actualiza_Contabilidad
+
+PARAMETERS _que_transaccion,cParm1,oData1,oData2,oData3
+**PROCEDURE xAct_Ctb
+** Por ahora este componente es STATEFULL 
+** Requerira analisis adicional para hacerlo STATELESS - VETT 05-09-2003 02:24pm
+_Que_Transaccion=UPPER(_Que_Transaccion)
+nErrCode = S_OK
+PRIVATE _MES,_ANO,DirCtb,UltTecla
+PRIVATE XiNroItm,XcEliItm,XsCodCta,XsCodRef,XsClfAux,XsCodAux,XcTpoMov
+PRIVATE XsNroRuc,XfImpNac,XfImpUsa,XsGloDoc,XsCodDoc,XsNroDoc,XsNroRef,XsTipRef,XsNroDtr
+PRIVATE XfImport,XdFchDoc,XdFchVto,XdFchRef,XdFchDtr
+PRIVATE XsNroMes,XdFchAst,XsNroVou,XiCodMon,XfTpoCmb,XsNotAst,XsCodOpe,XsNroAst,TsCodDiv1,XsCjaDiv
+PRIVATE XiNroItm,XsCodDiv,XsCtaPre,XcAfecto,XsCodCco,GlInterface,XsCodDoc,XsNroDoc 
+PRIVATE XsNroRef,XsCodFin,XdFchdoc,XdFchVto,XsIniAux,XdFchPed,NumCta,XsNivAdi
+PRIVATE XcTipoC,XsTipDoc,XsAn1Cta,XsCc1Cta,XsChkCta, nImpUsa, nImpNac,vCodCta
+PRIVATE XsAuxil
+PRIVATE RegVal ,NCLAVE,VCLAVE
+RegVal   = "&NClave = VClave"	
+UltTecla = 0
+GlInterface = .f.
+TsCodDiv1= '01'
+
+XsCodDiv = TsCodDiv1
+XsCjaDiv = TsCodDiv1
+** Valores variables inicializados como STRING
+dimension vcodcta(10)
+STORE {} TO XdFchDoc,XdFchVto,XdFchPed,XdFchRef,XdFchDtr
+STORE '' TO XsNroVou,XsNotAst,XsCodOpe,XsNroMes,XsNroAst,XsAuxil
+STORE '' TO XsCodCco ,XsCodDoc,XsNroDoc,XsNroRef,XsCtaPre,XsIniAux,XsNivAdi,XcTipoC,XsCodFin,XsTipRef,XsNroDtr
+STORE '' TO XsChkCta,XsTipDoc,XsCC1Cta,XsAn1Cta,vCodCta,XcAfecto,XsCodCco,XsCtaPre
+** Valores variables inicializados como NUMERO
+STORE 0 TO nImpNac,nImpUsa,NumCta,XiCodMon,XfTpoCmb
+
+DO CASE 
+	CASE _Que_transaccion='VENTAS'
+		** Posicionar Mes y Año
+		_MES = MONTH(oData1.FchDoc)
+		_ANO = YEAR(oData1.FchDoc)
+		* Abrimos Base de Datos *
+        	this.oDatAdm.oentorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+		this.oEntorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+		IF _MES<=5 AND INLIST(UPPER(GsNomCia),'CEVA','ARAUCARIA') AND _ANO=2003
+			RETURN  
+		ENDIF
+		*DirCtb = PathDef+"\cia"+GsCodCia+"\C"+STR(_ANO,4)+"\"
+
+		IF !this.oDatAdm.Open_File('CTB',STR(_ANO,4,0))   
+		   RETURN SIN_ACCESO_TABLA
+		ENDIF
+		XsNroMes = oData1.NroMes
+		XsCodOpe = oData1.CodOpe
+		XsNroAst = oData1.NroAst
+		NClave   = [NroMes+CodOpe+NroAst]
+		VClave   = XsNroMes+XsCodOpe+XsNroAst
+
+		IF EMPTY(oData1.CodOpe) AND EMPTY(oData1.NroAst) AND EMPTY(oData1.NroMes)
+			THIS.Crear = .T.
+		ELSE
+			IF !EMPTY(oData1.CodOpe) AND !EMPTY(oData1.NroAst) AND !EMPTY(oData1.NroMes)
+				THIS.Crear = .F.
+			ELSE
+				THIS.Crear = .T.
+			ENDIF		
+		ENDIF
+		IF oData1.FlgEst='A'
+			_Que_transaccion = 'VENTAS_ANULAR'
+			XsNotAst = [ANULADA:]+[PROV. ]+oData1.CodDoc+[. ]+oData1.NomCli
+			XsNroVou = oData1.NroDoc
+		ENDIF
+		IF _Que_transaccion = 'VENTAS_ANULAR'
+			this.MovBorra(XsNroMes,XsCodOpe,XsNroAst)
+			this.oDatAdm.Close_File('CTB')
+			RETURN
+		ENDIF
+		* Grabamos Cabecera *
+		** Valores Fijos
+		IF oData1.CodDoc='PROF'
+			TsCodDiv1	= '02'
+			XsCodDiv	= TsCodDiv1
+			XsCjaDiv	= TsCodDiv1	
+		ENDIF
+		XcAfecto = 'A'
+		
+		**
+		XsNroMes = IIF(THIS.Crear,TRANS(_MES,"@L ##"),XsNroMes)
+		XdFchAst = oData1.FchDoc
+		XsNroVou = []
+		XiCodMon = oData1.CodMon
+		XfTpoCmb = oData1.TpoCmb
+		XsNotAst = [PROV. ]+oData1.CodDoc+[. ]+oData1.NomCli
+		
+	       	=seek(oData1.coddoc,"TDOC")
+		XsCodOpe = IIF(THIS.Crear,TDOC.CodOpe,XsCodOpe)
+		IF this.MOVGRABA(XsNroMes,XsCodOpe,@XsNroAst) = 0
+			oData1.NroMes	=	XsNroMes
+			oData1.CodOpe	=	XsCodOpe
+			oData1.NroAst	=	XsNroAst
+			oData1.FlgCtb	=	.T.
+			NClave   = [NroMes+CodOpe+NroAst]
+			VClave   = XsNroMes+XsCodOpe+XsNroAst
+		ELSE
+			this.oDatAdm.Close_File('CTB')
+			RETURN AST_CABECERA_NO_GRABO	
+		ENDIF
+		* Borramos ajustes por redondeo * - * Solo afectamos el detalle
+		this.MovBorra(XsNroMes,XsCodOpe,XsNroAst,.T.,'EliItm=[:]')
+
+		* Grabamos Detalle *
+			* Cuenta de Factura
+			=SEEK(oData1.CodDoc,"TDOC")
+			XiNroItm = 1
+			XcEliItm = [ ]
+			XsCodCta = PADR(IIF(oData1.CodMon=1,TDOC.CTA12_MN,TDOC.CTA12_ME),LEN(CTAS.CodCta))
+			XsCodRef = oData1.CodDoc
+			=SEEK(XsCodCta,"CTAS")
+			IF CTAS->PIDAUX="S"
+			   XsClfAux = CTAS.ClfAux
+			   XsCodAux = oData1.CodCli
+			   XsNroRuc = oData1.RucCli
+			ELSE
+			   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+			   XsCodAux = SPACE(LEN(RMOV.CodAux))
+			   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+			ENDIF
+			XcTpoMov = [D]
+			XfImport =     IIF(oData1.CodDoc='PROF',oData1.ImpTot,oData1.ImpTot)    &&oData1.ImpBto - oData1.ImpDto
+			IF XiCodMon = 1
+			   XfImpNac = XfImport
+			   XfImpUsa = XfImport/XfTpoCmb
+			ELSE
+			   XfImpUsa = XfImport
+			   XfImpNac = XfImport*XfTpoCmb
+			ENDIF
+			XsGloDoc = oData1.NomCli
+
+			IF ctas.PidDoc='S'
+				XsTipDoc = TDOC.TpoDocSN
+				XsCodDoc = TDOC.TpoDocSN  && IIF(SEEK(cParm1,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
+				XsNroDoc = oData1.NroDoc
+*!*					XsNroRef = oData1.NroRef
+				XdFchDoc = oData1.FchDoc
+				XdFchVto = oData1.FchVto
+			ELSE
+				XsCodDoc = []
+				XsNroDoc = []
+*!*					XsNroRef = []
+				XdFchDoc = {}
+				XdFchVto = {}
+			ENDIF
+			IF Ctas.PidGlo = "S"
+				*!*	MAAV: Pone el tipo de documento de referencia cuando sea una guia.
+				XsTipRef = IIF(SEEK(oData1.CodRef,'TDOC'),TDOC.TpoDocSN,'')
+				XsNroRef = GDOC.NroRef
+				=SEEK(oData1.CodDoc,"TDOC")
+*!*					** VETT  15/03/2018 05:06 PM : Obtenemos fecha de documento de referencia 
+*!*					LiRecActGDOC = RECNO('GDOC')
+*!*					LsLLaveRef1=GDOC.TpoRef+GDOC.CodRef+GDOC.NroRef
+*!*				    IF SEEK(LsLLaveRef1,'GDOC')
+*!*				    	XdFchRef = GDOC.FchDOc
+*!*				    ENDIF
+*!*				    GO LiRecActGDOC  IN GDOC
+			ELSE
+				XsTipRef = ""
+				XsNroRef = ""
+			ENDIF
+			this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
+			**=Movbveri(XsNroMes+XsCodOpe+XsNroAst+STR(C_RMOV.NroItm,5),0,'','')
+			* CUENTA DE IMPUESTOS
+			XcEliItm = [ ]
+			XsCodCta = PADR(TDOC.CTA40,LEN(CTAS.CodCta))      && Del plan de cuentas
+			XsCodRef = []
+			IF !EMPTY(XsCodCta)
+				=SEEK(XsCodCta,"CTAS")
+				IF CTAS->PIDAUX="S"
+				   XsClfAux = CTAS.ClfAux
+				   XsCodAux = oData1.CodCli
+				   XsNroRuc = oData1.RucCli
+				ELSE
+				   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+				   XsCodAux = SPACE(LEN(RMOV.CodAux))
+				   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+				ENDIF
+				XcTpoMov = [H]
+				XfImport = oData1.ImpIgv
+				IF XiCodMon = 1
+				   XfImpNac = XfImport
+				   XfImpUsa = XfImport/XfTpoCmb
+				ELSE
+				   XfImpUsa = XfImport
+				   XfImpNac = XfImport*XfTpoCmb
+				ENDIF
+				XsGloDoc = []
+				IF CTAS.PidDoc='S'
+					XsCodDoc = IIF(SEEK(GsCodSed+XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
+					XsNroDoc = oData1.NroDoc
+					XsNroRef = oData1.NroRef
+					XdFchDoc = oData1.FchDoc
+					XdFchVto = oData1.FchVto
+				ELSE
+					XsCodDoc = []
+					XsNroDoc = []
+					XsNroRef = []
+					XdFchDoc = {}
+					XdFchVto = {}
+				ENDIF	
+				IF Ctas.PidGlo = "S"
+					*!*	MAAV: Pone el tipo de documento de referencia cuando sea una guia.
+					XsTipRef = IIF(SEEK(oData1.CodRef,'TDOC'),TDOC.TpoDocSN,'')
+					XsNroRef = GDOC.NroRef
+					=SEEK(oData1.CodDoc,"TDOC")
+	*!*					** VETT  15/03/2018 05:06 PM : Obtenemos fecha de documento de referencia 
+	*!*					LiRecActGDOC = RECNO('GDOC')
+	*!*					LsLLaveRef1=GDOC.TpoRef+GDOC.CodRef+GDOC.NroRef
+	*!*				    IF SEEK(LsLLaveRef1,'GDOC')
+	*!*				    	XdFchRef = GDOC.FchDOc
+	*!*				    ENDIF
+	*!*				    GO LiRecActGDOC  IN GDOC
+				ELSE
+					XsTipRef = ""
+					XsNroRef = ""
+				ENDIF
+				XiNroItm = XiNroItm + 1
+				this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','') 
+			ENDIF
+			* Cuenta 7
+			**>> =SEEK(GDOC->CodDoc+GDOC->NroDoc,"DETA")
+			**>> =SEEK(LEFT(DETA->CodMat,LEN(FAMI->CodFam)),"FAMI")
+	
+			THIS.oDatAdm.Obj2Cur(oData2,'cDetaVenta')
+			
+			** VETT 14/11/2003: Proceso de conversión de sistema procedimental a POO ... Una paja
+			** Ojo : GsClfDiv , GnLenDiv  son variables publicas que se definen en Janesoft:Define_Division_Familia 
+			** Algun dia lo cambiare a un objeto ... pero si al final va  a ser un objeto publico, entonces como debe ser?
+			** 
+
+			XsCodCta	= PADR(TDOC.Cta70,LEN(CTAS.CodCta))   && XsCodCta  
+			=SEEK(XsCodCta,"CTAS")
+			XsCodDoc	= IIF(SEEK(XsCodDoc,'DOCM'),DOCM.TpoDocSN,'')
+			XsNroDoc	= oData1.NroDoc
+			XsCodRef	= oData1.CodDoc
+			XsNroRef	= oData1.NroRef
+			XdFchDoc	= oData1.FchDoc
+			XdFchVto	= oData1.FchVto
+			XcEliItm	=		[ ]
+			XcTpoMov	=		[H]
+			XfImport	=	IIF(oData1.CodDoc='PROF',oData1.ImpTot,oData1.ImpBto - oData1.ImpDto)   &&-GDOC->ImpInt-GDOC->ImpAdm
+			XsGloDoc	=	[]
+	
+			XsCodAux 	=	oData1.CodCli
+			XsClfAux	=	CTAS.ClfAux
+			XsNroRuc	=	oData1.RucCli
+				
+			*** Verificamos si tomamos la cuenta directo de la configuracion por tipo de documento o segun Division Familia
+			
+*!*				WAIT WINDOW SET("Udfparms") 
+			LnClfFam	= ALEN(GaClfDiv) - 1
+			IF LnClfFam=0
+				*WAIT WINDOW 'No esta definida la configuración de familias y codigo de material' 
+				RETURN NO_DEFINIDA_CONFIG_FAM_MAT
+			ENDIF
+			LsClfDiv	= GaClfDiv(LnClfFam)
+			IF "XXX"$XsCodCta && this.aLinDetCbd[1]  && Evaluamos el valor de la cuenta , si bien viene de la configuracion se puede mejorar este tipo de  control
+				IF !USED('DIVF')
+					lreturnok=This.oDatAdm.abrirtabla('ABRIR','ALMTDIVF','DIVF','DIVF01','')
+				ENDIF
+				SELECT cDetaVenta
+				SELECT CodMat , SUM(ImpLin) as ImpLin FROM cDetaVenta  GROUP BY codmat INTO CURSOR cDetaVenta2
+				INDEX on codmat TAG codmat
+				SELECT cDetaVenta2
+				SCAN 
+					DIMENSION aDetTemp[20,1] 
+					
+					=SEEK(LsClfDiv+LEFT(CodMat,GnLenDiv),"DIVF")
+					XsCodCta	= 	DIVF.Ctac70
+					XfImport	=	IIF(oData1.CodDoc='BOLE',IIF(GoCfgVta.XfPorIgv>0,ROUND(ImpLin/(1+GoCfgVta.XfPorIgv/100),2),0 ),ImpLin)
+					IF !SEEK(XsCodCta,"CTAS")
+						WAIT WINDOW 'Cuenta contable no existe' 
+						RETURN NO_EXISTE_CUENTA_CONTABLE	
+						LOOP
+					ELSE	
+						IF CTAS.PIDAUX<>"S"
+						   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+						   XsCodAux = SPACE(LEN(RMOV.CodAux))
+						   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+						ENDIF
+						IF XiCodMon = 1
+						   XfImpNac = XfImport
+						   XfImpUsa = XfImport/XfTpoCmb
+						ELSE
+						   XfImpUsa = XfImport
+						   XfImpNac = XfImport*XfTpoCmb
+						ENDIF
+						*		XsCodDoc = GDOC->CodDoc
+						IF CTAS.PidDoc<>'S'
+							XsCodDoc = []
+							XsNroDoc = []
+							XsNroRef = []
+							XdFchDoc = {}
+							XdFchVto = {}
+						ENDIF	
+						IF Ctas.PidGlo = "S"
+							*!*	MAAV: Pone el tipo de documento de referencia cuando sea una guia.
+							XsTipRef = IIF(SEEK(oData1.CodRef,'TDOC'),TDOC.TpoDocSN,'')
+							XsNroRef = GDOC.NroRef
+							=SEEK(oData1.CodDoc,"TDOC")
+			*!*					** VETT  15/03/2018 05:06 PM : Obtenemos fecha de documento de referencia 
+			*!*					LiRecActGDOC = RECNO('GDOC')
+			*!*					LsLLaveRef1=GDOC.TpoRef+GDOC.CodRef+GDOC.NroRef
+			*!*				    IF SEEK(LsLLaveRef1,'GDOC')
+			*!*				    	XdFchRef = GDOC.FchDOc
+			*!*				    ENDIF
+			*!*				    GO LiRecActGDOC  IN GDOC
+						ELSE
+							XsTipRef = ""
+							XsNroRef = ""
+						ENDIF
+						XiNroItm = XiNroItm + 1
+						this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
+					ENDIF
+					SELECT cDetaVenta2
+				ENDSCAN
+			ELSE
+*!*					DIMENSION aDetTemp[20,1] 
+*!*					ACOPY(this.aLinDetCbd,aDetTemp) 
+*!*					this.Actualiza_Contabilidad_Det(@aDetTemp) 	&& this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')	
+				IF !SEEK(XsCodCta,"CTAS")
+					** WAIT WINDOW 'Cuenta contable no existe' 
+					RETURN NO_EXISTE_CUENTA_CONTABLE	
+				ELSE	
+					IF CTAS.PIDAUX<>"S"
+					   XsClfAux = SPACE(LEN(RMOV.ClfAux))
+					   XsCodAux = SPACE(LEN(RMOV.CodAux))
+					   XsNroRuc = SPACE(LEN(RMOV.NroRuc))
+					ENDIF
+					IF XiCodMon = 1
+					   XfImpNac = XfImport
+					   XfImpUsa = XfImport/XfTpoCmb
+					ELSE
+					   XfImpUsa = XfImport
+					   XfImpNac = XfImport*XfTpoCmb
+					ENDIF
+					*		XsCodDoc = GDOC->CodDoc
+					IF CTAS.PidDoc<>'S'
+						XsCodDoc = []
+						XsNroDoc = []
+						XsNroRef = []
+						XdFchDoc = {}
+						XdFchVto = {}
+					ENDIF	
+					XiNroItm = XiNroItm + 1
+					this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
+				ENDIF	
+			ENDIF
+			* * * *
+		SELE VMOV
+	   	THIS.oDatAdm.Close_File('CTB')
+
+		RETURN nErrCode
+	CASE _Que_transaccion='CJA_INGRESO_LIQ_CCB'
+		** 			--Fecha-Ope-Nroast-
+		** cParm2 = YYYYMMDDOOOAAAAAAAA   && Información para generar asiento
+		** Posicionar Mes y Año		
+		_MES = MONTH(oData1.Fecha)
+		_ANO = YEAR(oData1.Fecha)
+       		this.oDatAdm.oentorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+		this.oEntorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+		IF !this.oDatAdm.Open_File('CTB')   
+		   RETURN AST_CABECERA_NO_GRABO
+		ENDIF
+*!*			XsNroMes = SUBSTR(cParm2,5,2)
+*!*			XsCodOpe = SUBSTR(cParm2,9,3)
+*!*			XsNroAst = SUBSTR(cParm2,12,8)
+		XsNroMes = TRANSFORM(MONTH(oData1.Fecha),'@L 99')
+		XsCodOpe = PADR(oData1.CodOpe,LEN(OPER.CodOpe))
+		XsNroAst = PADR(oData1.Asiento,LEN(RMOV.NroAst)) && NroAst
+		NClave   = [NroMes+CodOpe+NroAst]
+		VClave   = XsNroMes+XsCodOpe+XsNroAst
+		XdFchAst = oData1.Fecha
+		XsNotAst = "Cobranza x Liq.:"+oData1.Liqui  && alltrim(thisform.text7.value)
+		XfTpoCmb = oData1.TpoCmb
+		XiCodMon = oData1.CodMon    && 2 Asumimos 
+		**
+		IF EMPTY(XsNroAst)
+			this.Crear = .T.
+		ELSE	
+			this.Crear = .F.
+		ENDIF		
+		IF this.MOVGRABA(XsNroMes,XsCodOpe,@XsNroAst) = 0
+			oData1.NroMes  = XsNroMes 
+			oData1.CodOpe  = XsCodOpe
+			oData1.Asiento = XsNroAst
+			
+			NClave   = [NroMes+CodOpe+NroAst]
+			VClave   = XsNroMes+XsCodOpe+XsNroAst
+		ELSE
+			this.oDatAdm.Close_File('CTB')
+			RETURN AST_CABECERA_NO_GRABO	
+		ENDIF
+		*** Grabamos Detalle de documentos *** 
+		** restauramos el cursor contenido en el objeto de datos ** 
+		*** 
+		SELECT CNFG
+		SEEK '01' && Configuracion DIF. Tipo De Cambio
+		XsCdCta1 = CodCta1
+		XsCdCta2 = CodCta2
+		XsCdCta3 = CodCta3
+		XsCdCta4 = CodCta4
+		XsCdAux1 = CodAux1
+		XsCdAux2 = CodAux2
+		XsCdAux3 = CodAux3
+		XsCdAux4 = CodAux4
+		** VETT:Tope para aplicar redondeo por Dif. Cmb. 2015/03/24 14:03:19 ** 
+		XfDif_ME = Dif_ME
+		XfDif_MN = Dif_MN
+		***
+		this.odatadm.obj2cur(oData3,'cDocumentos')
+		SELECT cDocumentos
+*!*			      stor cliente to cl
+*!*				  stor codi to cc 
+*!*				  stor tdoc to td
+*!*				  stor fecha to fe
+*!*				  stor ndoc to nd
+*!*				  stor mone to mo
+*!*				  stor soles to ims
+*!*				  stor dolar to imd
+*!*				  stor tpocmb to tc1
+*!*				  stor agente1 to agi
+*!*				  stor nroch  to nch1
+*!*				  stor impsol to imps
+*!*				  stor impdol to impd
+*!*				  stor nrete to nt
+*!*				  stor frete to fr
+*!*	SET STEP ON 
+		STORE 0 TO YfImport,YfImpUsa,XiNroItm
+		SCAN FOR FlgErr=0  && Sin Errores o incosistencias en Cobranzas
+			
+			XcTpoMov = "H"
+			** VETT:Moneda de la cancelacion NO usar moneda original del documento 2015/03/24 ** 
+			XiCodMon =  oData1.CodMon  && Moneda de la cancelacion      && Mone
+			IF XiCodMon = 1
+				XfImport = impsol
+				XfImpUsa = ROUND(XfImport/XfTpoCmb,2)
+			ELSE
+				XfImpUsa = impdol
+				XfImport = ROUND(XfImpUsa*XfTpoCmb,2)
+			ENDIF
+			*xscoddiv = TsCodDiv
+			XsCodCta = PADR(Cuenta,LEN(CTAS.CodCta)) &&xCodCta(NumEle)
+			=SEEK(XsCodCta,"CTAS")
+			IF '.'$XsCodCta  && Cuentas I
+				TsCodDiv1	= '02'
+				XsCodDiv	= TsCodDiv1
+				XsCjaDiv	= TsCodDiv1	
+			ELSE	&& Cuentas F
+				TsCodDiv1	= '01'
+				XsCodDiv	= TsCodDiv1
+				XsCjaDiv	= TsCodDiv1	
+			ENDIF
+			XsNroRef = ''
+			XsClfAux = CTAS->CLFAUX
+			XsCodAux = PADR(codi,LEN(RMOV.CodAux))
+			XsCodRef = ""
+			XsGloDoc = Cliente	&& vNotAst(NumEle)
+			XsCodDoc = TDOC 	&& vTpoAst(NumEle)
+			XsNroDoc = NDOC 	&& vNroAst(NumEle)
+			=SEEK(XsCodDoc,'PROV','PROV01')
+			** VETT:Moneda de la cancelacion NO usar moneda original del documento 2015/03/24 ** 
+			XnCodMon = oData1.CodMon    && Moneda de la cancelacion	&& Mone
+			XsCodCCo = IIF(INLIST(GoCfgCbd.C_Costo,1,2,3),XsAuxil,'')
+			XsCodDo1 = ""
+			*!*		XcEliItm = CHR(255)
+			XcEliItm = CHR(43)  
+			XsCodBco = CTAS.CodBco  && vCodBco(NumEle)
+			XsNroCta = CTAS.NroCta  && vNroCta(NumEle)
+			XsNroChq = '' 			&& vNroChq(NumEle)
+			IF XiCodMon = 1
+				IF XfImport < 0
+					XcTpoMov = IIF(XcTpoMov # "D","D","H")
+					XfImport = -XfImport
+					XfImpUsa = -XfImpUsa
+				ENDIF
+			ELSE
+				IF XfImpUsa < 0
+					XcTpoMov = IIF(XcTpoMov # "D","D","H")
+					XfImport = -XfImport
+					XfImpUsa = -XfImpUsa
+				ENDIF
+			ENDIF
+			*!* ACTUALIZA C/C *!*
+			PRIVATE   vTpoAst,vNroAst,vImport,xCodMon,pCodMon
+			DIMENSION vTpoAst(1),vNroAst(1),vImport(1),xCodMon(1),pCodmon(1)
+			NumEle = 1
+			vTpoAst(NumEle) = XsCodDoc
+			vNroAst(NumEle) = XsNroDoc
+			vImport(NumEle) = IIF(XiCodMon=1,XfImport,XfImpUsa)
+			xCodMon(NumEle) = XiCodMon
+			pCodMon(NumEle)	=	0   && Moneda original del documento 
+			IF TipoProv='C'
+				DO GRACOB
+			
+				IF ctas.PidDoc='S'
+					XsTipDoc = IIF(VARTYPE(PROV.CodDoc)='C',PROV.CodDoc,XsCodDoc)
+				ELSE 
+					XsTipDoc = []
+					XsCodDoc = []	   
+				ENDIF	
+				LfSdoVtos	= 0
+				** VETT:Diferencia de cambio se aplica si la cuenta contable es en dolares 
+				** VETT:O si la moneda de cancelacion es diferente a moneda de docmunento origen ** 2015/03/24 15:31:53 
+				** VETT:Aplicamos DIFCMB si hay saldo menor tope DIF_MN o DIF_ME segun moneda del documento 2015/03/30 16:33:00 ** 
+				DO CASE
+					CASE INLIST(vTpoAst(NumEle),'FACT','BOLE','LETR','PROF','N/D')
+						LsTpoDoc	= 'CARGO'
+					CASE INLIST(vTpoAst(NumEle),'N/C','ADEL')	
+						LsTpoDoc	= 'ABONO'
+				ENDCASE
+				LlFiltroDifCmb = .T.
+				** VETT:Capturamos el saldo luego de actualizar el importe cancelado para verificar si hay 
+				** VETT:diferencia de cambio por aplicar 2015/03/31 13:15:00 ** 
+				IF XsNroDoc='0010026179'
+					SET STEP ON
+				ENDIF
+				LfImpTot	=	Importe
+				DIMENSION vImporte(3)
+				LfSdoVtos = CCb_Sldo(XsCodAux,LsTpoDoc,XsCodDoc,XsNroDoc,pCodMon(NumEle),XfTpoCmb,LfImpTot,".T.",@vImporte)
+				
+				DO CASE
+					CASE pCodMon(NumEle)= 1
+						LlHaySaldo = LfSdoVtos<>0 and ABS(LfSdoVtos)<=XfDif_MN
+					CASE pCodMon(NumEle)= 2
+						LlHaySaldo = LfSdoVtos<>0 and ABS(LfSdoVtos)<=XfDif_ME
+					OTHERWISE 
+						LlHaySaldo = .F.				
+				ENDCASE
+				IF CTAS->AftDcb = "S" OR pCodMon(NumEle)<>XiCodMon OR LlHaySaldo 
+					DO DIFCMB
+				ELSE
+					DO GRBRMOV
+				ENDIF
+			ELSE
+				IF ctas.PidDoc='S'
+					XsTipDoc = IIF(VARTYPE(PROV.CodDoc)='C',PROV.CodDoc,XsCodDoc)
+				ELSE 
+					XsTipDoc = []
+					XsCodDoc = []	   
+				ENDIF	
+
+				IF CTAS->AftDcb = "S" 
+					DO DIFCMB
+				ELSE
+					DO GRBRMOV
+				ENDIF
+			ENDIF			
+			
+		ENDSCAN
+		Ll1stCtaCja= .T.
+		XfTotIngreso = 0
+		XnMoneda = 2
+		*** Grabamos cuentas de caja
+		this.odatadm.obj2cur(oData2,'cCtasCaja')		
+		SELECT cCtasCaja
+		SCAN
+			XcEliItm = " "			
+			XsCtaCja = Cuenta
+			IF XsCtaCja='10' AND Tipo='D' AND Ll1stCtaCja
+				=SEEK(XsCtaCja,"CTAS")
+				REPLACE VMOV.CtaCja WITH XsCtaCja
+				XcEliItm = "."			
+				Ll1stCtaCja= .F.
+				XnMoneda = CTAS.CodMon
+			ENDIF
+			*!* Graba la cuenta de  Caja *!*
+			IF '.'$XsCodCta  && Cuentas I
+				TsCodDiv1	= '02'
+				XsCodDiv	= TsCodDiv1
+				XsCjaDiv	= TsCodDiv1	
+			ELSE	&& Cuentas F
+				TsCodDiv1	= '01'
+				XsCodDiv	= TsCodDiv1
+				XsCjaDiv	= TsCodDiv1	
+			ENDIF
+
+			XsCodCta = XsCtaCja
+			XsCodDiv = xsCjaDiv
+			XsAuxil  = CodCco
+			XfImpChq = Importe
+ 			=SEEK(XsCodCta,"CTAS")
+			XnCodMon = Ctas.CodMon
+			IF XnCodMon = 1
+			   YfImport = XfImpChq
+			   YfImpUsa = ROUND(YfImport/XfTpoCmb,2)
+			ELSE
+				YfImpUsa = XfImpChq
+				YfImport = ROUND(YfImpUsa*XfTpoCmb,2)
+			ENDIF
+			XfTotIngreso = XfTotIngreso + IIF(XnMoneda=1,YfImport,YfImpUsa)
+			XsCodRef = ""
+			XsNroRef = ""
+			XsClfAux = ''
+			XsCodAux = ''
+
+			DO CASE
+				CASE GoCfgCbd.C_COSTO=1
+					XsClfAux = GsClfCCt
+					XsCodAux = XsAuxil
+				CASE GoCfgCbd.C_COSTO=2
+					
+				CASE GoCfgCbd.C_COSTO=3
+					XsCodCCo = XsAuxil	
+				OTHER	
+					XsClfAux = CTAS->ClfAux
+					XsCodAux = XsAuxil
+			ENDCASE
+			XsGloDoc = XsNotAst
+			XsCodDoc = tdoc && XsCodDo1
+			XsNroDoc = ndoc && XsNroChq
+			XsTipDoc = TDOC
+
+			XsCodBco = []
+			XsNroCta = []
+			XsNroChq = []
+			LfImpUsa = YfImpUsa
+			LfImport = YfImport
+			XcTpoMov = TIPO
+			IF XnCodMon = 1
+				IF LfImport < 0
+					XcTpoMov = IIF(XcTpoMov="D","H","D")
+				ENDIF
+			ELSE
+				IF LfImpUsa < 0
+					XcTpoMov = IIF(XcTpoMov="D","H","D")
+				ENDIF
+			ENDIF
+			XfImport = ABS(LfImport)
+			XfImpUsa = ABS(LfImpUsa)
+			DO GrbRMOV
+			SELECT VMOV
+			REPLACE VMOV->NROITM  WITH XiNroitm
+			REPLACE VMOV.ImpChq   WITH XfTotIngreso
+		ENDSCAN
+			
+		RETURN nErrCode
+		CASE _Que_transaccion='LIBRO_CONTABLE'
+			_MES = MONTH(oData1.Mes)
+			_ANO = YEAR(oData1.Fecha)
+	       		this.oDatAdm.oentorno.GsPeriodo=TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+			this.oEntorno.GsPeriodo=	TRANSFORM(_ANO,'9999')+TRANSFORM(_MES,'@L 99')
+			IF !this.oDatAdm.Open_File('CTB')   
+			   RETURN AST_CABECERA_NO_GRABO
+			ENDIF
+	*!*			XsNroMes = SUBSTR(cParm2,5,2)
+	*!*			XsCodOpe = SUBSTR(cParm2,9,3)
+	*!*			XsNroAst = SUBSTR(cParm2,12,8)
+			XsNroMes = TRANSFORM(MONTH(oData1.Fecha),'@L 99')
+			XsCodOpe = PADR(oData1.CodOpe,LEN(OPER.CodOpe))
+			XsNroAst = PADR(oData1.Asiento,LEN(RMOV.NroAst)) && NroAst
+			NClave   = [NroMes+CodOpe+NroAst]
+			VClave   = XsNroMes+XsCodOpe+XsNroAst
+			XdFchAst = oData1.Fecha
+			XsNotAst = "Cobranza del Dia Liq:"+oData1.Liqui  && alltrim(thisform.text7.value)
+			XfTpoCmb = oData1.TpoCmb
+			XiCodMon = oData1.CodMon    && 2 Asumimos 
+			**
+			IF EMPTY(XsNroAst)
+				this.Crear = .T.
+			ELSE	
+				this.Crear = .F.
+			ENDIF		
+			IF this.MOVGRABA(XsNroMes,XsCodOpe,@XsNroAst) = 0
+				oData1.NroMes  = XsNroMes 
+				oData1.CodOpe  = XsCodOpe
+				oData1.Asiento = XsNroAst
+				
+				NClave   = [NroMes+CodOpe+NroAst]
+				VClave   = XsNroMes+XsCodOpe+XsNroAst
+			ELSE
+				this.oDatAdm.Close_File('CTB')
+				RETURN AST_CABECERA_NO_GRABO	
+			ENDIF
+			*** Grabamos Detalle de documentos *** 
+			** restauramos el cursor contenido en el objeto de datos ** 
+			*** 
+			SELECT CNFG
+			SEEK '01' && Configuracion DIF. Tipo De Cambio
+			XsCdCta1 = CodCta1
+			XsCdCta2 = CodCta2
+			XsCdCta3 = CodCta3
+			XsCdCta4 = CodCta4
+			XsCdAux1 = CodAux1
+			XsCdAux2 = CodAux2
+			XsCdAux3 = CodAux3
+			XsCdAux4 = CodAux4
+			***
+			this.odatadm.obj2cur(oData3,'cDocumentos')
+			SELECT cDocumentos
+	*!*			      stor cliente to cl
+	*!*				  stor codi to cc 
+	*!*				  stor tdoc to td
+	*!*				  stor fecha to fe
+	*!*				  stor ndoc to nd
+	*!*				  stor mone to mo
+	*!*				  stor soles to ims
+	*!*				  stor dolar to imd
+	*!*				  stor tpocmb to tc1
+	*!*				  stor agente1 to agi
+	*!*				  stor nroch  to nch1
+	*!*				  stor impsol to imps
+	*!*				  stor impdol to impd
+	*!*				  stor nrete to nt
+	*!*				  stor frete to fr
+
+			STORE 0 TO YfImport,YfImpUsa,XiNroItm
+			SCAN FOR FlgErr=0  && Sin Errores o incosistencias en Cobranzas
+				
+				XcTpoMov = "H"
+				XiCodMon = Mone
+				IF XiCodMon = 1
+					XfImport = impsol
+					XfImpUsa = ROUND(XfImport/XfTpoCmb,2)
+				ELSE
+					XfImpUsa = impdol
+					XfImport = ROUND(XfImpUsa*XfTpoCmb,2)
+				ENDIF
+				*xscoddiv = TsCodDiv
+				XsCodCta = PADR(Cuenta,LEN(CTAS.CodCta)) &&xCodCta(NumEle)
+				=SEEK(XsCodCta,"CTAS")
+				XsNroRef = ''
+				XsClfAux = CTAS->CLFAUX
+				XsCodAux = PADR(codi,LEN(RMOV.CodAux))
+				XsCodRef = ""
+				XsGloDoc = Cliente	&& vNotAst(NumEle)
+				XsCodDoc = TDOC 	&& vTpoAst(NumEle)
+				XsNroDoc = NDOC 	&& vNroAst(NumEle)
+				=SEEK(XsCodDoc,'PROV','PROV01')
+				XnCodMon = Mone
+				XsCodCCo = IIF(INLIST(GoCfgCbd.C_Costo,1,2,3),XsAuxil,'')
+				XsCodDo1 = ""
+				*!*		XcEliItm = CHR(255)
+				XcEliItm = CHR(43)  
+				XsCodBco = CTAS.CodBco  && vCodBco(NumEle)
+				XsNroCta = CTAS.NroCta  && vNroCta(NumEle)
+				XsNroChq = '' 			&& vNroChq(NumEle)
+				IF XiCodMon = 1
+					IF XfImport < 0
+						XcTpoMov = IIF(XcTpoMov # "D","D","H")
+						XfImport = -XfImport
+						XfImpUsa = -XfImpUsa
+					ENDIF
+				ELSE
+					IF XfImpUsa < 0
+						XcTpoMov = IIF(XcTpoMov # "D","D","H")
+						XfImport = -XfImport
+						XfImpUsa = -XfImpUsa
+					ENDIF
+				ENDIF
+				*!* ACTUALIZA C/C *!*
+				PRIVATE   vTpoAst,vNroAst,vImport,xCodMon
+				DIMENSION vTpoAst(1),vNroAst(1),vImport(1),xCodMon(1)
+				NumEle = 1
+				vTpoAst(NumEle) = XsCodDoc
+				vNroAst(NumEle) = XsNroDoc
+				vImport(NumEle) = IIF(XiCodMon=1,XfImport,XfImpUsa)
+				xCodMon(NumEle) = XiCodMon
+				IF TipoProv='C'
+					DO GRACOB
+				ENDIF
+				
+				IF ctas.PidDoc='S'
+					XsTipDoc = IIF(VARTYPE(PROV.CodDoc)='C',PROV.CodDoc,XsCodDoc)
+				ELSE 
+					XsTipDoc = []
+					XsCodDoc = []	   
+				ENDIF	
+				IF CTAS->AftDcb = "S"
+					DO DIFCMB
+				ELSE
+					DO GRBRMOV
+				ENDIF
+
+			ENDSCAN
+			Ll1stCtaCja= .T.
+			XfTotIngreso = 0
+			XnMoneda = 2
+			*** Grabamos cuentas de caja
+			this.odatadm.obj2cur(oData2,'cCtasCaja')		
+			SELECT cCtasCaja
+			SCAN
+				XcEliItm = " "			
+				XsCtaCja = Cuenta
+				IF XsCtaCja='10' AND Tipo='D' AND Ll1stCtaCja
+					=SEEK(XsCtaCja,"CTAS")
+					REPLACE VMOV.CtaCja WITH XsCtaCja
+					XcEliItm = "."			
+					Ll1stCtaCja= .F.
+					XnMoneda = CTAS.CodMon
+				ENDIF
+				*!* Graba la cuenta de  Caja *!*
+				XsCodCta = XsCtaCja
+				XsCodDiv = xsCjaDiv
+				XsAuxil  = CodCco
+				XfImpChq = Importe
+	 			=SEEK(XsCodCta,"CTAS")
+				XnCodMon = Ctas.CodMon
+				IF XnCodMon = 1
+				   YfImport = XfImpChq
+				   YfImpUsa = ROUND(YfImport/XfTpoCmb,2)
+				ELSE
+					YfImpUsa = XfImpChq
+					YfImport = ROUND(YfImpUsa*XfTpoCmb,2)
+				ENDIF
+				XfTotIngreso = XfTotIngreso + IIF(XnMoneda=1,YfImport,YfImpUsa)
+				XsCodRef = ""
+				XsNroRef = ""
+				XsClfAux = ''
+				XsCodAux = ''
+
+				DO CASE
+					CASE GoCfgCbd.C_COSTO=1
+						XsClfAux = GsClfCCt
+						XsCodAux = XsAuxil
+					CASE GoCfgCbd.C_COSTO=2
+						
+					CASE GoCfgCbd.C_COSTO=3
+						XsCodCCo = XsAuxil	
+					OTHER	
+						XsClfAux = CTAS->ClfAux
+						XsCodAux = XsAuxil
+				ENDCASE
+				XsGloDoc = XsNotAst
+				XsCodDoc = tdoc && XsCodDo1
+				XsNroDoc = ndoc && XsNroChq
+				XsTipDoc = TDOC
+
+				XsCodBco = []
+				XsNroCta = []
+				XsNroChq = []
+				LfImpUsa = YfImpUsa
+				LfImport = YfImport
+				XcTpoMov = TIPO
+				IF XnCodMon = 1
+					IF LfImport < 0
+						XcTpoMov = IIF(XcTpoMov="D","H","D")
+					ENDIF
+				ELSE
+					IF LfImpUsa < 0
+						XcTpoMov = IIF(XcTpoMov="D","H","D")
+					ENDIF
+				ENDIF
+				XfImport = ABS(LfImport)
+				XfImpUsa = ABS(LfImpUsa)
+				DO GrbRMOV
+				SELECT VMOV
+				REPLACE VMOV->NROITM  WITH XiNroitm
+				REPLACE VMOV.ImpChq   WITH XfTotIngreso
+			ENDSCAN
+
+			RETURN nErrCode
+		
+ENDCASE

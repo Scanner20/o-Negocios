@@ -1,0 +1,1 @@
+WAIT WINDOW "Generación XML GRE - SFS - 2024" TIMEOUT 5 

@@ -515,3 +515,72 @@ Modificar  = gosvrcbd.mescerrado(_mes)
 
 LReturnOk=LoDatAdm.abrirtabla('ABRIR','CBDMCTAS','CTAS','CTAS01','')
 
+***************************
+** VETT: Firma PDF con certificado P12 o PFX usando libreria de Chilkat IDUPD:1860901149-30/09/24 18:58
+FUNCTION Firmar_PDF_Chilkat
+***************************
+LOCAL loPdf
+LOCAL lnSuccess
+LOCAL loJson
+LOCAL loCert
+
+loGlob = CreateObject('Chilkat_9_5_0.Global')
+lnSuccess = loGlob.UnlockBundle("Anything for 30-day trial")
+IF (lnSuccess <> 1) THEN
+    ? loGlob.LastErrorText
+    RELEASE loGlob
+    CANCEL
+ENDIF
+loPdf = CreateObject('Chilkat_9_5_0.Pdf')
+
+lnSuccess = loPdf.LoadFile("D:/BDSACFIN/DOCPDFS/2311202301130964182500110011000000214280002142819.PDF")
+IF (lnSuccess = 0) THEN
+    ? loPdf.LastErrorText
+    RELEASE loPdf
+    CANCEL
+ENDIF
+
+loJson = CreateObject('Chilkat_9_5_0.JsonObject')
+loJson.UpdateInt("signingCertificateV2",1)
+loJson.UpdateInt("signingTime",1)
+loJson.UpdateInt("page",1)
+loJson.UpdateString("appearance.y","bottom")
+loJson.UpdateString("appearance.x","right")
+loJson.UpdateString("appearance.fontScale","10.0")
+
+loJson.UpdateString("appearance.text[0]","Digitally signed by: cert_cn")
+loJson.UpdateString("appearance.text[1]","current_dt")
+*loJson.UpdateString("appearance.text[2]","The crazy brown fox jumps over the lazy dog.")
+
+* Load the signing certificate. (Use your own certificate.)
+* For versions of Chilkat < 10.0.0, use CreateObject('Chilkat_9_5_0.Cert')
+loCert = CreateObject('Chilkat_9_5_0.Cert')
+lnSuccess = loCert.LoadPfxFile("D:/BDSACFIN/FIRMA/firmaElectronica.p12","Clave1234")
+IF (lnSuccess = 0) THEN
+    ? loCert.LastErrorText
+    RELEASE loPdf
+    RELEASE loJson
+    RELEASE loCert
+    CANCEL
+ENDIF
+
+* Tell the pdf object to use the certificate for signing.
+lnSuccess = loPdf.SetSigningCert(loCert)
+IF (lnSuccess = 0) THEN
+    ? loPdf.LastErrorText
+    RELEASE loPdf
+    RELEASE loJson
+    RELEASE loCert
+    CANCEL
+ENDIF
+
+lnSuccess = loPdf.SignPdf(loJson,"d:/hello_signed.pdf")
+IF (lnSuccess = 0) THEN
+    ? loPdf.LastErrorText
+    RELEASE loPdf
+    RELEASE loJson
+    RELEASE loCert
+    CANCEL
+ENDIF
+
+? "The PDF has been successfully cryptographically signed."

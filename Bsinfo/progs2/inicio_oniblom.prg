@@ -2,7 +2,7 @@ CLEAR all
 *!*	Poner aqui el directorio en el que esta el Config.INI
 *!*	DEFINE WINDOW desktop2 FROM 1,20 TO 20,50  TITLE 'Output' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE('k:\aplvfp\grafgen\jpeg\Jane20060401005.jpg')
 *!*	ACTIVATE WINDOW desktop2
-
+_screen.Icon= SYS(5)+'\APLVFP\GRAFGEN\ICONOS\delivery_1.ico'
 SET SYSMENU TO DEFA
 	IF INLIST(SYS(5),'F','E','D')
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
@@ -50,7 +50,7 @@ SET DELETED ON
 *!*	Activar las Librerias de clases generales
 SET CLASSLIB TO ADMNOVIS , ADMTBAR , ADMVRS , ADMGRAL ,DOSVR, o-N,registry
 CLOSE DATABASES ALL
-SET PROCEDURE TO JANESOFT,FXGEN_2
+SET PROCEDURE TO JANESOFT,FXGEN_2,JSON
 SET LIBRARY TO VFPEncryption71.FLL
 DO def_v_publicas
 DO def_color

@@ -1,0 +1,99 @@
+*!*	Objeto: DiarioGeneral
+*!*	Metodo: CrearCursorTemporalDetalle
+
+PsTablaDestino	=	'C_RMOV'
+LcArcTmp = ADDBS(goentorno.tmppath) +SYS(3)
+SELECT 0
+CREATE TABLE (LcArcTmp) FREE ( ;
+					   NROITM N(5, 0) NOT NULL, ;
+					   ELIITM C(1) NOT NULL, ;
+					   CODCTA C(8) NOT NULL, ;
+					   CODDIV C(2) NOT NULL, ;
+					   CODCCO C(8) NOT NULL, ;
+					   CTAPRE C(15) NOT NULL, ;
+					   TPOGTO C(6) NOT NULL, ;
+					   CODAUX C(11) NOT NULL, ;
+                       CODDOC C(4) NOT NULL, ;
+                       NRODOC C(20) NOT NULL, ;
+                       FCHDOC D NOT NULL, ;    		
+                       FCHVTO D NOT NULL, ;       
+                       GLODOC C(50) NOT NULL, ;   
+                       TPOMOV C(1) NOT NULL, ;  
+                       IMPORT N(12, 2) NOT NULL, ;
+                       AFECTO C(1) NOT NULL, ;
+                       TIPREF C(2) NOT NULL , ; 
+                       NROREF C(15) NOT NULL, ;
+                       FCHREF D NOT NULL, ;
+                       NRODTR V(20) NOT NULL, ;
+                       FCHDTR D NOT NULL, ;
+					   IMPUSA N(12, 2) NOT NULL, ;
+					   NROMES C(2) NOT NULL, ;
+                       CODOPE C(3) NOT NULL, ;
+                       NROAST C(8) NOT NULL, ;
+                       CHKITM N(5, 0) NOT NULL, ;
+                       CODREF C(11) NOT NULL, ;
+                       NRORUC C(11) NOT NULL, ;
+                       CODMON N(1, 0) NOT NULL, ;
+                       TPOCMB N(8, 4) NOT NULL, ;
+                       CODBCO C(3) NOT NULL, ;
+                       NROCTA C(20) NOT NULL, ;
+                       NROCHQ C(10) NOT NULL, ;
+					   CLFAUX C(3) NOT NULL, ;
+                       INIAUX C(8) NOT NULL, ;
+                       TIPOC C(1) NOT NULL, ;
+                       TIPDOC C(2) NOT NULL, ;
+                       FCHPED D NOT NULL, ;
+                       FCHAST D NOT NULL, ;
+                       TPOO_C C(4) NOT NULL, ;
+                       CODFIN C(4) NOT NULL, ;
+                       FCHDIG D NOT NULL, ;
+                       HORDIG C(8) NOT NULL, ;
+                       AN1CTA C(8) NOT NULL, ;
+                       CC1CTA C(8) NOT NULL, ;
+                       CHKCTA C(10) NOT NULL, ;
+                       TIPORI V(2) NOT NULL, ;
+                       NUMORI V(10) NOT NULL, ;
+                       NROPRO C(8) NOT NULL, ;
+                       FCHPRO D NOT NULL, ;
+                       NRETE C(10) NOT NULL, ;
+                       FRETE D NOT NULL, ;
+                       AGENTE C(1) NOT NULL, ;
+                       SALDO N(10, 2) NOT NULL, ;
+                       LIQUI C(10) NOT NULL, ;
+                       SALDOS N(10, 2) NOT NULL, ;
+                       SALDOD N(10, 2) NOT NULL, ;
+                       CODAST N(5, 0) NOT NULL ) 
+
+USE	(LcArcTmp)  ALIAS (PsTablaDestino) EXCLUSIVE	
+INDEX ON NROMES+CODOPE+NROAST+STR(NROITM,5) TAG RMOV01
+INDEX ON NROMES+CODCTA+DTOS(FCHAST) TAG RMOV02
+INDEX ON NROMES+CODCTA+CODREF+CODOPE+NROAST TAG RMOV03 
+INDEX ON CODCTA+DTOS(FCHPED)+CODOPE TAG RMOV04    
+INDEX ON CODCTA+NRODOC+CODAUX+NROMES+DTOC(FCHDOC,1)+CODOPE+NROAST TAG RMOV05
+
+this.tools.modificatabla('C_RMOV','Agregar','NroReg','N',10,0)
+this.tools.modificatabla('C_RMOV','Agregar','NomAux','C',30,0)
+this.tools.modificatabla('C_RMOV','Agregar','NomCta','C',30,0)
+this.tools.modificatabla('C_RMOV','Agregar','Desdoc','C',20,0)
+this.tools.modificatabla('C_RMOV','Agregar','NomClf','C',20,0)
+this.tools.modificatabla('C_RMOV','Agregar','NomCTAPRE','C',30,0)
+this.tools.modificatabla('C_RMOV','Agregar','PidAux','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','PidDoc','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','PidGlo','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','GenAut','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','Editando','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','tip_Afe_RC','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','tip_Afe_RV','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','tip_Afe_RT','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','LonAux','N',3,0)
+this.tools.modificatabla('C_RMOV','Agregar','An2Cta','C',LEN(RMOV.CodCta),0)
+this.tools.modificatabla('C_RMOV','Agregar','An2CtaME','C',LEN(RMOV.CodCta),0)
+this.tools.modificatabla('C_RMOV','Agregar','Cc2Cta','C',LEN(RMOV.CodCta),0)
+this.tools.modificatabla('C_RMOV','Agregar','NomCodDiv','C',30,0)
+this.tools.modificatabla('C_RMOV','Agregar','NomCodCco','C',30,0)
+this.tools.modificatabla('C_RMOV','Agregar','NomCodRef','C',30,0)
+this.tools.modificatabla('C_RMOV','Agregar','NomTpoGto','C',30,0)
+this.tools.modificatabla('C_RMOV','Agregar','DesRef','C',20,0)
+this.tools.modificatabla('C_RMOV','Agregar','Pid2Aux','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','Pid2Doc','C',1,0)
+this.tools.modificatabla('C_RMOV','Agregar','Pid2Glo','C',1,0)
