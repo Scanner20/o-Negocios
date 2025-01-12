@@ -3958,7 +3958,7 @@ ENDDEFINE
 *-- Class:        entorno (k:\aplvfp\classgen\vcxs\admnovis.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   04/26/17 06:02:07 PM
+*-- Time Stamp:   02/04/24 09:56:09 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -3985,6 +3985,8 @@ DEFINE CLASS entorno AS custom
 	tspathadm = ([])
 	*-- path  que debe contener la ruta de donde esta localizadas otras fuentes de datos  (.DBF , .DBC, .MDF, .LDF , etc)
 	tspathdata = ([])
+	*-- Ruta de la compañia (empresa) y año (periodo)
+	tspathcia_ano = ([])
 	Name = "entorno"
 	sistema = .F.
 	modulo = .F.
@@ -4554,7 +4556,19 @@ DEFINE CLASS entorno AS custom
 			_CodCia ='001'  && Siempre la primera por defecto
 		ENDIF
 		*RETURN SYS(2003)+'\DATA\CIA'+_CODCIA+'\'
-		RETURN JUSTPATH(ADDBS(THIS.TsPathadm))+'\CIA'+_CODCIA+'\'
+		*!*	RETURN JUSTPATH(ADDBS(THIS.TsPathadm))+'\CIA'+_CODCIA+'\'
+		RETURN JUSTPATH(ADDBS(IIF(":"$THIS.TsPathadm,THIS.TsPathadm,SYS(5)+THIS.tspathadm)))+'\CIA'+_CODCIA+'\'
+	ENDPROC
+
+
+	*-- Formar ruta compañia y año (Empresa y periodo)
+	PROCEDURE pathdatacia_ano
+		PARAMETERS PsPeriodo
+		IF VARTYPE(PsPeriodo)<>"C"
+			PsPeriodo = This.GsPeriodo
+		ENDIF
+		this.tspathcia = this.pathdatacia(this.gscodcia) 
+		this.tspathcia_ano = ADDBS(ADDBS(this.tspathcia)+"C"+LEFT(PsPeriodo,4)) 
 	ENDPROC
 
 

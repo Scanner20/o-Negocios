@@ -49,7 +49,7 @@ SET DELETED ON
 *!*	Las 2 lineas anteriores, apuntan hacia las clases generales
 
 *!*	Activar las Librerias de clases generales
-SET CLASSLIB TO ADMNOVIS , ADMTBAR , ADMVRS , ADMGRAL ,DOSVR, o-N,registry,GridExtras,SfRepObj
+SET CLASSLIB TO ADMNOVIS , ADMTBAR , ADMVRS , ADMGRAL ,DOSVR, o-N1, registry, o-NLib,GridExtras
 CLOSE DATABASES ALL
 SET PROCEDURE TO JANESOFT,FXGEN_2,JSON
 SET LIBRARY TO VFPEncryption71.FLL

@@ -4,124 +4,10 @@
 
 
 **************************************************
-*-- Class:        base_checkbox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
-*-- ParentClass:  checkbox
-*-- BaseClass:    checkbox
-*-- Time Stamp:   08/31/09 05:28:04 PM
-*
-DEFINE CLASS base_checkbox AS checkbox
-
-
-	Height = 24
-	Width = 60
-	Anchor = 60
-	Alignment = 0
-	BackStyle = 0
-	Caption = "Check1"
-	Value = .F.
-	ForeColor = RGB(0,0,255)
-	DisabledForeColor = RGB(0,0,255)
-	DisabledBackColor = RGB(255,255,255)
-	Name = "base_checkbox"
-
-
-ENDDEFINE
-*
-*-- EndDefine: base_checkbox
-**************************************************
-
-
-**************************************************
-*-- Class:        base_checkbox_multiselect (k:\aplvfp\classgen\vcxs\admvrs.vcx)
-*-- ParentClass:  base_checkbox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
-*-- BaseClass:    checkbox
-*-- Time Stamp:   03/20/07 11:25:01 PM
-*
-DEFINE CLASS base_checkbox_multiselect AS base_checkbox
-
-
-	Height = 24
-	Width = 22
-	Alignment = 0
-	Caption = ""
-	Name = "base_checkbox_multiselect"
-
-
-	PROCEDURE Click
-		LOCAL lcAlias
-		lcAlias = ALIAS()
-		IF !EMPTY(lcAlias) AND USED(lcAlias)
-			IF CURSORGETPROP("Buffering",lcAlias) > 1
-				=TABLEUPDATE(.F.,.T.,lcAlias)
-			ENDIF
-		ENDIF
-	ENDPROC
-
-
-ENDDEFINE
-*
-*-- EndDefine: base_checkbox_multiselect
-**************************************************
-
-
-**************************************************
-*-- Class:        base_checkbox_serie (k:\aplvfp\classgen\vcxs\admvrs.vcx)
-*-- ParentClass:  checkbox
-*-- BaseClass:    checkbox
-*-- Time Stamp:   12/08/06 10:10:01 PM
-*
-DEFINE CLASS base_checkbox_serie AS checkbox
-
-
-	Height = 22
-	Width = 16
-	Alignment = 0
-	Caption = ""
-	Name = "base_checkbox_serie"
-
-
-	PROCEDURE When
-		RETURN .t.
-	ENDPROC
-
-
-ENDDEFINE
-*
-*-- EndDefine: base_checkbox_serie
-**************************************************
-
-
-**************************************************
-*-- Class:        base_combobox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
-*-- ParentClass:  combobox
-*-- BaseClass:    combobox
-*-- Time Stamp:   09/03/09 04:40:04 PM
-*
-DEFINE CLASS base_combobox AS combobox
-
-
-	Anchor = 224
-	Enabled = .T.
-	Height = 24
-	ColumnLines = .F.
-	Style = 2
-	Width = 100
-	DisabledBackColor = RGB(223,223,223)
-	DisabledForeColor = RGB(0,0,0)
-	Name = "base_combobox"
-
-
-ENDDEFINE
-*
-*-- EndDefine: base_combobox
-**************************************************
-
-
-**************************************************
 *-- Class:        base_cbohelp (k:\aplvfp\classgen\vcxs\admvrs.vcx)
-*-- ParentClass:  base_combobox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- ParentClass:  base_combobox (k:\aplvfp3\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    combobox
-*-- Time Stamp:   11/20/17 09:55:00 AM
+*-- Time Stamp:   09/11/24 10:50:06 AM
 *
 DEFINE CLASS base_cbohelp AS base_combobox
 
@@ -139,6 +25,10 @@ DEFINE CLASS base_cbohelp AS base_combobox
 	cwhere = ""
 	cwheresql = ("")
 	corderby = ""
+	*-- Agrega los campos del filtro al script sql creado en generarSql
+	laddcmpsfiltro = .F.
+	*-- Campos adicionales separados por ;
+	ccamposadicionales = ([])
 	Name = "base_cbohelp"
 
 	*-- Define si trae información desde el Servidor o de modo Local
@@ -148,12 +38,34 @@ DEFINE CLASS base_cbohelp AS base_combobox
 	lupdatecursor = .F.
 	DIMENSION acamposfiltro[1,1]
 	DIMENSION avaloresfiltro[1,1]
+	DIMENSION acamposadicionales[1,1]
 
 
 	PROCEDURE generarsql
+		** VETT: Agregamos campos adicionales: Parte 1 - Los que intervienen como filtro  IDUPD:1702789767-01/04/2024 08:25 AM 
+		cSqlAdd = ""
+		IF !EMPTY( THIS.cCamposFiltro ) AND This.laddcmpsfiltro 
+			FOR K = 1 TO ALEN(This.acamposfiltro )
+				IF VARTYPE(This.acamposfiltro[K])="C"
+					cSqlAdd	=	cSqlAdd		+	This.acamposfiltro[K]	+ IIF(K<ALEN(This.acamposfiltro ),",","")
+				ENDIF		 
+			ENDFOR
+		ENDIF
+
+		IF !EMPTY( THIS.ccamposadicionales)  
+			IF !EMPTY(cSqlAdd)
+				cSqlAdd = cSqlAdd + ","
+			ENDIF
+			FOR K = 1 TO ALEN(This.acamposadicionales )
+				IF VARTYPE(This.acamposadicionales[K])="C"
+					cSqlAdd	=	cSqlAdd		+	This.acamposadicionales	[K]	+ IIF(K<ALEN(This.acamposadicionales ),",","")
+				ENDIF		 
+			ENDFOR
+		ENDIF
+
 		IF THIS.lServidor
 			cSQL =	" SELECT " + THIS.cCampoRetorno + ;
-				IIF( EMPTY(THIS.cCampoVisualizacion) , "" , " , " + THIS.cCampoVisualizacion ) + ;
+				IIF( EMPTY(THIS.cCampoVisualizacion) , "" , " , " + THIS.cCampoVisualizacion ) + IIF(!EMPTY(cSqlAdd),","+cSqlAdd,"") +  ;  && IDUPD:1702789767-01/04/2024 08:25 AM 
 				" FROM " + THIS.cRemotePathEntidad + ;
 				" WHERE " + " FlagEliminado=0"
 		ELSE
@@ -168,7 +80,7 @@ DEFINE CLASS base_cbohelp AS base_combobox
 		**		LsRutaEntidad = goentorno.open_dbf1('',THIS.cNombreEntidad,'','ComboBox','')
 
 				cSQL =	" SELECT " + THIS.cCampoRetorno + ;
-					IIF( EMPTY(THIS.cCampoVisualizacion) , "" , " , " + THIS.cCampoVisualizacion ) + ;
+					IIF( EMPTY(THIS.cCampoVisualizacion) , "" , " , " + THIS.cCampoVisualizacion ) + IIF(!EMPTY(cSqlAdd),","+cSqlAdd,"") + ;  && IDUPD:1702789767-01/04/2024 08:25 AM
 					" FROM " + THIS.cRemotePathEntidad + ;
 					" WHERE " + " !Deleted()"
 
@@ -371,6 +283,31 @@ DEFINE CLASS base_cbohelp AS base_combobox
 	ENDPROC
 
 
+	PROCEDURE ccamposadicionales_assign
+		LPARAMETERS tcCamposadicionales
+
+		tcCamposadicionales		= IIF( VARTYPE(tcCamposadicionales)<>"C" , "" , ALLTRIM(tcCamposadicionales) )
+		THIS.cCamposadicionales	= tcCamposadicionales
+
+		DIMENSION aCampos[1]
+		IF !EMPTY( THIS.cCamposadicionales )
+			THIS.ChrToArray( THIS.cCamposadicionales, ";" , @aCampos )
+			=ACOPY(aCampos, THIS.aCamposadicionales )
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE Destroy
+		THIS.ROWSOURCETYPE	= 0
+		THIS.ROWSOURCE    	= ""
+		THIS.BOUNDCOLUMN   	= 1
+
+		IF USED(THIS.cAliasCursor)
+			USE IN (THIS.cAliasCursor)
+		ENDIF
+	ENDPROC
+
+
 	PROCEDURE Init
 		THIS.COLUMNWIDTHS	= ALLTRIM(STR(THIS.WIDTH-10))+',0'
 		THIS.LISTINDEX	= 1
@@ -382,6 +319,7 @@ DEFINE CLASS base_cbohelp AS base_combobox
 		THIS.cCamposFiltro		= THIS.cCamposFiltro
 		THIS.cValoresFiltro		= THIS.cValoresFiltro
 		THIS.cWhereSQL 			= THIS.cWhereSQL
+		this.cCamposadicionales	= THIS.cCamposadicionales
 
 		IF !EMPTY(THIS.cAliasCursor) AND !ISNULL(THIS.cAliasCursor) AND USED(THIS.cAliasCursor)
 		*!*		USE IN (THIS.cAliasCursor)  && Esto es peligroso por que puede cerrar un cursor que 
@@ -400,17 +338,6 @@ DEFINE CLASS base_cbohelp AS base_combobox
 		ENDIF
 
 		THIS.GenerarCursor()
-	ENDPROC
-
-
-	PROCEDURE Destroy
-		THIS.ROWSOURCETYPE	= 0
-		THIS.ROWSOURCE    	= ""
-		THIS.BOUNDCOLUMN   	= 1
-
-		IF USED(THIS.cAliasCursor)
-			USE IN (THIS.cAliasCursor)
-		ENDIF
 	ENDPROC
 
 
@@ -508,6 +435,120 @@ DEFINE CLASS base_cbohelp_serie AS base_cbohelp
 ENDDEFINE
 *
 *-- EndDefine: base_cbohelp_serie
+**************************************************
+
+
+**************************************************
+*-- Class:        base_checkbox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- ParentClass:  checkbox
+*-- BaseClass:    checkbox
+*-- Time Stamp:   08/31/09 05:28:04 PM
+*
+DEFINE CLASS base_checkbox AS checkbox
+
+
+	Height = 24
+	Width = 60
+	Anchor = 60
+	Alignment = 0
+	BackStyle = 0
+	Caption = "Check1"
+	Value = .F.
+	ForeColor = RGB(0,0,255)
+	DisabledForeColor = RGB(0,0,255)
+	DisabledBackColor = RGB(255,255,255)
+	Name = "base_checkbox"
+
+
+ENDDEFINE
+*
+*-- EndDefine: base_checkbox
+**************************************************
+
+
+**************************************************
+*-- Class:        base_checkbox_multiselect (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- ParentClass:  base_checkbox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- BaseClass:    checkbox
+*-- Time Stamp:   03/20/07 11:25:01 PM
+*
+DEFINE CLASS base_checkbox_multiselect AS base_checkbox
+
+
+	Height = 24
+	Width = 22
+	Alignment = 0
+	Caption = ""
+	Name = "base_checkbox_multiselect"
+
+
+	PROCEDURE Click
+		LOCAL lcAlias
+		lcAlias = ALIAS()
+		IF !EMPTY(lcAlias) AND USED(lcAlias)
+			IF CURSORGETPROP("Buffering",lcAlias) > 1
+				=TABLEUPDATE(.F.,.T.,lcAlias)
+			ENDIF
+		ENDIF
+	ENDPROC
+
+
+ENDDEFINE
+*
+*-- EndDefine: base_checkbox_multiselect
+**************************************************
+
+
+**************************************************
+*-- Class:        base_checkbox_serie (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- ParentClass:  checkbox
+*-- BaseClass:    checkbox
+*-- Time Stamp:   12/08/06 10:10:01 PM
+*
+DEFINE CLASS base_checkbox_serie AS checkbox
+
+
+	Height = 22
+	Width = 16
+	Alignment = 0
+	Caption = ""
+	Name = "base_checkbox_serie"
+
+
+	PROCEDURE When
+		RETURN .t.
+	ENDPROC
+
+
+ENDDEFINE
+*
+*-- EndDefine: base_checkbox_serie
+**************************************************
+
+
+**************************************************
+*-- Class:        base_combobox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- ParentClass:  combobox
+*-- BaseClass:    combobox
+*-- Time Stamp:   09/03/09 04:40:04 PM
+*
+DEFINE CLASS base_combobox AS combobox
+
+
+	Anchor = 224
+	Enabled = .T.
+	Height = 24
+	ColumnLines = .F.
+	Style = 2
+	Width = 100
+	DisabledBackColor = RGB(223,223,223)
+	DisabledForeColor = RGB(0,0,0)
+	Name = "base_combobox"
+
+
+ENDDEFINE
+*
+*-- EndDefine: base_combobox
 **************************************************
 
 
@@ -2038,7 +2079,7 @@ ENDDEFINE
 *-- Class:        cnt_cab_ventas (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_container (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    container
-*-- Time Stamp:   05/24/16 05:06:02 PM
+*-- Time Stamp:   09/10/24 06:51:02 PM
 *
 DEFINE CLASS cnt_cab_ventas AS base_container
 
@@ -2056,17 +2097,18 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 	shpBorde.Name = "shpBorde"
 
 
-	ADD OBJECT base_label_shape1 AS base_label_shape WITH ;
+	ADD OBJECT lblptovta AS base_label_shape WITH ;
 		Anchor = 0, ;
-		Caption = "Punto de venta", ;
+		Caption = "PTO. VTA.", ;
 		Height = 17, ;
-		Left = 5, ;
+		Left = 34, ;
 		Top = 28, ;
-		Width = 84, ;
+		Width = 55, ;
 		TabIndex = 6, ;
 		ForeColor = RGB(0,0,255), ;
 		DisabledForeColor = RGB(0,0,153), ;
-		Name = "Base_label_shape1"
+		ToolTipText = "Punto de venta", ;
+		Name = "LblPtoVta"
 
 
 	ADD OBJECT cboptovta AS base_cbohelp WITH ;
@@ -2075,19 +2117,22 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		ColumnCount = 2, ;
 		Enabled = .T., ;
 		Height = 20, ;
-		Left = 91, ;
+		Left = 96, ;
 		TabIndex = 2, ;
-		Top = 24, ;
-		Width = 156, ;
+		Top = 25, ;
+		Width = 172, ;
 		ZOrderSet = 32, ;
 		BackColor = RGB(230,255,255), ;
-		cnombreentidad = "vtaptovt", ;
+		ReadOnly = .F., ;
+		cnombreentidad = "v_sedepvtaserie", ;
 		ccamporetorno = "ptovta", ;
 		ccampovisualizacion = "nombre", ;
-		ccamposfiltro = "sede", ;
+		ccamposfiltro = "sede;coddoc", ;
 		cvaloresfiltro = ('001'), ;
 		cwheresql = "", ;
+		ccamposadicionales = "serie", ;
 		caliascursor = "c_ptovta", ;
+		laddcmpsfiltro = .T., ;
 		Name = "CboPtoVta"
 
 
@@ -2108,7 +2153,7 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		ColumnCount = 2, ;
 		Enabled = .T., ;
 		Height = 20, ;
-		Left = 321, ;
+		Left = 352, ;
 		TabIndex = 3, ;
 		Top = 5, ;
 		Width = 171, ;
@@ -2129,7 +2174,7 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		Anchor = 9, ;
 		Caption = "Vendedor", ;
 		Height = 17, ;
-		Left = 261, ;
+		Left = 294, ;
 		Top = 7, ;
 		Width = 55, ;
 		TabIndex = 9, ;
@@ -2143,9 +2188,9 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		ColumnCount = 2, ;
 		Enabled = .T., ;
 		Height = 20, ;
-		Left = 320, ;
+		Left = 352, ;
 		TabIndex = 4, ;
-		Top = 25, ;
+		Top = 26, ;
 		Width = 172, ;
 		ZOrderSet = 32, ;
 		BackColor = RGB(230,255,255), ;
@@ -2164,7 +2209,7 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		Anchor = 9, ;
 		Caption = "En base a", ;
 		Height = 17, ;
-		Left = 259, ;
+		Left = 290, ;
 		Top = 28, ;
 		Width = 58, ;
 		TabIndex = 8, ;
@@ -2176,7 +2221,7 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		Anchor = 0, ;
 		Caption = "Documento", ;
 		Height = 17, ;
-		Left = 13, ;
+		Left = 17, ;
 		Top = 7, ;
 		Width = 75, ;
 		TabIndex = 7, ;
@@ -2191,10 +2236,10 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		ColumnCount = 2, ;
 		Enabled = .T., ;
 		Height = 20, ;
-		Left = 91, ;
+		Left = 96, ;
 		TabIndex = 1, ;
 		Top = 5, ;
-		Width = 156, ;
+		Width = 172, ;
 		ZOrderSet = 32, ;
 		BackColor = RGB(230,255,255), ;
 		cnombreentidad = "sistdocs", ;
@@ -2204,6 +2249,34 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 		cwheresql = ("and ventas = .t. and Transa_vta = .t."), ;
 		caliascursor = "c_coddoc_tran", ;
 		Name = "CboCodDoc"
+
+
+	ADD OBJECT chktodos AS base_checkbox WITH ;
+		Top = 25, ;
+		Left = 10, ;
+		Height = 24, ;
+		Width = 14, ;
+		FontName = "Lucida Console", ;
+		Alignment = 0, ;
+		Caption = "", ;
+		TabIndex = 10, ;
+		ToolTipText = ['"Sede actual: "+GsCodSed+" "+GsNomSed'], ;
+		Name = "ChkTodos"
+
+
+	ADD OBJECT cmdhelpptovta AS base_cmdhelp WITH ;
+		Top = 54, ;
+		Left = 246, ;
+		Height = 21, ;
+		Enabled = .F., ;
+		Visible = .F., ;
+		ccamposfiltro = "sede;coddoc", ;
+		cnombreentidad = "v_sedepvtaserie", ;
+		caliascursor = "cPtoVtaSer", ;
+		ccamporetorno = "SERIE", ;
+		ccampovisualizacion = "NOMBRE", ;
+		ctituloayuda = "Documentos pendientes", ;
+		Name = "CmdHelpPtoVta"
 
 
 	PROCEDURE iniciar_var
@@ -2232,7 +2305,17 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 
 
 	PROCEDURE cboptovta.Valid
+		DODEFAULT() 
+		IF !THISFORM.lcargado  
+			RETURN
+		ENDIF
 		thisform.ObjReftran.XsPtoVta = THIS.VAlue
+		IF This.Parent.ChkTodos.Value = .T. 
+			LsCmpSede = THIS.cAliascursor+".Sede" 
+			Thisform.ObjRefTran.CodSed		=  &LsCmpSede.
+		ELSE
+			Thisform.ObjRefTran.CodSed		=	GsCodSed
+		ENDIF
 	ENDPROC
 
 
@@ -2299,7 +2382,72 @@ DEFINE CLASS cnt_cab_ventas AS base_container
 
 
 	PROCEDURE cbocoddoc.InteractiveChange
+		DODEFAULT()
+		IF !THISFORM.lcargado  
+			RETURN
+		ENDIF
 		=goCfgVta.Abrir_Dbfs_Vta(this.value)
+		this.Parent.CboPtoVta.cvaloresfiltro = GoCfgVta.CodSed+";"+This.Value 
+		this.Parent.CboPtoVta.generarcursor
+		this.Parent.cboPtoVta.Valid  
+	ENDPROC
+
+
+	PROCEDURE cbocoddoc.ProgrammaticChange
+		this.InteractiveChange 
+	ENDPROC
+
+
+	PROCEDURE chktodos.Valid
+		IF this.Value = .T.
+			this.parent.cboPtoVta.cValoresfiltro =  ""
+			this.Parent.CboPtoVta.Generarcursor  
+			this.Tooltiptext = "Todas las sedes"
+			this.Parent.CboPtoVta.Valid 
+		ELSE
+			this.parent.cboPtoVta.cValoresfiltro =  GsCodSed
+			this.Parent.CboPtoVta.Generarcursor  
+			this.Tooltiptext = "Sede actual: "+GsCodSed+" "+GsNomSed
+			this.Parent.CboPtoVta.Valid 
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE cmdhelpptovta.When
+		*!*	IF C_RMOV.PidDoc='S'
+		*!*		RETURN .T.
+		*!*	ELSE
+		*!*		RETURN .F.
+		*!*	ENDIF
+	ENDPROC
+
+
+	PROCEDURE cmdhelpptovta.GotFocus
+		*!*	*!*	IF !EMPTY(THIS.Parent.Parent.Column11.TxtNroDoc.Value)
+		*!*	IF !EMPTY(THIS.Parent.GrdDetalle.Column10.TxtNroDoc.Value)
+		*!*		UltTecla = 0
+		*!*		KEYBOARD '{TAB}' 
+		*!*	ENDIF
+	ENDPROC
+
+
+	PROCEDURE cmdhelpptovta.Click
+		*!*	LlOk=pendientes(C_RMOV.CodCta,C_RMOV.CodAux)
+		*!*	IF !LlOk
+		*!*		=MESSAGEBOX('No es posible mostrar la cuenta corriente de este proveedor',64 ,'Atención')
+		*!*	ENDIF
+		DODEFAULT()
+		IF !EMPTY(THIS.cValorvalida)  
+		*!*		IF VARTYPE(this.oData.TIPDOC)='C'
+		*!*	*!*			THIS.Parent.Parent.Column10.txtCodDoc.Value = this.oData.TIPDOC
+		*!*			This.Parent.GrdDetalle.Column9.TxtCodDoc.Value = this.oData.TIPDOC 
+		*!*		ENDIF
+
+		ENDIF
+		*!*	*!*	THIS.Parent.Parent.Column7.SetFocus 
+		*!*	IF !EMPTY(This.Parent.GrdDetalle.Column10.TxtNroDoc.Value)
+		*!*		KEYBOARD '{TAB}'
+		*!*	ENDIF
 	ENDPROC
 
 
@@ -2313,7 +2461,7 @@ ENDDEFINE
 *-- Class:        cntdoc_ref (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_container (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    container
-*-- Time Stamp:   12/11/21 02:45:08 AM
+*-- Time Stamp:   08/28/24 01:13:03 PM
 *
 DEFINE CLASS cntdoc_ref AS base_container
 
@@ -2537,7 +2685,10 @@ DEFINE CLASS cntdoc_ref AS base_container
 			ENDCASE 
 			IF VARTYPE(thisform.ObjCntPage) = 'O'
 				thisform.ObjCntPage.TxtNroRef.SetFocus()
-				KEYBOARD '{END}'+'{ENTER}'
+		*!*			IF !EMPTY(thisform.ObjCntPage.TxtNroRef.Value)
+		*!*				KEYBOARD '{END}'+'{ENTER}'
+					KEYBOARD '{ENTER}'
+		*!*			ENDIF
 			ELSE
 
 			ENDIF
@@ -3789,15 +3940,15 @@ ENDDEFINE
 *-- Class:        cntpage_ventas (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_container (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    container
-*-- Time Stamp:   08/22/18 11:53:10 PM
+*-- Time Stamp:   09/11/24 08:13:07 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
 DEFINE CLASS cntpage_ventas AS base_container
 
 
-	Width = 700
-	Height = 147
+	Width = 699
+	Height = 181
 	TabIndex = 3
 	*-- Cursor con datos de validacion del cliente
 	c_validcliente = (SYS(2015))
@@ -3805,14 +3956,14 @@ DEFINE CLASS cntpage_ventas AS base_container
 	c_validnroref = (SYS(2015))
 	*-- Cursor de validacion del pedido
 	c_validpedido = (SYS(2015))
-	r_height = 144
+	r_height = 182
 	r_left = 4
 	r_top = 24
 	r_width = 694
 	Name = "cntpage_ventas"
-	shpBorde.Top = 2
+	shpBorde.Top = 0
 	shpBorde.Left = 0
-	shpBorde.Height = 146
+	shpBorde.Height = 180
 	shpBorde.Width = 700
 	shpBorde.BorderStyle = 1
 	shpBorde.BorderWidth = 1
@@ -3830,9 +3981,9 @@ DEFINE CLASS cntpage_ventas AS base_container
 		ColumnCount = 2, ;
 		Enabled = .F., ;
 		Height = 20, ;
-		Left = 264, ;
+		Left = 287, ;
 		TabIndex = 4, ;
-		Top = 67, ;
+		Top = 69, ;
 		Width = 104, ;
 		ZOrderSet = 1, ;
 		BackColor = RGB(230,255,255), ;
@@ -3928,7 +4079,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Left = 671, ;
 		MaxLength = 10, ;
 		TabIndex = 28, ;
-		Top = 148, ;
+		Top = 198, ;
 		Visible = .F., ;
 		Width = 13, ;
 		ZOrderSet = 7, ;
@@ -3941,8 +4092,8 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Anchor = 9, ;
 		Caption = "VCTO.", ;
 		Height = 13, ;
-		Left = 381, ;
-		Top = 69, ;
+		Left = 404, ;
+		Top = 71, ;
 		Visible = .F., ;
 		Width = 37, ;
 		TabIndex = 36, ;
@@ -3956,8 +4107,8 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Anchor = 9, ;
 		Caption = "DIAS", ;
 		Height = 13, ;
-		Left = 482, ;
-		Top = 70, ;
+		Left = 505, ;
+		Top = 72, ;
 		Visible = .F., ;
 		Width = 30, ;
 		TabIndex = 37, ;
@@ -4012,8 +4163,8 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Anchor = 9, ;
 		Caption = "FORMA PAGO", ;
 		Height = 13, ;
-		Left = 191, ;
-		Top = 70, ;
+		Left = 214, ;
+		Top = 72, ;
 		Visible = .F., ;
 		Width = 72, ;
 		TabIndex = 41, ;
@@ -4026,7 +4177,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Caption = "Condiciones de pago", ;
 		Height = 16, ;
 		Left = 564, ;
-		Top = 153, ;
+		Top = 203, ;
 		Visible = .F., ;
 		Width = 103, ;
 		TabIndex = 47, ;
@@ -4040,9 +4191,9 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Enabled = .F., ;
 		Height = 20, ;
 		InputMask = "999", ;
-		Left = 417, ;
+		Left = 440, ;
 		TabIndex = 26, ;
-		Top = 67, ;
+		Top = 69, ;
 		Width = 60, ;
 		ZOrderSet = 14, ;
 		Name = "SpnDiaVto"
@@ -4103,7 +4254,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 		TabIndex = 5, ;
 		Top = 67, ;
 		Visible = .F., ;
-		Width = 86, ;
+		Width = 107, ;
 		ZOrderSet = 18, ;
 		Name = "TxtNroref"
 
@@ -4129,7 +4280,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 		FontSize = 8, ;
 		Anchor = 9, ;
 		Caption = "TIPO CAMBIO", ;
-		Left = 185, ;
+		Left = 208, ;
 		Top = 49, ;
 		Visible = .F., ;
 		TabIndex = 31, ;
@@ -4144,7 +4295,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Enabled = .F., ;
 		Height = 20, ;
 		InputMask = "99.9999", ;
-		Left = 264, ;
+		Left = 287, ;
 		TabIndex = 2, ;
 		Top = 46, ;
 		Width = 52, ;
@@ -4157,7 +4308,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 		FontSize = 8, ;
 		Anchor = 9, ;
 		Caption = "MONEDA", ;
-		Left = 322, ;
+		Left = 345, ;
 		Top = 49, ;
 		Visible = .F., ;
 		TabIndex = 32, ;
@@ -4174,7 +4325,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Value = 1, ;
 		Enabled = .F., ;
 		Height = 20, ;
-		Left = 371, ;
+		Left = 394, ;
 		TabIndex = 3, ;
 		Top = 45, ;
 		Width = 49, ;
@@ -4184,7 +4335,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 	ADD OBJECT cmdhelpnroped AS base_cmdhelp_multiselect WITH ;
 		Top = 88, ;
-		Left = 150, ;
+		Left = 155, ;
 		Height = 18, ;
 		Width = 24, ;
 		Anchor = 0, ;
@@ -4216,7 +4367,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 	ADD OBJECT cmdhelpnroref AS base_cmdhelp WITH ;
 		Top = 68, ;
-		Left = 151, ;
+		Left = 168, ;
 		Height = 18, ;
 		Width = 24, ;
 		Anchor = 0, ;
@@ -4438,8 +4589,8 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT cmdfmapgo AS base_cmdhelp WITH ;
-		Top = 67, ;
-		Left = 346, ;
+		Top = 69, ;
+		Left = 369, ;
 		Height = 21, ;
 		Width = 28, ;
 		FontName = "Lucida Console", ;
@@ -4495,7 +4646,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkcertificado AS base_checkbox WITH ;
-		Top = 99, ;
+		Top = 131, ;
 		Left = 182, ;
 		Height = 12, ;
 		Width = 98, ;
@@ -4507,7 +4658,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkdesarrollo AS base_checkbox WITH ;
-		Top = 114, ;
+		Top = 146, ;
 		Left = 181, ;
 		Height = 12, ;
 		Width = 95, ;
@@ -4519,7 +4670,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkinfotec AS base_checkbox WITH ;
-		Top = 124, ;
+		Top = 156, ;
 		Left = 180, ;
 		Height = 24, ;
 		Width = 96, ;
@@ -4531,7 +4682,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkmuestra AS base_checkbox WITH ;
-		Top = 95, ;
+		Top = 127, ;
 		Left = 282, ;
 		Height = 24, ;
 		Width = 77, ;
@@ -4543,7 +4694,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkaplicacion AS base_checkbox WITH ;
-		Top = 115, ;
+		Top = 147, ;
 		Left = 282, ;
 		Height = 12, ;
 		Width = 101, ;
@@ -4555,7 +4706,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkproduccion AS base_checkbox WITH ;
-		Top = 130, ;
+		Top = 162, ;
 		Left = 282, ;
 		Height = 12, ;
 		Width = 113, ;
@@ -4567,7 +4718,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkvobo1 AS base_checkbox WITH ;
-		Top = 115, ;
+		Top = 147, ;
 		Left = 378, ;
 		Height = 12, ;
 		Width = 123, ;
@@ -4579,7 +4730,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	ADD OBJECT chkvobo2 AS base_checkbox WITH ;
-		Top = 130, ;
+		Top = 162, ;
 		Left = 377, ;
 		Height = 12, ;
 		Width = 147, ;
@@ -4588,6 +4739,49 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Caption = "Vo Bo Ger. Tecnica", ;
 		TabIndex = 16, ;
 		Name = "ChkVoBo2"
+
+
+	PROCEDURE cargarcuotas
+		PARAMETERS PcTpoRef,PcCodRef,PcNroRef
+		*!*	IF !THIS.CboFmaPgo.Value  = 'CUOTA'
+		*!*		RETURN 
+		*!*	ENDIF
+		THIS.GrdCuotas.RecordSource		= ''
+		THIS.GrdCuotas.RecordSourceType	= 4
+
+		LcArcTmp=GoEntorno.TmpPath+Sys(3)
+		LsAliasTemp =  'CuotasFactTmp'
+		IF !USED(LsAliasTemp)
+			CREATE TABLE  (LcArcTmp)  FREE (NroCta c(2) , Import n(10,2), FchFac D , FchCob D,CodRef C(4),NroRef C(10),Selec L ,NroDoc C(10))
+			USE (LcArcTmp) EXCLUSIVE ALIAS (LsAliasTemp)
+		ELSE
+			SELECT  (LsAliasTemp)
+			DELETE ALL IN (LsAliasTemp)
+			PACK
+		ENDIF
+		IF !USED('RCUO')
+			goentorno.open_dbf1('ABRIR','VTARCUOT','RCUO','FACT','')
+		ENDIF
+		SELECT RCUO
+		SET ORDER TO FACT
+		SEEK PcTpoRef+PcCodRef+PcNroRef
+		SCAN  WHILE TpoRef+CodRef+NroRef =  PcTpoRef+PcCodRef+PcNroRef 
+		*!*		IF !EMPTY(CodRef) AND !EMPTY(NroRef)
+		*!*			REPLACE Selec WITH .F.
+		*!*		ENDIF
+			SCATTER MEMVAR 
+			m.Selec = .F.
+			SELECT (LsAliasTemp)
+			APPEND BLANK
+			GATHER MEMVAR 
+			SELECT RCUO
+		ENDSCAN
+		SELECT (LsAliasTemp)
+		LOCATE 
+		THIS.GrdCuotas.RecordSourceType	=	 1
+		THIS.GrdCuotas.RecordSource		=	 LsAliasTemp
+		THISFORM.ObjRefTran.cCurCuotas			= THIS.GrdCuotas.RecordSource 
+	ENDPROC
 
 
 	PROCEDURE limpiar_var
@@ -4669,7 +4863,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 				this.chkInfoTec.Visible = .F. 
 				this.chkMuestra.Visible = .F.
 				this.chkproduccion.Visible = .F.
-				this.chkretencion.Visible = .F.
+		*!*			this.chkretencion.Visible = .F.
 				this.chkvobo1.Visible = .F.
 				this.chkvoBo2.Visible = .F.
 		*!*			this.CmdHelpNroPed.Visible = .F.
@@ -4815,6 +5009,11 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 
 	PROCEDURE cbofmapgo.Valid
+		IF !thisform.lcargado OR !USED(this.caliascursor)
+			RETURN
+		ENDIF
+
+
 		LsValorCampo = EVALUATE(this.caliascursor+'.'+this.ccamporetorno)
 		LnOk= thisform.ObjRefTran.odatadm.gencursor('C_FMAPGO_ACT',this.cnombreentidad,'',this.ccamposfiltro+'+'+this.ccamporetorno ,this.cvaloresfiltro+LsValorCampo  )
 		IF LnOk>0
@@ -4941,7 +5140,6 @@ DEFINE CLASS cntpage_ventas AS base_container
 
 	PROCEDURE txtnroref.Valid
 		thisform.Objreftran.XsNroRef = this.value
-
 		DO CASE 
 			CASE	thisform.ObjRefTran.XnTpofac = 3  && UNA GUIA
 				IF EMPTY(this.Value)
@@ -5153,8 +5351,9 @@ DEFINE CLASS cntpage_ventas AS base_container
 			USE (this.PARENT.Cnombreentidad) again IN 0
 		ENDIF
 		LOCAL lExisteClie
-		SELECT (this.PARENT.Cnombreentidad)
+		SELECT (This.PARENT.Cnombreentidad)
 		LOCATE FOR CodAux=THIS.VAlue
+		lExisteClie = FOUND()
 		**lExisteClie=SEEK(THIS.Value,this.PARENT.Cnombreentidad,'CLIEN01')
 		LsCmpCodVen=This.Parent.cNombreentidad+'.CoDVen'
 		LsCmpCodMon=This.Parent.cNombreentidad+'.Fac_CoDMon'
@@ -5167,8 +5366,12 @@ DEFINE CLASS cntpage_ventas AS base_container
 			LsCndPgo =  IIF(!EMPTY(.CboFmaPgo.Value),.CboFmaPgo.Value,GoCfgVta.XsCndPgo)
 			IF Thisform.xReturn='I'
 				WITH Thisform.objcntcab
-					.CboCodVen.Value = EVALUATE(LsCmpCodVen)
-					.CboCodVen.Valid
+					** VETT: preservar el vendedor si no esta vacio IDUPD:865365217-11/09/2024 08:12 PM
+					IF EMPTY(.CboCodVen.Value)
+						.CboCodVen.Value = EVALUATE(LsCmpCodVen)
+						.CboCodVen.Valid
+					ENDIF
+					** VETT: [FIN] IDUPD:865365217-11/09/2024 08:12 PM
 				ENDWITH
 				IF VerifyVar('Fac_CodMon','','CAMPO',This.Parent.cNombreentidad)
 					.CboCodMon.Value		=	IIF(EVALUATE(LsCmpCodMon)>0,EVALUATE(LsCmpCodMon),LnCodMon)
@@ -5179,7 +5382,6 @@ DEFINE CLASS cntpage_ventas AS base_container
 			ENDIF
 		ENDWITH 
 
-		lExisteClie = FOUND()
 		IF lExisteClie
 			LsValorFiltro=This.Parent.cNombreentidad+'.CoDcli' 
 			this.Parent.Parent.cboCodDire.cValoresfiltro = EVALUATE(LsValorFiltro)
@@ -5216,7 +5418,7 @@ DEFINE CLASS cntpage_ventas AS base_container
 			thisform.MensajeErr(m.err)
 			RETURN .f.
 		ENDIF
-		thisform.ObjRefTran.XsCodCli = this.Value 
+		thisform.ObjRefTran.XsCodCli = this.Value
 		thisform.ObjRefTran.XlRete	 = 	EVALUATE(this.PARENT.parent.C_validCliente+'.Rete')
 		*this.parent.txtdirAux.value=EVALUATE(this.PARENT.c_validCliente+'.DesDire')
 		this.PARENT.parent.txtrucAux.Value=EVALUATE(this.PARENT.parent.C_validCliente+'.NroRuc')
@@ -5261,6 +5463,904 @@ DEFINE CLASS cntpage_ventas AS base_container
 ENDDEFINE
 *
 *-- EndDefine: cntpage_ventas
+**************************************************
+
+
+**************************************************
+*-- Class:        cntpage_ventas_fact (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- ParentClass:  cntpage_ventas (k:\aplvfp\classgen\vcxs\admvrs.vcx)
+*-- BaseClass:    container
+*-- Time Stamp:   10/24/24 05:31:00 PM
+*
+DEFINE CLASS cntpage_ventas_fact AS cntpage_ventas
+
+
+	Width = 760
+	Height = 209
+	*-- Variable de memoria para controlar variación del PorDETR
+	bfpordetr = 0
+	*-- Variable para controlar variacion de cantidad de cuotas
+	bfn_cuotas = 0
+	r_height = 210
+	r_top = 25
+	r_width = 760
+	r_left = 2
+	Name = "cntpage_ventas_fact"
+	shpBorde.Top = 5
+	shpBorde.Left = 2
+	shpBorde.Height = 202
+	shpBorde.Width = 755
+	shpBorde.ZOrderSet = 1
+	shpBorde.Name = "shpBorde"
+	CboFmaPgo.Left = 315
+	CboFmaPgo.TabIndex = 7
+	CboFmaPgo.Top = 70
+	CboFmaPgo.ZOrderSet = 2
+	CboFmaPgo.Name = "CboFmaPgo"
+	LblNroPed.Left = 34
+	LblNroPed.Top = 93
+	LblNroPed.TabIndex = 39
+	LblNroPed.ZOrderSet = 3
+	LblNroPed.Name = "LblNroPed"
+	LblFchPed.Left = 9
+	LblFchPed.Top = 110
+	LblFchPed.TabIndex = 40
+	LblFchPed.ZOrderSet = 4
+	LblFchPed.Name = "LblFchPed"
+	LblNroO_C.Left = 254
+	LblNroO_C.Top = 125
+	LblNroO_C.TabIndex = 41
+	LblNroO_C.ZOrderSet = 5
+	LblNroO_C.Name = "LblNroO_C"
+	TxtNroPed.Left = 82
+	TxtNroPed.TabIndex = 10
+	TxtNroPed.Top = 88
+	TxtNroPed.ZOrderSet = 6
+	TxtNroPed.Name = "TxtNroPed"
+	TxtNroO_C.Left = 316
+	TxtNroO_C.TabIndex = 18
+	TxtNroO_C.Top = 116
+	TxtNroO_C.ZOrderSet = 7
+	TxtNroO_C.Name = "TxtNroO_C"
+	TxtCndPgo.Left = 663
+	TxtCndPgo.TabIndex = 36
+	TxtCndPgo.Top = 257
+	TxtCndPgo.ZOrderSet = 8
+	TxtCndPgo.Name = "TxtCndPgo"
+	LblDiaVto.Left = 381
+	LblDiaVto.Top = 99
+	LblDiaVto.TabIndex = 43
+	LblDiaVto.ZOrderSet = 9
+	LblDiaVto.Name = "LblDiaVto"
+	TxtFchPed.Left = 82
+	TxtFchPed.TabIndex = 12
+	TxtFchPed.Top = 107
+	TxtFchPed.ZOrderSet = 11
+	TxtFchPed.Name = "TxtFchPed"
+	TxtFchO_C.Left = 316
+	TxtFchO_C.TabIndex = 19
+	TxtFchO_C.Top = 138
+	TxtFchO_C.ZOrderSet = 12
+	TxtFchO_C.Name = "TxtFchO_C"
+	LblFchO_C.Caption = "FECHA O/C"
+	LblFchO_C.Left = 247
+	LblFchO_C.Top = 145
+	LblFchO_C.TabIndex = 34
+	LblFchO_C.ZOrderSet = 13
+	LblFchO_C.Name = "LblFchO_C"
+	LblFmaPgo.Left = 240
+	LblFmaPgo.Top = 77
+	LblFmaPgo.TabIndex = 47
+	LblFmaPgo.ZOrderSet = 14
+	LblFmaPgo.Name = "LblFmaPgo"
+	LblCndPgo.Left = 556
+	LblCndPgo.Top = 262
+	LblCndPgo.TabIndex = 53
+	LblCndPgo.ZOrderSet = 16
+	LblCndPgo.Name = "LblCndPgo"
+	SpnDiaVto.Left = 315
+	SpnDiaVto.TabIndex = 35
+	SpnDiaVto.Top = 92
+	SpnDiaVto.ZOrderSet = 17
+	SpnDiaVto.Name = "SpnDiaVto"
+	LblRucAux.Caption = "RUC"
+	LblRucAux.Left = 55
+	LblRucAux.Top = 50
+	LblRucAux.TabIndex = 45
+	LblRucAux.ZOrderSet = 18
+	LblRucAux.Name = "LblRucAux"
+	TxtRucAux.Left = 82
+	TxtRucAux.TabIndex = 4
+	TxtRucAux.Top = 46
+	TxtRucAux.ZOrderSet = 19
+	TxtRucAux.Name = "TxtRucAux"
+	LblDirAux.Left = 35
+	LblDirAux.Top = 31
+	LblDirAux.TabIndex = 52
+	LblDirAux.ZOrderSet = 20
+	LblDirAux.Name = "LblDirAux"
+	TxtNroref.Left = 82
+	TxtNroref.TabIndex = 8
+	TxtNroref.Top = 67
+	TxtNroref.ZOrderSet = 21
+	TxtNroref.Name = "TxtNroref"
+	LblNroRef.Left = 20
+	LblNroRef.Top = 64
+	LblNroRef.TabIndex = 44
+	LblNroRef.ZOrderSet = 22
+	LblNroRef.Name = "LblNroRef"
+	LblTpoCmb.Left = 233
+	LblTpoCmb.Top = 49
+	LblTpoCmb.TabIndex = 37
+	LblTpoCmb.ZOrderSet = 23
+	LblTpoCmb.Name = "LblTpoCmb"
+	TxtTpoCmb.Left = 315
+	TxtTpoCmb.TabIndex = 5
+	TxtTpoCmb.Top = 46
+	TxtTpoCmb.ZOrderSet = 24
+	TxtTpoCmb.Name = "TxtTpoCmb"
+	LblCodMon.Left = 373
+	LblCodMon.Top = 49
+	LblCodMon.TabIndex = 38
+	LblCodMon.ZOrderSet = 25
+	LblCodMon.Name = "LblCodMon"
+	CboCodMon.Left = 422
+	CboCodMon.TabIndex = 6
+	CboCodMon.Top = 45
+	CboCodMon.ZOrderSet = 26
+	CboCodMon.Name = "CboCodMon"
+	LblTpoVta.Left = 629
+	LblTpoVta.Top = 27
+	LblTpoVta.TabIndex = 49
+	LblTpoVta.ZOrderSet = 27
+	LblTpoVta.Name = "LblTpoVta"
+	CmdHelpNroRef.Top = 68
+	CmdHelpNroRef.Left = 192
+	CmdHelpNroRef.TabIndex = 9
+	CmdHelpNroRef.ZOrderSet = 28
+	CmdHelpNroRef.Name = "CmdHelpNroRef"
+	LblDestino.Left = 613
+	LblDestino.Top = 48
+	LblDestino.TabIndex = 50
+	LblDestino.ZOrderSet = 30
+	LblDestino.Name = "LblDestino"
+	CboTpoVTa.Left = 651
+	CboTpoVTa.TabIndex = 31
+	CboTpoVTa.Top = 24
+	CboTpoVTa.ZOrderSet = 31
+	CboTpoVTa.Name = "CboTpoVTa"
+	CboDestino.Left = 651
+	CboDestino.TabIndex = 3
+	CboDestino.Top = 45
+	CboDestino.ZOrderSet = 34
+	CboDestino.Name = "CboDestino"
+	CboVia.Left = 45
+	CboVia.TabIndex = 32
+	CboVia.Top = 233
+	CboVia.ZOrderSet = 35
+	CboVia.Name = "CboVia"
+	CboCodVia.Left = 598
+	CboCodVia.TabIndex = 33
+	CboCodVia.Top = 238
+	CboCodVia.ZOrderSet = 36
+	CboCodVia.Name = "CboCodVia"
+	CboRuta.Left = 44
+	CboRuta.TabIndex = 22
+	CboRuta.Top = 256
+	CboRuta.ZOrderSet = 37
+	CboRuta.Name = "CboRuta"
+	CboCodDire.Left = 82
+	CboCodDire.TabIndex = 2
+	CboCodDire.Top = 26
+	CboCodDire.ZOrderSet = 38
+	CboCodDire.Name = "CboCodDire"
+	LblVia.Left = 27
+	LblVia.Top = 237
+	LblVia.TabIndex = 51
+	LblVia.ZOrderSet = 39
+	LblVia.Name = "LblVia"
+	ChkRetencion.Top = 2
+	ChkRetencion.Left = 605
+	ChkRetencion.Alignment = 0
+	ChkRetencion.TabIndex = 17
+	ChkRetencion.ZOrderSet = 40
+	ChkRetencion.Name = "ChkRetencion"
+	LblCodVia.Left = 543
+	LblCodVia.Top = 240
+	LblCodVia.TabIndex = 48
+	LblCodVia.ZOrderSet = 41
+	LblCodVia.Name = "LblCodVia"
+	LblRuta.Left = 9
+	LblRuta.Top = 260
+	LblRuta.TabIndex = 46
+	LblRuta.ZOrderSet = 42
+	LblRuta.Name = "LblRuta"
+	CmdFmaPgo.Top = 69
+	CmdFmaPgo.Left = 397
+	CmdFmaPgo.TabIndex = 54
+	CmdFmaPgo.ZOrderSet = 43
+	CmdFmaPgo.Name = "CmdFmaPgo"
+	CntCodCli.TxtCodigo.Left = 64
+	CntCodCli.TxtCodigo.Top = 0
+	CntCodCli.TxtCodigo.Name = "TxtCodigo"
+	CntCodCli.cmdHelp.Top = 0
+	CntCodCli.cmdHelp.Left = 165
+	CntCodCli.cmdHelp.Name = "cmdHelp"
+	CntCodCli.txtDescripcion.Left = 189
+	CntCodCli.txtDescripcion.Top = 0
+	CntCodCli.txtDescripcion.Width = 356
+	CntCodCli.txtDescripcion.Name = "txtDescripcion"
+	CntCodCli.lblCaption.Left = 9
+	CntCodCli.lblCaption.Top = 3
+	CntCodCli.lblCaption.Name = "lblCaption"
+	CntCodCli.Top = 5
+	CntCodCli.Left = 18
+	CntCodCli.Width = 550
+	CntCodCli.TabIndex = 1
+	CntCodCli.ZOrderSet = 44
+	CntCodCli.Name = "CntCodCli"
+	Base_label1.Left = 275
+	Base_label1.Top = 99
+	Base_label1.TabIndex = 42
+	Base_label1.ZOrderSet = 45
+	Base_label1.Name = "Base_label1"
+	CmdHelpNroPed.Top = 88
+	CmdHelpNroPed.Left = 170
+	CmdHelpNroPed.TabIndex = 11
+	CmdHelpNroPed.ZOrderSet = 46
+	CmdHelpNroPed.Name = "CmdHelpNroPed"
+	ChkCertificado.Top = 233
+	ChkCertificado.Left = 185
+	ChkCertificado.Alignment = 0
+	ChkCertificado.Enabled = .F.
+	ChkCertificado.TabIndex = 23
+	ChkCertificado.Visible = .F.
+	ChkCertificado.ZOrderSet = 47
+	ChkCertificado.Name = "ChkCertificado"
+	ChkDesarrollo.Top = 248
+	ChkDesarrollo.Left = 184
+	ChkDesarrollo.Alignment = 0
+	ChkDesarrollo.Enabled = .F.
+	ChkDesarrollo.TabIndex = 25
+	ChkDesarrollo.Visible = .F.
+	ChkDesarrollo.ZOrderSet = 48
+	ChkDesarrollo.Name = "ChkDesarrollo"
+	CHkInfoTec.Top = 258
+	CHkInfoTec.Left = 183
+	CHkInfoTec.Alignment = 0
+	CHkInfoTec.Enabled = .F.
+	CHkInfoTec.TabIndex = 28
+	CHkInfoTec.Visible = .F.
+	CHkInfoTec.ZOrderSet = 49
+	CHkInfoTec.Name = "CHkInfoTec"
+	ChkMuestra.Top = 229
+	ChkMuestra.Left = 285
+	ChkMuestra.Alignment = 0
+	ChkMuestra.Enabled = .F.
+	ChkMuestra.TabIndex = 24
+	ChkMuestra.Visible = .F.
+	ChkMuestra.ZOrderSet = 50
+	ChkMuestra.Name = "ChkMuestra"
+	ChkAplicacion.Top = 249
+	ChkAplicacion.Left = 285
+	ChkAplicacion.Alignment = 0
+	ChkAplicacion.Enabled = .F.
+	ChkAplicacion.TabIndex = 26
+	ChkAplicacion.Visible = .F.
+	ChkAplicacion.ZOrderSet = 51
+	ChkAplicacion.Name = "ChkAplicacion"
+	ChkProduccion.Top = 264
+	ChkProduccion.Left = 285
+	ChkProduccion.Alignment = 0
+	ChkProduccion.Enabled = .F.
+	ChkProduccion.TabIndex = 29
+	ChkProduccion.Visible = .F.
+	ChkProduccion.ZOrderSet = 52
+	ChkProduccion.Name = "ChkProduccion"
+	ChkVobo1.Top = 249
+	ChkVobo1.Left = 381
+	ChkVobo1.Alignment = 0
+	ChkVobo1.Enabled = .F.
+	ChkVobo1.TabIndex = 27
+	ChkVobo1.Visible = .F.
+	ChkVobo1.ZOrderSet = 53
+	ChkVobo1.Name = "ChkVobo1"
+	ChkVoBo2.Top = 264
+	ChkVoBo2.Left = 380
+	ChkVoBo2.Alignment = 0
+	ChkVoBo2.Enabled = .F.
+	ChkVoBo2.TabIndex = 30
+	ChkVoBo2.Visible = .F.
+	ChkVoBo2.ZOrderSet = 54
+	ChkVoBo2.Name = "ChkVoBo2"
+
+
+	ADD OBJECT lblcuotas AS base_label WITH ;
+		FontName = "Arial", ;
+		FontSize = 9, ;
+		Caption = "Cuotas", ;
+		Height = 17, ;
+		Left = 489, ;
+		Top = 75, ;
+		Visible = .F., ;
+		Width = 42, ;
+		TabIndex = 57, ;
+		ZOrderSet = 10, ;
+		Name = "LblCuotas"
+
+
+	ADD OBJECT spnn_cuotas AS base_spinner_numero WITH ;
+		FontName = "Arial", ;
+		FontSize = 9, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999", ;
+		Left = 535, ;
+		TabIndex = 13, ;
+		Top = 69, ;
+		Visible = .F., ;
+		Width = 52, ;
+		ZOrderSet = 15, ;
+		Name = "SpnN_Cuotas"
+
+
+	ADD OBJECT txtpordetr AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999.99", ;
+		Left = 107, ;
+		TabIndex = 15, ;
+		Top = 139, ;
+		Width = 45, ;
+		ZOrderSet = 29, ;
+		Name = "txtPorDETR"
+
+
+	ADD OBJECT base_label2 AS base_label WITH ;
+		FontName = "Arial", ;
+		FontSize = 9, ;
+		Anchor = 0, ;
+		WordWrap = .F., ;
+		Caption = "% detracción", ;
+		Height = 17, ;
+		Left = 31, ;
+		Top = 142, ;
+		Visible = .T., ;
+		Width = 73, ;
+		TabIndex = 56, ;
+		ZOrderSet = 32, ;
+		Name = "Base_label2"
+
+
+	ADD OBJECT lblimpdetr AS base_label WITH ;
+		FontName = "Arial", ;
+		FontSize = 9, ;
+		Anchor = 0, ;
+		WordWrap = .F., ;
+		Caption = "Monto detracción", ;
+		Height = 17, ;
+		Left = 10, ;
+		Top = 165, ;
+		Visible = .T., ;
+		Width = 95, ;
+		TabIndex = 55, ;
+		ZOrderSet = 33, ;
+		Name = "LblImpDETR"
+
+
+	ADD OBJECT grdcuotas AS base_grid WITH ;
+		ColumnCount = 4, ;
+		FontSize = 9, ;
+		Anchor = 261, ;
+		AllowAddNew = .F., ;
+		HeaderHeight = 20, ;
+		Height = 86, ;
+		Left = 489, ;
+		Panel = 1, ;
+		RowHeight = 18, ;
+		ScrollBars = 2, ;
+		TabIndex = 14, ;
+		Top = 91, ;
+		Visible = .T., ;
+		Width = 263, ;
+		ZOrderSet = 55, ;
+		Themes = .F., ;
+		usarforbackcolorcolumnas = .T., ;
+		Name = "GrdCuotas", ;
+		Column1.FontSize = 9, ;
+		Column1.Width = 19, ;
+		Column1.ReadOnly = .T., ;
+		Column1.Visible = .T., ;
+		Column1.Name = "Column1", ;
+		Column2.FontSize = 9, ;
+		Column2.Width = 63, ;
+		Column2.ReadOnly = .F., ;
+		Column2.Sparse = .F., ;
+		Column2.Visible = .T., ;
+		Column2.Name = "Column2", ;
+		Column3.FontSize = 9, ;
+		Column3.CurrentControl = "TxtFchFac", ;
+		Column3.Width = 70, ;
+		Column3.Visible = .T., ;
+		Column3.Name = "Column3", ;
+		Column4.FontSize = 9, ;
+		Column4.CurrentControl = "TxtFchCob", ;
+		Column4.Width = 74, ;
+		Column4.Visible = .T., ;
+		Column4.Name = "Column4"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column1.header1 AS header WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Alignment = 6, ;
+		Caption = "#", ;
+		BackColor = RGB(106,155,227), ;
+		Name = "Header1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column1.text1 AS textbox WITH ;
+		FontSize = 9, ;
+		BorderStyle = 0, ;
+		Margin = 0, ;
+		ReadOnly = .T., ;
+		Visible = .T., ;
+		ForeColor = RGB(0,0,0), ;
+		BackColor = RGB(255,255,255), ;
+		Name = "Text1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column2.header1 AS header WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Alignment = 2, ;
+		Caption = "Monto", ;
+		ForeColor = RGB(0,0,0), ;
+		BackColor = RGB(106,155,227), ;
+		WordWrap = .T., ;
+		Name = "Header1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column2.text1 AS textbox WITH ;
+		FontSize = 9, ;
+		BorderStyle = 0, ;
+		Margin = 0, ;
+		ReadOnly = .F., ;
+		Visible = .T., ;
+		ForeColor = RGB(0,0,0), ;
+		BackColor = RGB(255,255,255), ;
+		Name = "Text1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column3.header1 AS header WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Alignment = 2, ;
+		Caption = "Fec. Fact.", ;
+		BackColor = RGB(106,155,227), ;
+		WordWrap = .T., ;
+		Name = "Header1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column3.text1 AS textbox WITH ;
+		FontSize = 9, ;
+		BorderStyle = 0, ;
+		Margin = 0, ;
+		ForeColor = RGB(0,0,0), ;
+		BackColor = RGB(255,255,255), ;
+		Name = "Text1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column3.txtfchfac AS base_textbox_fecha WITH ;
+		Left = 26, ;
+		Top = 40, ;
+		Name = "TxtFchFac"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column4.header1 AS header WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Alignment = 2, ;
+		Caption = "Fec. Venc.", ;
+		BackColor = RGB(106,155,227), ;
+		WordWrap = .T., ;
+		Name = "Header1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column4.text1 AS textbox WITH ;
+		FontSize = 9, ;
+		BorderStyle = 0, ;
+		Margin = 0, ;
+		ForeColor = RGB(0,0,0), ;
+		BackColor = RGB(255,255,255), ;
+		Name = "Text1"
+
+
+	ADD OBJECT cntpage_ventas_fact.grdcuotas.column4.txtfchcob AS base_textbox_fecha WITH ;
+		Left = 39, ;
+		Top = 40, ;
+		Name = "TxtFchCob"
+
+
+	ADD OBJECT txttotcuotas AS base_textbox_numero WITH ;
+		Enabled = .F., ;
+		Height = 22, ;
+		Left = 491, ;
+		ReadOnly = .T., ;
+		TabIndex = 20, ;
+		Top = 179, ;
+		Width = 108, ;
+		ForeColor = RGB(0,0,255), ;
+		DisabledForeColor = RGB(0,0,255), ;
+		ZOrderSet = 56, ;
+		Name = "TxtTotCuotas"
+
+
+	ADD OBJECT txtimpdetr AS base_textbox_numero WITH ;
+		Enabled = .F., ;
+		Height = 20, ;
+		Left = 107, ;
+		ReadOnly = .T., ;
+		TabIndex = 16, ;
+		Top = 160, ;
+		Width = 97, ;
+		ZOrderSet = 57, ;
+		Name = "TxtImpDETR"
+
+
+	ADD OBJECT cntbienservdetr AS base_textbox_cmdhelp WITH ;
+		Anchor = 0, ;
+		Top = 182, ;
+		Left = 9, ;
+		Width = 464, ;
+		Height = 20, ;
+		Enabled = .F., ;
+		Visible = .T., ;
+		TabIndex = 21, ;
+		ZOrderSet = 58, ;
+		cetiqueta = ("Cod. Bien/Serv"), ;
+		cnombreentidad = "Cbdmtabl", ;
+		ccamporetorno = "Codigo", ;
+		ccampovisualizacion = "Nombre", ;
+		ccamposfiltro = "Tabla", ;
+		cvaloresfiltro = (GsTbDETR), ;
+		leditdescripcion = .T., ;
+		Name = "CntBienServDETR", ;
+		txtCodigo.Height = 20, ;
+		txtCodigo.Left = 97, ;
+		txtCodigo.Top = 0, ;
+		txtCodigo.Width = 30, ;
+		txtCodigo.Name = "txtCodigo", ;
+		cmdHelp.Top = 0, ;
+		cmdHelp.Left = 127, ;
+		cmdHelp.Height = 20, ;
+		cmdHelp.Width = 28, ;
+		cmdHelp.corderby = ('1'), ;
+		cmdHelp.Name = "cmdHelp", ;
+		txtDescripcion.Height = 20, ;
+		txtDescripcion.Left = 155, ;
+		txtDescripcion.Top = 0, ;
+		txtDescripcion.Width = 304, ;
+		txtDescripcion.Name = "txtDescripcion", ;
+		lblCaption.FontSize = 9, ;
+		lblCaption.Caption = "Cod. Bien/Serv", ;
+		lblCaption.Left = 11, ;
+		lblCaption.Top = 4, ;
+		lblCaption.Name = "lblCaption"
+
+
+	ADD OBJECT txtimpadel AS base_textbox_numero WITH ;
+		Enabled = .F., ;
+		Height = 20, ;
+		Left = 259, ;
+		Top = 160, ;
+		Width = 63, ;
+		ZOrderSet = 59, ;
+		Name = "txtImpAdel"
+
+
+	ADD OBJECT base_label3 AS base_label WITH ;
+		Caption = "Adelanto", ;
+		Left = 207, ;
+		Top = 164, ;
+		ZOrderSet = 60, ;
+		Name = "Base_label3"
+
+
+	ADD OBJECT txtfchadel AS base_textbox_fecha WITH ;
+		Enabled = .F., ;
+		Height = 20, ;
+		Left = 369, ;
+		Top = 160, ;
+		Width = 77, ;
+		Name = "txtFchAdel"
+
+
+	ADD OBJECT base_label4 AS base_label WITH ;
+		Caption = "Fecha", ;
+		Left = 328, ;
+		Top = 164, ;
+		ZOrderSet = 61, ;
+		Name = "Base_label4"
+
+
+	*-- Generar el cursor con las cuotas especificadas
+	PROCEDURE generarcuotas
+		PARAMETERS PfImport,PnCuotas,PnDiaVto
+		IF VARTYPE(PfImport)<>"N"
+			PfImport = 0
+		ENDIF
+		IF VARTYPE(PnCuotas)<>"N"
+			PnCuotas = 0
+		ENDIF
+		IF VARTYPE(PnDiaVto)<>"N"
+			PnDiaVto = 0
+		ENDIF
+		THIS.GrdCuotas.RecordSource		= ''
+		THIS.GrdCuotas.RecordSourceType	= 4
+		*!*	IF PfImport<= 0 OR PnCuotas<= 0 OR PnDiaVto<= 0
+		*!*		IF !EMPTY(THISFORM.ObjRefTran.cCurCuotas) AND USED(THISFORM.ObjRefTran.cCurCuotas)
+		*!*			SELECT (THISFORM.ObjRefTran.cCurCuotas)
+		*!*			DELETE ALL IN (THISFORM.ObjRefTran.cCurCuotas)
+		*!*			PACK
+		*!*		ENDIF
+		*!*		RETURN 
+		*!*	ENDIF
+		*!*	IF PnCuotas<= 0
+		*!*		RETURN 
+		*!*	ENDIF
+		*!*	IF PnDiaVto<= 0
+		*!*		RETURN 
+		*!*	ENDIF
+
+
+		LcArcTmp=GoEntorno.TmpPath+Sys(3)
+		LsAliasTemp =  'CuotasTmp'
+		IF !USED(LsAliasTemp)
+			CREATE TABLE  (LcArcTmp)  FREE (NroCta c(2) , Import n(10,2), FchFac D , FchCob D)
+			USE (LcArcTmp) EXCLUSIVE ALIAS (LsAliasTemp)
+		ELSE
+			SELECT  (LsAliasTemp)
+			DELETE ALL IN (LsAliasTemp)
+			PACK
+		ENDIF
+
+		LnCuotas = PnCuotas 
+		IF LnCuotas <> 0
+			LfImpCta = ROUND(PfImport / LnCuotas,2)
+		ENDIF
+		XiVtoAct    = 0
+
+		LdFecha = this.Parent.TxtFchDoc.Value  
+
+		FOR K = 1 TO LnCuotas
+			XiVtoAct    = XiVtoAct    + PnDiaVto
+			APPEND BLANK
+			REPLACE NroCta	WITH	TRANSFORM(K,"@L 99")
+			REPLACE Import	WITH	LfImpCta
+			REPLACE FchFac	WITH	LdFecha
+			REPLACE FchCob	WITH	LdFecha + PnDiaVto
+			LdFecha = LdFecha + PnDiaVto + 1
+		ENDFOR
+		LOCATE 
+		THIS.GrdCuotas.RecordSourceType	=	 1
+		THIS.GrdCuotas.RecordSource		=	 LsAliasTemp
+		This.TxtTotCuotas.Value 			= 	PfImport
+		this.TxtTotCuotas.DisabledForeColor = RGB(0,0,255) 
+		THISFORM.ObjRefTran.cCurCuotas	= THIS.GrdCuotas.RecordSource 
+	ENDPROC
+
+
+	PROCEDURE habilita_controles_valores_iniciales
+		DODEFAULT()
+		This.TxtPorDETR.Value = Thisform.ObjRefTran.XfPorDETR
+	ENDPROC
+
+
+	PROCEDURE cargar_controles_modificar
+		IF VerifyVar('N_Cuotas','','CAMPO',THISFORM.cCursor_C)
+			THIS.SpnN_Cuotas.Value	=	EVALUATE(THISFORM.cCursor_C+'.N_Cuotas')
+		ENDIF
+		IF VerifyVar('PorDETR','','CAMPO',THISFORM.cCursor_C)
+			THIS.TxtPorDETR.Value	=	EVALUATE(THISFORM.cCursor_C+'.PorDETR')
+		ENDIF
+		IF VerifyVar('ImpDETR','','CAMPO',THISFORM.cCursor_C)
+			THIS.TxtImpDETR.Value	=	EVALUATE(THISFORM.cCursor_C+'.ImpDETR')
+		ENDIF
+		IF VerifyVar('CAT54DETR','','CAMPO',THISFORM.cCursor_C)
+			THIS.CntBienServDETR.Value	=	EVALUATE(THISFORM.cCursor_C+'.Cat54DETR')
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE cargarcuotas
+		PARAMETERS PcTpoRef,PcCodRef,PcNroRef
+		DODEFAULT(PcTpoRef,PcCodRef,PcNroRef)
+		SELECT SUM(import) as TotCuotas FROM (this.GrdCuotas.RecordSource) INTO CURSOR yCuotas1
+		LfTotCuotas = yCuotas1.TotCuotas
+		USE IN yCuotas1
+		This.TxtTotCuotas.Value =  LfTotCuotas
+	ENDPROC
+
+
+	PROCEDURE CboFmaPgo.Valid
+		IF !THISFORM.lcargado  
+			RETURN
+		ENDIF
+		DODEFAULT()
+		IF THIS.Parent.SpnDiaVto.Value>0 && Credito
+					THIS.Parent.SpnN_Cuotas.Visible = .T. 
+					THIS.Parent.SpnN_Cuotas.Enabled = .T.
+					THIS.Parent.LblCuotas.Visible = .T.
+		*!*				THIS.Parent.SpnN_Cuotas.Value  = 0 
+					THIS.Parent.GrdCuotas.Visible = .T.  
+					This.Parent.TxtTotCuotas.Visible	 = .T.	 
+		ELSE	&& Contado
+					THIS.Parent.SpnN_Cuotas.Visible = .F. 
+					THIS.Parent.SpnN_Cuotas.Enabled = .F.
+					THIS.Parent.LblCuotas.Visible = .F.
+					THIS.Parent.SpnN_Cuotas.Value  = 0 
+					THIS.Parent.GrdCuotas.Visible = .F.  
+					This.Parent.TxtTotCuotas.Visible	 = .F.
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE CboFmaPgo.InteractiveChange
+		IF !THISFORM.lcargado  
+			RETURN
+		ENDIF
+		this.Valid
+	ENDPROC
+
+
+	PROCEDURE CboFmaPgo.ProgrammaticChange
+		IF !THISFORM.lcargado  
+			RETURN
+		ENDIF
+		this.InteractiveChange
+	ENDPROC
+
+
+	PROCEDURE spnn_cuotas.InteractiveChange
+		DODEFAULT()
+
+		IF EMPTY(this.Value) AND This.Parent.SpnDiaVto.value >0 
+			this.BackColor = RGB(250, 88, 88)
+		ELSE 
+			this.BackColor = RGB(230,255,255)
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE spnn_cuotas.When
+		this.Parent.bfn_cuotas  = this.value
+	ENDPROC
+
+
+	PROCEDURE spnn_cuotas.LostFocus
+		thisform.lctipope2 = Thisform.xReturn
+	ENDPROC
+
+
+	PROCEDURE spnn_cuotas.Valid
+		This.Parent.Generarcuotas(this.Parent.Parent.TxtImpTot.Value  - This.Parent.TxtImpDETR.Value,This.Parent.SpnN_CUOTAS.Value,This.Parent.SpnDiaVto.Value ) 
+	ENDPROC
+
+
+	PROCEDURE spnn_cuotas.GotFocus
+		thisform.lctipope2 = Thisform.xReturn
+	ENDPROC
+
+
+	PROCEDURE spnn_cuotas.ProgrammaticChange
+		this.InteractiveChange
+	ENDPROC
+
+
+	PROCEDURE txtpordetr.When
+		this.parent.bfpordetr = this.value
+	ENDPROC
+
+
+	PROCEDURE txtpordetr.LostFocus
+		thisform.lctipope2 = Thisform.xReturn
+	ENDPROC
+
+
+	PROCEDURE txtpordetr.Valid
+		THISFORM.Calcular_Totales
+	ENDPROC
+
+
+	PROCEDURE txtpordetr.GotFocus
+		thisform.lctipope2 = Thisform.xReturn
+	ENDPROC
+
+
+	PROCEDURE text1.Valid
+		LOCAL LfTotCuotas 
+		SELECT (this.Parent.Parent.RecordSource)
+		LsNroCta= NroCta
+		LsTablCmp = this.Parent.Parent.RecordSource+'.Import'
+		**UPDATE (this.Parent.Parent.RecordSource )  SET Import = this.value WHERE NroCta=LsNroCta
+		REPLACE  Import WITH this.value
+		SELECT SUM(import) as TotCuotas FROM (this.Parent.Parent.RecordSource) INTO CURSOR yCuotas1
+		LfTotCuotas = yCuotas1.TotCuotas
+		This.Parent.Parent.Parent.TxtTotCuotas.Value =  LfTotCuotas
+		USE IN yCuotas1
+		SELECT (this.Parent.Parent.RecordSource)
+		LfImpDETR=This.Parent.Parent.Parent.TxtImpDETR.Value
+		IF this.Parent.Parent.Parent.Parent.TxtImpTot.Value - LfImpDETR <> LfTotCuotas
+			=MESSAGEBOX('El total de cuotas debe ser igual a '+TRANSFORM(this.Parent.Parent.Parent.Parent.TxtImpTot.Value - LfImpDETR,'999,999.99') ,48,'Atencion! / Warning!')
+			This.Parent.Parent.Parent.TxtTotCuotas.DisabledForeColor = RGB(255,0,0) 
+		ELSE
+			This.Parent.Parent.Parent.TxtTotCuotas.DisabledForeColor = RGB(0,0,255) 
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE cntbienservdetr.txtCodigo.Valid
+		DODEFAULT()
+
+		*!*	KEYBOARD '{TAB}' 
+	ENDPROC
+
+
+	PROCEDURE cntbienservdetr.txtCodigo.InteractiveChange
+		DODEFAULT()
+		** VETT: Pendiente: esto debe ir en la clase base del control ya sea de texto, combo, spn, radio, etc y segun si esta configurado como campo obligatorio IDUPD:559596917-18/01/2024 07:29 AM
+		IF EMPTY(this.Value) AND This.Parent.Parent.TXTImpDETR.Value >0 
+			this.BackColor = RGB(250, 88, 88)
+		ELSE 
+			this.BackColor = RGB(230,255,255)
+		ENDIF
+		** VETT:  [FIN] IDUPD:1967962779-18/01/2024 07:29 AM 
+	ENDPROC
+
+
+	PROCEDURE cntbienservdetr.txtCodigo.ProgrammaticChange
+		this.InteractiveChange 
+	ENDPROC
+
+
+	PROCEDURE cntbienservdetr.txtDescripcion.DblClick
+		*!*	IF this.Parent.lEditDescripcion
+		*!*		this.Enabled = .T.
+		*!*	ENDIF 
+	ENDPROC
+
+
+	PROCEDURE cntbienservdetr.txtDescripcion.ProgrammaticChange
+		*!*	IF this.Parent.lEditDescripcion
+		*!*		this.Enabled = .T.
+		*!*	ENDIF 
+	ENDPROC
+
+
+	PROCEDURE cntbienservdetr.txtDescripcion.Valid
+		*!*	IF THIS.Parent.lEditDescripcion  AND This.Enabled 
+		*!*		IF VARTYPE(GoCfgVta.cDesmotivo)='U'
+		*!*			GoCfgVta.AddProperty("cDesMotivo","")
+		*!*		ENDIF
+		*!*		GoCfgVta.cDesmotivo = This.Value 
+		*!*	ENDIF
+	ENDPROC
+
+
+	PROCEDURE cntbienservdetr.lblCaption.DblClick
+		*!*	IF this.Parent.lEditDescripcion
+		*!*		this.Parent.TxtDescripcion.Enabled = .T.
+		*!*	ENDIF 
+	ENDPROC
+
+
+ENDDEFINE
+*
+*-- EndDefine: cntpage_ventas_fact
 **************************************************
 
 
@@ -10362,7 +11462,7 @@ ENDDEFINE
 *-- Class:        base_form (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  form
 *-- BaseClass:    form
-*-- Time Stamp:   03/03/22 09:18:00 PM
+*-- Time Stamp:   01/20/24 04:33:09 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -10381,7 +11481,7 @@ DEFINE CLASS base_form AS form
 	Closable = .T.
 	MaxButton = .F.
 	MinButton = .F.
-	MaxHeight = 882
+	MaxHeight = 1024
 	MaxWidth = 1360
 	Icon = "..\..\grafgen\iconos\form2.ico"
 	WindowType = 1
@@ -10811,57 +11911,107 @@ DEFINE CLASS base_form AS form
 	ENDPROC
 
 
-	PROCEDURE QueryUnload
-		LBotonSalir=.F.
-
-		** Si hay boton salir en el formulario
-		IF VARTYPE(THISFORM.CmdSalir)='O'
-			THISFORM.CmdSalir.Click
-		ELSE
-			** Buscamos si hay boton salir en un pageframe
-			WITH thisform
-				FOR K = 1 TO .ControlCount
-					IF .Controls[K].BaseClass = 'Pageframe' 
-						IF VARTYPE(.Controls[K].Page1.CmdSalir)	= 'O'
-							.Controls[K].Page1.CmdSalir.Click
-							LBotonSalir = .T.
-						ENDIF
-					ENDIF
-				ENDFOR
-			ENDWITH
-			IF NOT LBotonSalir 
-				THISform.Release 
-			ENDIF
+	PROCEDURE Destroy
+		IF TYPE("goEntorno")=="O" AND THIS.TAG <> "BIENVENIDA"
+			goEntorno.GenerarLog("0004",NULL,NULL)
 		ENDIF
 	ENDPROC
 
 
-	PROCEDURE Error
-		LPARAMETERS nError, cMethod, nLine
-		IF !EMPTY(VERSION(2)) 
+	PROCEDURE Unload
+		IF This.CierreAutoTablas 
+			FOR TnTbl=1 TO AUSED(aTables)
+				IF !INLIST(aTables(TnTbl,1),'ACCESS','DBFS')
+					IF !EMPTY(aTables(TnTbl,1))
+						NoEstaAbierta = .T.
+						FOR TnTPrev=1 TO ALEN(This.aTablPrev,1)
+							IF aTables(TnTbl,1)==This.aTablPrev[TnTPrev,1]
+								NoEstaAbierta = .F.
+							ENDIF
+						ENDFOR
+						IF NoEstaAbierta
+							USE IN aTables(TnTbl,1)
+						ENDIF
+					ENDIF
+				ENDIF
+			ENDFOR
+		ENDIF
+		LOCAL lxReturn
+		lxReturn= THIS.xReturn
+		RETURN lxReturn
+	ENDPROC
 
-			LnRpta=MESSAGEBOX(cMethod+" "+TTOC(DATETIME())+CRLF+;
-					"Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF+ ;
-					"  "+MESSAGE()+CRLF,2+16+256,'Ha ocurrido un error en el sistema')
 
+	PROCEDURE Load
+		IF TYPE("goConexion")<>"O" and GoEntorno.SqlEntorno
+			=MESSAGEBOX("No se creó la variable de entorno del sistema...",64,"Variable de Entorno")
+			RETURN .F.
+		ENDIF
+		SET TALK OFF
+		SET DELETED ON
+		SET DATE TO DMY
+		SET CENTURY ON
+		SET NOTIFY OFF
+		SET EXACT OFF
+		SET NEAR OFF
+		SET EXCLUSIVE OFF
+		SET MULTILOCKS ON
+		SET STATUS BAR OFF
+		SET SAFETY OFF
+		SET NULLDISPLAY TO ''
 
-			DO CASE
-				CASE  LnRpta =3
-					SUSPEND 
-				CASE  LnRpta =4 
-					SET STEP ON 
-				CASE  LnRpta =5
-					retry
-			ENDCASE
-			RETURN CONTEXT_E_ABORTED
-		ELSE
+		** VETT  17/02/2011 02:13 PM : Removido del evento INIT 
+		thisform.AddObject('oData','DataAdmin') 
 
-			STRTOFILE(cMethod+" "+TTOC(DATETIME())+CRLF,ERRLOGFILE,.T.)
-			STRTOFILE("Error :"+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF,ERRLOGFILE,.T.)
-				STRTOFILE("  "+MESSAGE()+CRLF,ERRLOGFILE,.T.)
-				RETURN CONTEXT_E_ABORTED
+		IF !USED('Access') && Si no esta el cursor de accesos lo generamos
+			=BuildAccessCursor()
+		ENDIF
+		IF NOT HasAccess ( THISFORM.Name )
+			#DEFINE ERRLOGACCESS	"c:\temp\NoAcceso.txt"
+			#DEFINE CRLF 			CHR(13)+CHR(10)
+
+			IF UPPER(GsSigCia)='PREZCOM'
+		  		MESSAGEBOX( "En proceso de implementación", 64, "We are working about this issue",2000 )
+			ELSE
+				MESSAGEBOX( "Acceso denegado al proceso: ["+THISFORM.Name+"] Agregar permiso en Configuración de Accesos/Security Access", 64, "Access denied", 2000 )
+			ENDIF
+		 	STRTOFILE(Goentorno.user.groupname+","+Goentorno.user.Login+","+TTOC(DATETIME()) +","+PROGRAM(1)+","+PROGRAM(2)+","+PROGRAM(3)+","+PROGRAM(4)+","+"Proceso: "+THISFORM.Name+CRLF,ERRLOGACCESS,.T.)
+		   RETURN .F.
 		ENDIF
 
+
+		LOCAL aFormulario
+		LOCAL lcPerfil , lcAlias
+		DECLARE aFormulario[1]
+
+		lcAlias		= "Perfil_Usuario"
+		lcPerfil	= goEntorno.locPath + lcAlias + ".dbf"
+
+		IF FILE(lcPerfil)
+			SELECT ;
+					CodigoFormulario ;
+				FROM ;
+					(lcPerfil) ;
+				WHERE ;
+					ALLTRIM(UPPER(NombreFormulario)) == ALLTRIM(UPPER(THIS.NAME)) ;
+					INTO ARRAY aFormulario
+			IF _TALLY > 0
+				*THIS.CodigoFormulario	= IIF(TYPE("aFormulario[1]")=="C",aFormulario[1],"")
+			ELSE
+			*	THIS.CodigoFormulario	= ""
+			ENDIF
+			IF USED(lcAlias)
+				USE IN (lcAlias)
+			ENDIF
+		ELSE
+			*THIS.CodigoFormulario	= ""
+		ENDIF
+
+		this.MaxHeight = _Screen.Height 
+		this.MaxWidth  = _Screen.Width  
+
+		THIS.AddProperty('aTablPrev[1,1]','')
+		AUSED(This.aTablPrev)
 	ENDPROC
 
 
@@ -10939,106 +12089,56 @@ DEFINE CLASS base_form AS form
 	ENDPROC
 
 
-	PROCEDURE Load
-		IF TYPE("goConexion")<>"O" and GoEntorno.SqlEntorno
-			=MESSAGEBOX("No se creó la variable de entorno del sistema...",64,"Variable de Entorno")
-			RETURN .F.
-		ENDIF
-		SET TALK OFF
-		SET DELETED ON
-		SET DATE TO DMY
-		SET CENTURY ON
-		SET NOTIFY OFF
-		SET EXACT OFF
-		SET NEAR OFF
-		SET EXCLUSIVE OFF
-		SET MULTILOCKS ON
-		SET STATUS BAR OFF
-		SET SAFETY OFF
-		SET NULLDISPLAY TO ''
+	PROCEDURE Error
+		LPARAMETERS nError, cMethod, nLine
+		IF !EMPTY(VERSION(2)) 
 
-		** VETT  17/02/2011 02:13 PM : Removido del evento INIT 
-		thisform.AddObject('oData','DataAdmin') 
-
-		IF !USED('Access') && Si no esta el cursor de accesos lo generamos
-			=BuildAccessCursor()
-		ENDIF
-		IF NOT HasAccess ( THISFORM.Name )
-			#DEFINE ERRLOGACCESS	"c:\temp\NoAcceso.txt"
-			#DEFINE CRLF 			CHR(13)+CHR(10)
-
-			IF UPPER(GsSigCia)='PREZCOM'
-		  		MESSAGEBOX( "En proceso de implementación", 64, "We are working about this issue",2000 )
-			ELSE
-				MESSAGEBOX( "Acceso denegado al proceso: ["+THISFORM.Name+"] Agregar permiso en Configuración de Accesos/Security Access", 64, "Access denied", 2000 )
-			ENDIF
-		 	STRTOFILE(Goentorno.user.groupname+","+Goentorno.user.Login+","+TTOC(DATETIME()) +","+PROGRAM(1)+","+PROGRAM(2)+","+PROGRAM(3)+","+PROGRAM(4)+","+"Proceso: "+THISFORM.Name+CRLF,ERRLOGACCESS,.T.)
-		   RETURN .F.
-		ENDIF
+			LnRpta=MESSAGEBOX(cMethod+" "+TTOC(DATETIME())+CRLF+;
+					"Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF+ ;
+					"  "+MESSAGE()+CRLF,2+16+256,'Ha ocurrido un error en el sistema')
 
 
-		LOCAL aFormulario
-		LOCAL lcPerfil , lcAlias
-		DECLARE aFormulario[1]
-
-		lcAlias		= "Perfil_Usuario"
-		lcPerfil	= goEntorno.locPath + lcAlias + ".dbf"
-
-		IF FILE(lcPerfil)
-			SELECT ;
-					CodigoFormulario ;
-				FROM ;
-					(lcPerfil) ;
-				WHERE ;
-					ALLTRIM(UPPER(NombreFormulario)) == ALLTRIM(UPPER(THIS.NAME)) ;
-					INTO ARRAY aFormulario
-			IF _TALLY > 0
-				*THIS.CodigoFormulario	= IIF(TYPE("aFormulario[1]")=="C",aFormulario[1],"")
-			ELSE
-			*	THIS.CodigoFormulario	= ""
-			ENDIF
-			IF USED(lcAlias)
-				USE IN (lcAlias)
-			ENDIF
+			DO CASE
+				CASE  LnRpta =3
+					SUSPEND 
+				CASE  LnRpta =4 
+					SET STEP ON 
+				CASE  LnRpta =5
+					retry
+			ENDCASE
+			RETURN CONTEXT_E_ABORTED
 		ELSE
-			*THIS.CodigoFormulario	= ""
+
+			STRTOFILE(cMethod+" "+TTOC(DATETIME())+CRLF,ERRLOGFILE,.T.)
+			STRTOFILE("Error :"+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF,ERRLOGFILE,.T.)
+				STRTOFILE("  "+MESSAGE()+CRLF,ERRLOGFILE,.T.)
+				RETURN CONTEXT_E_ABORTED
 		ENDIF
 
-		this.MaxHeight = _Screen.Height 
-		this.MaxWidth  = _Screen.Width  
-
-		THIS.AddProperty('aTablPrev[1,1]','')
-		AUSED(This.aTablPrev)
 	ENDPROC
 
 
-	PROCEDURE Unload
-		IF This.CierreAutoTablas 
-			FOR TnTbl=1 TO AUSED(aTables)
-				IF !INLIST(aTables(TnTbl,1),'ACCESS','DBFS')
-					IF !EMPTY(aTables(TnTbl,1))
-						NoEstaAbierta = .T.
-						FOR TnTPrev=1 TO ALEN(This.aTablPrev,1)
-							IF aTables(TnTbl,1)==This.aTablPrev[TnTPrev,1]
-								NoEstaAbierta = .F.
-							ENDIF
-						ENDFOR
-						IF NoEstaAbierta
-							USE IN aTables(TnTbl,1)
+	PROCEDURE QueryUnload
+		LBotonSalir=.F.
+
+		** Si hay boton salir en el formulario
+		IF VARTYPE(THISFORM.CmdSalir)='O'
+			THISFORM.CmdSalir.Click
+		ELSE
+			** Buscamos si hay boton salir en un pageframe
+			WITH thisform
+				FOR K = 1 TO .ControlCount
+					IF .Controls[K].BaseClass = 'Pageframe' 
+						IF VARTYPE(.Controls[K].Page1.CmdSalir)	= 'O'
+							.Controls[K].Page1.CmdSalir.Click
+							LBotonSalir = .T.
 						ENDIF
 					ENDIF
-				ENDIF
-			ENDFOR
-		ENDIF
-		LOCAL lxReturn
-		lxReturn= THIS.xReturn
-		RETURN lxReturn
-	ENDPROC
-
-
-	PROCEDURE Destroy
-		IF TYPE("goEntorno")=="O" AND THIS.TAG <> "BIENVENIDA"
-			goEntorno.GenerarLog("0004",NULL,NULL)
+				ENDFOR
+			ENDWITH
+			IF NOT LBotonSalir 
+				THISform.Release 
+			ENDIF
 		ENDIF
 	ENDPROC
 
@@ -11066,7 +12166,7 @@ ENDDEFINE
 *-- Class:        base_form_transac (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_form (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    form
-*-- Time Stamp:   03/14/22 05:33:12 AM
+*-- Time Stamp:   12/20/24 05:31:11 PM
 *-- Formulario base de transacciones
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
@@ -11075,8 +12175,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 
 	Height = 680
-	Width = 780
-	ScrollBars = 2
+	Width = 841
 	DoCreate = .T.
 	Caption = "Transacciones"
 	ControlBox = .T.
@@ -11155,7 +12254,7 @@ DEFINE CLASS base_form_transac AS base_form
 		TabStyle = 1, ;
 		Top = 48, ;
 		Left = 0, ;
-		Width = 732, ;
+		Width = 792, ;
 		Height = 497, ;
 		Tabs = .T., ;
 		TabIndex = 7, ;
@@ -11175,689 +12274,16 @@ DEFINE CLASS base_form_transac AS base_form
 		Page4.Name = "Page4"
 
 
-	ADD OBJECT base_form_transac.pgfdetalle.page1.shapercepcion AS base_shape WITH ;
-		Top = 431, ;
-		Left = 6, ;
-		Height = 36, ;
-		Width = 677, ;
-		Anchor = 15, ;
-		BackStyle = 1, ;
-		BorderStyle = 1, ;
-		Curvature = 0, ;
-		FillStyle = 1, ;
-		Visible = .F., ;
-		BackColor = RGB(255,252,193), ;
-		ZOrderSet = 0, ;
-		Style = 0, ;
-		Name = "ShaPercepcion"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtnroitm AS base_textbox_numero WITH ;
-		FontSize = 8, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999.99", ;
-		Left = 65, ;
-		MousePointer = 0, ;
-		TabIndex = 31, ;
-		Top = 311, ;
-		Visible = .F., ;
-		Width = 44, ;
-		ZOrderSet = 1, ;
-		Name = "TxtNroItm"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtnro_itm AS base_textbox_numero WITH ;
-		FontSize = 8, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		HelpContextID = 20, ;
-		InputMask = "999.99", ;
-		Left = 13, ;
-		MousePointer = 0, ;
-		TabIndex = 30, ;
-		Top = 311, ;
-		Visible = .F., ;
-		Width = 43, ;
-		ZOrderSet = 2, ;
-		Name = "txtNro_itm"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.base_label5 AS base_label WITH ;
-		Caption = "\", ;
-		Height = 17, ;
-		Left = 58, ;
-		Top = 312, ;
-		Visible = .F., ;
-		Width = 5, ;
-		TabIndex = 33, ;
-		ZOrderSet = 3, ;
-		Name = "Base_label5"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpvta AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999,999.9999", ;
-		Left = 405, ;
-		TabIndex = 32, ;
-		Top = 383, ;
-		Visible = .F., ;
-		Width = 84, ;
-		ZOrderSet = 4, ;
-		Name = "txtImpVta"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblstatus2 AS base_label WITH ;
-		FontBold = .F., ;
-		FontSize = 20, ;
-		Caption = "", ;
-		Height = 35, ;
-		Left = 334, ;
-		Top = 6, ;
-		Visible = .T., ;
-		Width = 2, ;
-		TabIndex = 27, ;
-		ForeColor = RGB(255,255,255), ;
-		ZOrderSet = 5, ;
-		Name = "lblStatus2"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.base_label2 AS base_label WITH ;
-		FontSize = 8, ;
-		Anchor = 0, ;
-		Caption = "Nº Doc.", ;
-		Left = 23, ;
-		Top = 9, ;
-		TabIndex = 24, ;
-		ZOrderSet = 6, ;
-		Name = "Base_label2"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.base_label3 AS base_label WITH ;
-		FontSize = 8, ;
-		Anchor = 0, ;
-		Caption = "Fecha", ;
-		Left = 177, ;
-		Top = 9, ;
-		TabIndex = 25, ;
-		ZOrderSet = 7, ;
-		Name = "Base_label3"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtfchdoc AS base_textbox_fecha WITH ;
-		FontSize = 8, ;
-		Anchor = 0, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		Left = 212, ;
-		TabIndex = 2, ;
-		Top = 6, ;
-		Width = 65, ;
-		ZOrderSet = 8, ;
-		Name = "TxtFchDoc"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblguias AS base_label WITH ;
-		FontSize = 8, ;
-		Anchor = 10, ;
-		Caption = "Guia(s)", ;
-		Left = 413, ;
-		Top = 185, ;
-		TabIndex = 29, ;
-		ZOrderSet = 9, ;
-		Name = "LblGuias"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblobserv AS base_label WITH ;
-		FontSize = 8, ;
-		Anchor = 10, ;
-		Caption = "Observaciones", ;
-		Left = 287, ;
-		Top = 8, ;
-		TabIndex = 28, ;
-		ZOrderSet = 10, ;
-		Name = "LblObserv"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtnrodoc AS base_textbox WITH ;
-		FontBold = .T., ;
-		FontSize = 9, ;
-		Anchor = 0, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "XXXXX9999999999", ;
-		Left = 64, ;
-		MaxLength = 15, ;
-		TabIndex = 1, ;
-		Top = 7, ;
-		Width = 80, ;
-		ForeColor = RGB(255,0,0), ;
-		DisabledForeColor = RGB(255,0,0), ;
-		ZOrderSet = 11, ;
-		Name = "TxtNroDoc"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdhelpnrodoc AS base_cmdhelp WITH ;
-		Top = 8, ;
-		Left = 145, ;
-		Height = 20, ;
-		Width = 24, ;
-		Anchor = 0, ;
-		Enabled = .F., ;
-		TabIndex = 21, ;
-		ZOrderSet = 12, ;
-		cvaloresfiltro = "GoCfgAlm.Subalm;GoCfgAlm.TipMov;GoCfgAlm.CodMOv;GoCfgAlm.NroDoc", ;
-		ccamposfiltro = "SubAlm;TipMov;CodMov;NroDoc", ;
-		cnombreentidad = "almctran", ;
-		ccamporetorno = "nrodoc", ;
-		caliascursor = "c_nrodoc", ;
-		ccampovisualizacion = "Observ", ;
-		Name = "CmdHelpNrodoc"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblstatus1 AS base_label WITH ;
-		FontBold = .F., ;
-		FontSize = 20, ;
-		Caption = "", ;
-		Height = 35, ;
-		Left = 333, ;
-		Top = 9, ;
-		Visible = .T., ;
-		Width = 2, ;
-		TabIndex = 26, ;
-		ForeColor = RGB(0,0,160), ;
-		ZOrderSet = 13, ;
-		Name = "lblStatus1"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtglosa2 AS base_textbox WITH ;
-		FontSize = 8, ;
-		Anchor = 10, ;
-		Enabled = .F., ;
-		Height = 25, ;
-		Left = 455, ;
-		TabIndex = 5, ;
-		Top = 179, ;
-		Visible = .T., ;
-		Width = 241, ;
-		ZOrderSet = 14, ;
-		Name = "TxtGlosa2"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtobserv AS base_textbox WITH ;
-		FontSize = 8, ;
-		Anchor = 0, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		Left = 371, ;
-		TabIndex = 4, ;
-		Top = 8, ;
-		Visible = .T., ;
-		Width = 315, ;
-		ZOrderSet = 15, ;
-		Name = "TxtObserv"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpbrt AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 22, ;
-		InputMask = "999,999.9999", ;
-		Left = 592, ;
-		TabIndex = 17, ;
-		Top = 361, ;
-		Visible = .F., ;
-		Width = 88, ;
-		ZOrderSet = 16, ;
-		Name = "TxtImpBrt"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdadicionar1 AS cmdnuevo_detalle WITH ;
-		Top = 212, ;
-		Left = 699, ;
-		Height = 24, ;
-		Width = 24, ;
-		Anchor = 12, ;
-		Enabled = .F., ;
-		TabIndex = 7, ;
-		ToolTipText = "Adicionar item al detalle", ;
-		PicturePosition = 14, ;
-		ZOrderSet = 17, ;
-		codigoboton = ("00001809"), ;
-		Name = "cmdAdicionar1"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdmodificar1 AS cmdmodificar_detalle WITH ;
-		Top = 238, ;
-		Left = 698, ;
-		Height = 24, ;
-		Width = 24, ;
-		Anchor = 12, ;
-		Enabled = .F., ;
-		TabIndex = 8, ;
-		PicturePosition = 14, ;
-		ZOrderSet = 18, ;
-		codigoboton = ("00001810"), ;
-		Name = "Cmdmodificar1"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdeliminar1 AS cmdeliminar_detalle WITH ;
-		Top = 264, ;
-		Left = 699, ;
-		Height = 24, ;
-		Width = 24, ;
-		Anchor = 12, ;
-		Enabled = .F., ;
-		TabIndex = 9, ;
-		ToolTipText = "Eliminar item del detalle", ;
-		PicturePosition = 14, ;
-		ZOrderSet = 19, ;
-		codigoboton = ("00001812"), ;
-		Name = "Cmdeliminar1"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpigv AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 22, ;
-		InputMask = "999,999.9999", ;
-		Left = 592, ;
-		TabIndex = 18, ;
-		Top = 384, ;
-		Visible = .F., ;
-		Width = 88, ;
-		ZOrderSet = 20, ;
-		Name = "TxtImpIgv"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimptot AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 10, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 22, ;
-		InputMask = "999,999.9999", ;
-		Left = 593, ;
-		TabIndex = 19, ;
-		Top = 407, ;
-		Visible = .F., ;
-		Width = 88, ;
-		ForeColor = RGB(255,0,0), ;
-		ZOrderSet = 21, ;
-		Name = "TxtImpTot"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtporigv AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999.99", ;
-		Left = 79, ;
-		ReadOnly = .T., ;
-		TabIndex = 12, ;
-		Top = 404, ;
-		Visible = .F., ;
-		Width = 86, ;
-		ZOrderSet = 22, ;
-		Name = "txtPorIgv"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpvta AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "Importe Venta", ;
-		Height = 16, ;
-		Left = 318, ;
-		Top = 386, ;
-		Visible = .F., ;
-		TabIndex = 36, ;
-		ZOrderSet = 23, ;
-		Name = "LblImpVta"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblsubtot AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "Importe Bruto", ;
-		Height = 16, ;
-		Left = 512, ;
-		Top = 367, ;
-		Visible = .F., ;
-		TabIndex = 36, ;
-		ZOrderSet = 23, ;
-		Name = "LblSubTot"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lbligv AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "I.G.V.", ;
-		Height = 16, ;
-		Left = 561, ;
-		Top = 389, ;
-		Visible = .F., ;
-		TabIndex = 42, ;
-		ZOrderSet = 24, ;
-		Name = "LblIgv"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lbltotal AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 12, ;
-		Anchor = 164, ;
-		Caption = "TOTAL", ;
-		Left = 504, ;
-		Top = 410, ;
-		Visible = .F., ;
-		TabIndex = 44, ;
-		ForeColor = RGB(255,0,0), ;
-		ZOrderSet = 25, ;
-		Name = "LblTotal"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblporigv AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "% I.G.V.", ;
-		Height = 16, ;
-		Left = 32, ;
-		Top = 409, ;
-		Visible = .F., ;
-		Width = 42, ;
-		TabIndex = 35, ;
-		ZOrderSet = 26, ;
-		Name = "LblPorIgv"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtpordto AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999.99", ;
-		Left = 79, ;
-		TabIndex = 10, ;
-		Top = 362, ;
-		Visible = .F., ;
-		Width = 86, ;
-		ZOrderSet = 27, ;
-		Name = "TxtPorDto"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblpordto AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "% Dcto.", ;
-		Height = 16, ;
-		Left = 35, ;
-		Top = 366, ;
-		Visible = .F., ;
-		Width = 41, ;
-		TabIndex = 34, ;
-		ZOrderSet = 28, ;
-		Name = "LblPorDto"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpdto AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999,999.9999", ;
-		Left = 79, ;
-		TabIndex = 11, ;
-		Top = 383, ;
-		Visible = .F., ;
-		Width = 86, ;
-		ZOrderSet = 29, ;
-		Name = "TxtImpDto"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpint AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999,999.9999", ;
-		Left = 405, ;
-		TabIndex = 16, ;
-		Top = 362, ;
-		Visible = .F., ;
-		Width = 84, ;
-		ZOrderSet = 30, ;
-		Name = "TxtImpInt"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpint AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "Gto. Financiero", ;
-		Height = 16, ;
-		Left = 316, ;
-		Top = 366, ;
-		Visible = .F., ;
-		TabIndex = 43, ;
-		ZOrderSet = 31, ;
-		ToolTipText = "Gastos financieros", ;
-		Name = "lblImpInt"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpflt AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999,999.9999", ;
-		Left = 221, ;
-		TabIndex = 13, ;
-		Top = 362, ;
-		Visible = .F., ;
-		Width = 82, ;
-		ZOrderSet = 32, ;
-		Name = "TxtImpFlt"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpflt AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "Flete", ;
-		Height = 16, ;
-		Left = 184, ;
-		Top = 367, ;
-		Visible = .F., ;
-		TabIndex = 40, ;
-		ZOrderSet = 33, ;
-		Name = "LblImpFlt"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpseg AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999,999.9999", ;
-		Left = 221, ;
-		TabIndex = 14, ;
-		Top = 383, ;
-		Visible = .F., ;
-		Width = 82, ;
-		ZOrderSet = 34, ;
-		Name = "TxtImpSeg"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpadm AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 20, ;
-		InputMask = "999,999.9999", ;
-		Left = 221, ;
-		TabIndex = 15, ;
-		Top = 404, ;
-		Visible = .F., ;
-		Width = 82, ;
-		ZOrderSet = 35, ;
-		Name = "TxtImpAdm"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpseg AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		Caption = "Seguro", ;
-		Height = 16, ;
-		Left = 173, ;
-		Top = 389, ;
-		Visible = .F., ;
-		TabIndex = 39, ;
-		ZOrderSet = 36, ;
-		Name = "LblImpSeg"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpadm AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 8, ;
-		Anchor = 164, ;
-		WordWrap = .F., ;
-		Caption = "Admin.", ;
-		Height = 16, ;
-		Left = 173, ;
-		Top = 408, ;
-		Visible = .T., ;
-		Width = 41, ;
-		TabIndex = 38, ;
-		ZOrderSet = 37, ;
-		ToolTipText = "Gastos administrativos", ;
-		Name = "LblImpAdm"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.txtreten AS base_textbox_numero WITH ;
-		FontBold = .T., ;
-		FontSize = 10, ;
-		Anchor = 164, ;
-		Enabled = .F., ;
-		Height = 22, ;
-		InputMask = "999,999.9999", ;
-		Left = 77, ;
-		TabIndex = 20, ;
-		Top = 438, ;
-		Visible = .F., ;
-		Width = 88, ;
-		ForeColor = RGB(255,0,0), ;
-		ZOrderSet = 38, ;
-		Name = "TxtReten"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblretencion AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 9, ;
-		Anchor = 164, ;
-		Caption = "Retención", ;
-		Height = 17, ;
-		Left = 19, ;
-		Top = 442, ;
-		Visible = .F., ;
-		TabIndex = 41, ;
-		ZOrderSet = 39, ;
-		Name = "LblRetencion"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblmoneda AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 12, ;
-		Anchor = 164, ;
-		Caption = "US$", ;
-		Height = 22, ;
-		Left = 560, ;
-		Top = 410, ;
-		Visible = .F., ;
-		Width = 34, ;
-		TabIndex = 45, ;
-		ForeColor = RGB(0,128,0), ;
-		ZOrderSet = 40, ;
-		Name = "LblMoneda"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdaceptar1 AS cmdaceptar WITH ;
-		Top = 299, ;
-		Left = 699, ;
-		Height = 24, ;
-		Width = 24, ;
-		Anchor = 12, ;
-		Picture = "..\..\grafgen\iconos\button_ok_16.bmp", ;
-		Enabled = .T., ;
-		TabIndex = 21, ;
-		ToolTipText = "Aceptar cambios", ;
-		Visible = .F., ;
-		PicturePosition = 14, ;
-		ZOrderSet = 41, ;
-		codigoboton = ("00001813"), ;
-		Name = "Cmdaceptar1"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdcancelar1 AS cmdcancelar WITH ;
-		Top = 324, ;
-		Left = 699, ;
-		Height = 24, ;
-		Width = 24, ;
-		Anchor = 12, ;
-		Picture = "..\..\grafgen\iconos\cancelar_16.bmp", ;
-		DisabledPicture = "..\..\grafgen\iconos\button_cancel_disable.bmp", ;
-		Enabled = .T., ;
-		TabIndex = 22, ;
-		Visible = .F., ;
-		PicturePosition = 14, ;
-		ZOrderSet = 42, ;
-		codigoboton = ("00001814"), ;
-		Name = "Cmdcancelar1"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdterminar AS cmdcancelar WITH ;
-		Top = 405, ;
-		Left = 699, ;
-		Height = 24, ;
-		Width = 24, ;
-		Picture = "..\..\grafgen\iconos\cancelar_16.bmp", ;
-		DisabledPicture = "..\..\grafgen\iconos\cancelar_disable_16.bmp", ;
-		Enabled = .F., ;
-		TabIndex = 13, ;
-		Visible = .F., ;
-		ZOrderSet = 43, ;
-		codigoboton = ("00001814"), ;
-		Name = "CmdTerminar"
-
-
 	ADD OBJECT base_form_transac.pgfdetalle.page1.grddetalle AS base_grid WITH ;
 		ColumnCount = 12, ;
 		Height = 155, ;
 		Left = 4, ;
 		Panel = 1, ;
+		RowHeight = 22, ;
 		TabIndex = 6, ;
 		Top = 205, ;
-		Width = 691, ;
-		ZOrderSet = 44, ;
+		Width = 751, ;
+		ZOrderSet = 0, ;
 		AllowCellSelection = .F., ;
 		Name = "GrdDetalle", ;
 		Column1.CurrentControl = "TxtCodmat", ;
@@ -12111,9 +12537,668 @@ DEFINE CLASS base_form_transac AS base_form
 		Name = "TxtFchVto"
 
 
-	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdhelp_preuni AS base_cmdhelp WITH ;
+	ADD OBJECT base_form_transac.pgfdetalle.page1.shapercepcion AS base_shape WITH ;
+		Top = 431, ;
+		Left = 74, ;
+		Height = 36, ;
+		Width = 677, ;
+		Anchor = 15, ;
+		BackStyle = 1, ;
+		BorderStyle = 1, ;
+		Curvature = 0, ;
+		FillStyle = 1, ;
+		BackColor = RGB(255,252,193), ;
+		ZOrderSet = 1, ;
+		Style = 0, ;
+		Name = "ShaPercepcion"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtnroitm AS base_textbox_numero WITH ;
+		FontSize = 8, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "9999", ;
+		Left = 42, ;
+		MousePointer = 0, ;
+		TabIndex = 31, ;
 		Top = 363, ;
-		Left = 8, ;
+		Visible = .F., ;
+		Width = 34, ;
+		ZOrderSet = 2, ;
+		Name = "TxtNroItm"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtnro_itm AS base_textbox_numero WITH ;
+		FontSize = 8, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		HelpContextID = 20, ;
+		InputMask = "9999", ;
+		Left = 4, ;
+		MousePointer = 0, ;
+		TabIndex = 30, ;
+		Top = 363, ;
+		Visible = .F., ;
+		Width = 32, ;
+		ZOrderSet = 3, ;
+		Name = "txtNro_itm"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblseptotitm AS base_label WITH ;
+		Caption = "\", ;
+		Height = 17, ;
+		Left = 37, ;
+		Top = 364, ;
+		Visible = .F., ;
+		Width = 5, ;
+		TabIndex = 33, ;
+		ZOrderSet = 4, ;
+		Name = "LblSepTotitm"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpvta AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999,999.9999", ;
+		Left = 473, ;
+		TabIndex = 32, ;
+		Top = 383, ;
+		Visible = .F., ;
+		Width = 84, ;
+		ZOrderSet = 5, ;
+		Name = "txtImpVta"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblstatus2 AS base_label WITH ;
+		FontBold = .F., ;
+		FontSize = 20, ;
+		Caption = "", ;
+		Height = 35, ;
+		Left = 354, ;
+		Top = -8, ;
+		Visible = .T., ;
+		Width = 2, ;
+		TabIndex = 27, ;
+		ForeColor = RGB(255,255,255), ;
+		ZOrderSet = 6, ;
+		Name = "lblStatus2"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.base_label2 AS base_label WITH ;
+		FontSize = 8, ;
+		Anchor = 0, ;
+		Caption = "Nº Doc.", ;
+		Left = 15, ;
+		Top = 11, ;
+		TabIndex = 24, ;
+		ZOrderSet = 7, ;
+		Name = "Base_label2"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.base_label3 AS base_label WITH ;
+		FontSize = 8, ;
+		Anchor = 0, ;
+		Caption = "Fecha", ;
+		Left = 197, ;
+		Top = 11, ;
+		TabIndex = 25, ;
+		ZOrderSet = 8, ;
+		Name = "Base_label3"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtfchdoc AS base_textbox_fecha WITH ;
+		FontSize = 8, ;
+		Anchor = 0, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		Left = 232, ;
+		TabIndex = 2, ;
+		Top = 7, ;
+		Width = 65, ;
+		ZOrderSet = 9, ;
+		Name = "TxtFchDoc"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblguias AS base_label WITH ;
+		FontSize = 8, ;
+		Anchor = 10, ;
+		Caption = "Guia(s)", ;
+		Left = 413, ;
+		Top = 185, ;
+		TabIndex = 29, ;
+		ZOrderSet = 10, ;
+		Name = "LblGuias"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblobserv AS base_label WITH ;
+		FontSize = 8, ;
+		Anchor = 10, ;
+		Caption = "Observaciones", ;
+		Left = 307, ;
+		Top = 11, ;
+		TabIndex = 28, ;
+		ZOrderSet = 11, ;
+		Name = "LblObserv"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtnrodoc AS base_textbox WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Anchor = 0, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "XXXXX9999999999", ;
+		Left = 55, ;
+		MaxLength = 15, ;
+		TabIndex = 1, ;
+		Top = 7, ;
+		Width = 110, ;
+		ForeColor = RGB(255,0,0), ;
+		DisabledForeColor = RGB(255,0,0), ;
+		ZOrderSet = 12, ;
+		Name = "TxtNroDoc"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdhelpnrodoc AS base_cmdhelp WITH ;
+		Top = 7, ;
+		Left = 165, ;
+		Height = 20, ;
+		Width = 24, ;
+		Anchor = 0, ;
+		Enabled = .F., ;
+		TabIndex = 21, ;
+		ZOrderSet = 13, ;
+		cvaloresfiltro = "GoCfgAlm.Subalm;GoCfgAlm.TipMov;GoCfgAlm.CodMOv;GoCfgAlm.NroDoc", ;
+		ccamposfiltro = "SubAlm;TipMov;CodMov;NroDoc", ;
+		cnombreentidad = "almctran", ;
+		ccamporetorno = "nrodoc", ;
+		caliascursor = "c_nrodoc", ;
+		ccampovisualizacion = "Observ", ;
+		Name = "CmdHelpNrodoc"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblstatus1 AS base_label WITH ;
+		FontBold = .F., ;
+		FontSize = 20, ;
+		Caption = "", ;
+		Height = 35, ;
+		Left = 353, ;
+		Top = 4, ;
+		Visible = .T., ;
+		Width = 2, ;
+		TabIndex = 26, ;
+		ForeColor = RGB(0,0,160), ;
+		ZOrderSet = 14, ;
+		Name = "lblStatus1"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtglosa2 AS base_textbox WITH ;
+		FontSize = 8, ;
+		Anchor = 10, ;
+		Enabled = .F., ;
+		Height = 25, ;
+		Left = 455, ;
+		TabIndex = 5, ;
+		Top = 179, ;
+		Visible = .T., ;
+		Width = 241, ;
+		ZOrderSet = 15, ;
+		Name = "TxtGlosa2"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtobserv AS base_textbox WITH ;
+		FontSize = 8, ;
+		Anchor = 0, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		Left = 391, ;
+		TabIndex = 4, ;
+		Top = 7, ;
+		Visible = .T., ;
+		Width = 315, ;
+		ZOrderSet = 16, ;
+		Name = "TxtObserv"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpbrt AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 22, ;
+		InputMask = "999,999.9999", ;
+		Left = 660, ;
+		TabIndex = 17, ;
+		Top = 361, ;
+		Visible = .F., ;
+		Width = 88, ;
+		ZOrderSet = 17, ;
+		Name = "TxtImpBrt"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdadicionar1 AS cmdnuevo_detalle WITH ;
+		Top = 212, ;
+		Left = 759, ;
+		Height = 24, ;
+		Width = 24, ;
+		Anchor = 12, ;
+		Enabled = .F., ;
+		TabIndex = 7, ;
+		ToolTipText = "Adicionar item al detalle", ;
+		PicturePosition = 14, ;
+		ZOrderSet = 18, ;
+		codigoboton = ("00001809"), ;
+		Name = "cmdAdicionar1"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdmodificar1 AS cmdmodificar_detalle WITH ;
+		Top = 238, ;
+		Left = 759, ;
+		Height = 24, ;
+		Width = 24, ;
+		Anchor = 12, ;
+		Enabled = .F., ;
+		TabIndex = 8, ;
+		PicturePosition = 14, ;
+		ZOrderSet = 19, ;
+		codigoboton = ("00001810"), ;
+		Name = "Cmdmodificar1"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdeliminar1 AS cmdeliminar_detalle WITH ;
+		Top = 264, ;
+		Left = 759, ;
+		Height = 24, ;
+		Width = 24, ;
+		Anchor = 12, ;
+		Enabled = .F., ;
+		TabIndex = 9, ;
+		ToolTipText = "Eliminar item del detalle", ;
+		PicturePosition = 14, ;
+		ZOrderSet = 20, ;
+		codigoboton = ("00001812"), ;
+		Name = "Cmdeliminar1"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpigv AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 22, ;
+		InputMask = "999,999.9999", ;
+		Left = 660, ;
+		TabIndex = 18, ;
+		Top = 384, ;
+		Visible = .F., ;
+		Width = 88, ;
+		ZOrderSet = 21, ;
+		Name = "TxtImpIgv"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimptot AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 10, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 22, ;
+		InputMask = "999,999.9999", ;
+		Left = 661, ;
+		TabIndex = 19, ;
+		Top = 407, ;
+		Visible = .F., ;
+		Width = 88, ;
+		ForeColor = RGB(255,0,0), ;
+		ZOrderSet = 22, ;
+		Name = "TxtImpTot"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtporigv AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999.99", ;
+		Left = 147, ;
+		ReadOnly = .T., ;
+		TabIndex = 12, ;
+		Top = 404, ;
+		Visible = .F., ;
+		Width = 86, ;
+		ZOrderSet = 23, ;
+		Name = "txtPorIgv"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpvta AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "Importe Venta", ;
+		Height = 16, ;
+		Left = 386, ;
+		Top = 386, ;
+		Visible = .F., ;
+		TabIndex = 36, ;
+		ZOrderSet = 24, ;
+		Name = "LblImpVta"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblsubtot AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "Importe Bruto", ;
+		Height = 16, ;
+		Left = 580, ;
+		Top = 367, ;
+		Visible = .F., ;
+		TabIndex = 36, ;
+		ZOrderSet = 25, ;
+		Name = "LblSubTot"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lbligv AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "I.G.V.", ;
+		Height = 16, ;
+		Left = 629, ;
+		Top = 389, ;
+		Visible = .F., ;
+		TabIndex = 42, ;
+		ZOrderSet = 26, ;
+		Name = "LblIgv"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lbltotal AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 12, ;
+		Anchor = 164, ;
+		Caption = "TOTAL", ;
+		Left = 567, ;
+		Top = 410, ;
+		Visible = .F., ;
+		TabIndex = 44, ;
+		ForeColor = RGB(255,0,0), ;
+		ZOrderSet = 27, ;
+		Name = "LblTotal"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblporigv AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "% I.G.V.", ;
+		Height = 16, ;
+		Left = 100, ;
+		Top = 409, ;
+		Visible = .F., ;
+		Width = 42, ;
+		TabIndex = 35, ;
+		ZOrderSet = 28, ;
+		Name = "LblPorIgv"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtpordto AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999.99", ;
+		Left = 147, ;
+		TabIndex = 10, ;
+		Top = 362, ;
+		Visible = .F., ;
+		Width = 86, ;
+		ZOrderSet = 29, ;
+		Name = "TxtPorDto"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblpordto AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "% Dcto.", ;
+		Height = 16, ;
+		Left = 103, ;
+		Top = 366, ;
+		Visible = .F., ;
+		Width = 41, ;
+		TabIndex = 34, ;
+		ZOrderSet = 30, ;
+		Name = "LblPorDto"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpdto AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999,999.9999", ;
+		Left = 147, ;
+		TabIndex = 11, ;
+		Top = 383, ;
+		Visible = .F., ;
+		Width = 86, ;
+		ZOrderSet = 31, ;
+		Name = "TxtImpDto"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpint AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999,999.9999", ;
+		Left = 473, ;
+		TabIndex = 16, ;
+		Top = 362, ;
+		Visible = .F., ;
+		Width = 84, ;
+		ZOrderSet = 32, ;
+		Name = "TxtImpInt"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpint AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "Gto. Financiero", ;
+		Height = 16, ;
+		Left = 384, ;
+		Top = 366, ;
+		Visible = .F., ;
+		TabIndex = 43, ;
+		ZOrderSet = 33, ;
+		ToolTipText = "Gastos financieros", ;
+		Name = "lblImpInt"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpflt AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999,999.9999", ;
+		Left = 289, ;
+		TabIndex = 13, ;
+		Top = 362, ;
+		Visible = .F., ;
+		Width = 82, ;
+		ZOrderSet = 34, ;
+		Name = "TxtImpFlt"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpflt AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "Flete", ;
+		Height = 16, ;
+		Left = 252, ;
+		Top = 367, ;
+		Visible = .F., ;
+		TabIndex = 40, ;
+		ZOrderSet = 35, ;
+		Name = "LblImpFlt"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpseg AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999,999.9999", ;
+		Left = 289, ;
+		TabIndex = 14, ;
+		Top = 383, ;
+		Visible = .F., ;
+		Width = 82, ;
+		ZOrderSet = 36, ;
+		Name = "TxtImpSeg"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimpadm AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 20, ;
+		InputMask = "999,999.9999", ;
+		Left = 289, ;
+		TabIndex = 15, ;
+		Top = 404, ;
+		Visible = .F., ;
+		Width = 82, ;
+		ZOrderSet = 37, ;
+		Name = "TxtImpAdm"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpseg AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		Caption = "Seguro", ;
+		Height = 16, ;
+		Left = 241, ;
+		Top = 389, ;
+		Visible = .F., ;
+		TabIndex = 39, ;
+		ZOrderSet = 38, ;
+		Name = "LblImpSeg"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblimpadm AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 8, ;
+		Anchor = 164, ;
+		WordWrap = .F., ;
+		Caption = "Admin.", ;
+		Height = 16, ;
+		Left = 241, ;
+		Top = 408, ;
+		Visible = .T., ;
+		Width = 41, ;
+		TabIndex = 38, ;
+		ZOrderSet = 39, ;
+		ToolTipText = "Gastos administrativos", ;
+		Name = "LblImpAdm"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.txtreten AS base_textbox_numero WITH ;
+		FontBold = .T., ;
+		FontSize = 10, ;
+		Anchor = 164, ;
+		Enabled = .F., ;
+		Height = 22, ;
+		InputMask = "999,999.9999", ;
+		Left = 159, ;
+		TabIndex = 20, ;
+		Top = 437, ;
+		Visible = .F., ;
+		Width = 88, ;
+		ForeColor = RGB(255,0,0), ;
+		ZOrderSet = 40, ;
+		Name = "TxtReten"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblmoneda AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 12, ;
+		Anchor = 164, ;
+		Caption = "US$", ;
+		Height = 22, ;
+		Left = 623, ;
+		Top = 410, ;
+		Visible = .F., ;
+		Width = 34, ;
+		TabIndex = 45, ;
+		ForeColor = RGB(0,128,0), ;
+		ZOrderSet = 41, ;
+		Name = "LblMoneda"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdaceptar1 AS cmdaceptar WITH ;
+		Top = 299, ;
+		Left = 759, ;
+		Height = 24, ;
+		Width = 24, ;
+		Anchor = 12, ;
+		Picture = "..\..\grafgen\iconos\button_ok_16.bmp", ;
+		Enabled = .T., ;
+		TabIndex = 21, ;
+		ToolTipText = "Aceptar cambios", ;
+		Visible = .F., ;
+		PicturePosition = 14, ;
+		ZOrderSet = 42, ;
+		codigoboton = ("00001813"), ;
+		Name = "Cmdaceptar1"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdcancelar1 AS cmdcancelar WITH ;
+		Top = 324, ;
+		Left = 759, ;
+		Height = 24, ;
+		Width = 24, ;
+		Anchor = 12, ;
+		Picture = "..\..\grafgen\iconos\cancelar_16.bmp", ;
+		DisabledPicture = "..\..\grafgen\iconos\button_cancel_disable.bmp", ;
+		Enabled = .T., ;
+		TabIndex = 22, ;
+		Visible = .F., ;
+		PicturePosition = 14, ;
+		ZOrderSet = 43, ;
+		codigoboton = ("00001814"), ;
+		Name = "Cmdcancelar1"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdterminar AS cmdcancelar WITH ;
+		Top = 405, ;
+		Left = 756, ;
+		Height = 24, ;
+		Width = 24, ;
+		Picture = "..\..\grafgen\iconos\cancelar_16.bmp", ;
+		DisabledPicture = "..\..\grafgen\iconos\cancelar_disable_16.bmp", ;
+		Enabled = .F., ;
+		TabIndex = 13, ;
+		Visible = .F., ;
+		ZOrderSet = 44, ;
+		codigoboton = ("00001814"), ;
+		Name = "CmdTerminar"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdhelp_preuni AS base_cmdhelp WITH ;
+		Top = 404, ;
+		Left = 35, ;
 		Height = 21, ;
 		Width = 23, ;
 		Enabled = .F., ;
@@ -12148,7 +13233,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 	ADD OBJECT base_form_transac.pgfdetalle.page1.cmdduplicaitem AS base_command WITH ;
 		Top = 406, ;
-		Left = 455, ;
+		Left = 523, ;
 		Height = 24, ;
 		Width = 24, ;
 		Anchor = 12, ;
@@ -12168,26 +13253,12 @@ DEFINE CLASS base_form_transac AS base_form
 		Anchor = 164, ;
 		Caption = "Descuentos", ;
 		Height = 16, ;
-		Left = 8, ;
+		Left = 76, ;
 		Top = 389, ;
 		Visible = .F., ;
 		TabIndex = 37, ;
 		ZOrderSet = 48, ;
 		Name = "LblImpDto"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblpercep AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 9, ;
-		Anchor = 164, ;
-		Caption = "Percepción", ;
-		Height = 17, ;
-		Left = 214, ;
-		Top = 441, ;
-		Visible = .F., ;
-		TabIndex = 41, ;
-		ZOrderSet = 49, ;
-		Name = "LblPercep"
 
 
 	ADD OBJECT base_form_transac.pgfdetalle.page1.txtpercep AS base_textbox_numero WITH ;
@@ -12197,44 +13268,14 @@ DEFINE CLASS base_form_transac AS base_form
 		Enabled = .F., ;
 		Height = 22, ;
 		InputMask = "999,999.9999", ;
-		Left = 280, ;
+		Left = 345, ;
 		TabIndex = 20, ;
 		Top = 437, ;
 		Visible = .F., ;
 		Width = 88, ;
 		ForeColor = RGB(255,0,0), ;
-		ZOrderSet = 50, ;
+		ZOrderSet = 49, ;
 		Name = "TxtPercep"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lbltotal2 AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 12, ;
-		Anchor = 164, ;
-		Caption = "TOTAL GENERAL", ;
-		Left = 412, ;
-		Top = 442, ;
-		Visible = .F., ;
-		TabIndex = 44, ;
-		ForeColor = RGB(255,0,0), ;
-		ZOrderSet = 51, ;
-		Name = "LblTotal2"
-
-
-	ADD OBJECT base_form_transac.pgfdetalle.page1.lblmoneda2 AS base_label WITH ;
-		FontBold = .T., ;
-		FontSize = 12, ;
-		Anchor = 164, ;
-		Caption = "US$", ;
-		Height = 22, ;
-		Left = 555, ;
-		Top = 442, ;
-		Visible = .F., ;
-		Width = 34, ;
-		TabIndex = 45, ;
-		ForeColor = RGB(0,128,0), ;
-		ZOrderSet = 52, ;
-		Name = "LblMoneda2"
 
 
 	ADD OBJECT base_form_transac.pgfdetalle.page1.txtimptot2 AS base_textbox_numero WITH ;
@@ -12244,14 +13285,72 @@ DEFINE CLASS base_form_transac AS base_form
 		Enabled = .F., ;
 		Height = 22, ;
 		InputMask = "999,999.9999", ;
-		Left = 588, ;
+		Left = 652, ;
 		TabIndex = 20, ;
-		Top = 439, ;
+		Top = 437, ;
 		Visible = .F., ;
 		Width = 88, ;
 		ForeColor = RGB(255,0,0), ;
-		ZOrderSet = 53, ;
+		ZOrderSet = 50, ;
 		Name = "TxtImpTot2"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblretencion AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Anchor = 164, ;
+		Caption = "Retención S/", ;
+		Height = 17, ;
+		Left = 82, ;
+		Top = 442, ;
+		Visible = .F., ;
+		TabIndex = 41, ;
+		ZOrderSet = 51, ;
+		Name = "LblRetencion"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblpercep AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 9, ;
+		Anchor = 164, ;
+		Caption = "Percepción S/", ;
+		Height = 17, ;
+		Left = 257, ;
+		Top = 442, ;
+		Visible = .F., ;
+		TabIndex = 41, ;
+		ZOrderSet = 52, ;
+		Name = "LblPercep"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lblmoneda2 AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 12, ;
+		Anchor = 164, ;
+		Caption = "US$", ;
+		Height = 22, ;
+		Left = 608, ;
+		Top = 439, ;
+		Visible = .F., ;
+		Width = 34, ;
+		TabIndex = 45, ;
+		ForeColor = RGB(0,128,0), ;
+		ZOrderSet = 53, ;
+		Name = "LblMoneda2"
+
+
+	ADD OBJECT base_form_transac.pgfdetalle.page1.lbltotal2 AS base_label WITH ;
+		FontBold = .T., ;
+		FontSize = 12, ;
+		Anchor = 164, ;
+		Caption = "TOTAL GENERAL", ;
+		Left = 465, ;
+		Top = 439, ;
+		Visible = .F., ;
+		TabIndex = 44, ;
+		ForeColor = RGB(255,0,0), ;
+		ZOrderSet = 54, ;
+		Name = "LblTotal2"
 
 
 	ADD OBJECT base_form_transac.pgfdetalle.page3.cmdaceptar2 AS cmdaceptar WITH ;
@@ -12769,7 +13868,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 	ADD OBJECT cmdadicionar AS cmdnuevo WITH ;
 		Top = 75, ;
-		Left = 734, ;
+		Left = 794, ;
 		Height = 40, ;
 		Width = 40, ;
 		Anchor = 12, ;
@@ -12781,7 +13880,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 	ADD OBJECT cmdmodificar AS cmdmodificar WITH ;
 		Top = 123, ;
-		Left = 734, ;
+		Left = 794, ;
 		Height = 40, ;
 		Width = 40, ;
 		Anchor = 12, ;
@@ -12794,7 +13893,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 	ADD OBJECT cmdeliminar AS cmdeliminar WITH ;
 		Top = 171, ;
-		Left = 734, ;
+		Left = 794, ;
 		Height = 40, ;
 		Width = 40, ;
 		Anchor = 12, ;
@@ -12807,7 +13906,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 	ADD OBJECT cmdsalir AS cmdsalir WITH ;
 		Top = 459, ;
-		Left = 734, ;
+		Left = 794, ;
 		Height = 40, ;
 		Width = 40, ;
 		Anchor = 12, ;
@@ -12818,7 +13917,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 	ADD OBJECT cmdimprimir AS cmdimprimir WITH ;
 		Top = 411, ;
-		Left = 734, ;
+		Left = 794, ;
 		Height = 40, ;
 		Width = 40, ;
 		Anchor = 12, ;
@@ -13415,7 +14514,7 @@ DEFINE CLASS base_form_transac AS base_form
 	ADD OBJECT cmdiniciar AS cmdinicio WITH ;
 		Tag = "E", ;
 		Top = 363, ;
-		Left = 735, ;
+		Left = 795, ;
 		Height = 36, ;
 		Width = 40, ;
 		Anchor = 12, ;
@@ -13431,7 +14530,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 	ADD OBJECT cmdgrabar AS cmdgrabar WITH ;
 		Top = 315, ;
-		Left = 734, ;
+		Left = 794, ;
 		Height = 40, ;
 		Width = 40, ;
 		Anchor = 12, ;
@@ -13602,6 +14701,7 @@ DEFINE CLASS base_form_transac AS base_form
 		Thisform.MostrarLineaCredito('INIT') 
 		THISFORM.xReturn = ''
 		THISFORM.Lctipope = 'C'
+		THISFORM.Lctipope2 = 'C'
 	ENDPROC
 
 
@@ -13690,9 +14790,12 @@ DEFINE CLASS base_form_transac AS base_form
 
 	PROCEDURE desvincular_controles
 		WITH THIS.pgfDetalle.PAGES(1).grdDetalle
-			.ColumnCount = 12
+			this.pgfDetalle.Page1.TxtNro_itm.Visible	= .f.
+			this.pgfDetalle.Page1.TxtNroitm.Visible		= .f.
+			this.pgfDetalle.Page1.LblSepTotitm.Visible	= .f. 
+			.ColumnCount		= 12
 			.RECORDSOURCE		= ""
-			.RECORDSOURCETYPE	= 4
+			.RECORDSOURCETYPE= 4
 			.REFRESH()
 		ENDWITH
 	ENDPROC
@@ -13789,6 +14892,17 @@ DEFINE CLASS base_form_transac AS base_form
 									m.TablVia   =   .CboCodVia.cValoresFiltro
 									m.Ruta		=   .CboRuta.Value
 									m.TablRuta  =   .CboRuta.cValoresFiltro
+									** VETT:  Datos cuotas  IDUPD:1936598586-08/03/2024 03:38 PM
+									m.N_Cuotas		=	IIF(VerifyVar('N_CUOTAS','','CAMPO',THISFORM.ccursor_C),.SpnN_Cuotas.Value,0)
+									** VETT: datos detracción IDUPD:3902992372-08/03/2024 03:58 PM
+									m.PorDETR		=	IIF(VerifyVar('PorDETR','','CAMPO',THISFORM.ccursor_C),.TxtPorDETR.Value,0)
+									m.ImpDETR		=	IIF(VerifyVar('ImpDETR','','CAMPO',THISFORM.ccursor_C),.TxtImpDETR.Value,0)
+									m.CAT54DETR	=	IIF(VerifyVar('CAT54DETR','','CAMPO',THISFORM.cCursor_C),.CntBienServDETR.Value,0)
+									**
+									*!*	MAAV_20241024: Colocamos el adelanto
+									m.ImpAdel = IIF(VerifyVar('ImpAdel','','CAMPO',THISFORM.ccursor_C),.txtImpAdel.Value,0)
+									m.FchAdel = IIF(VerifyVar('FchAdel','','CAMPO',THISFORM.ccursor_C),.txtFchAdel.Value,0)
+									*VerifyVar('N_Cuotas','','CAMPO',THISFORM.cCursor_C)
 									IF INLIST(thisform.objreftran.XsCodDoc ,'PEDI') AND UPPER(GsSigCIa)='EHOLDING'
 										m.TpoVta2		=	.CboTpoVta2.Value
 										m.FteVta		=	.CboFteVta.Value
@@ -13818,6 +14932,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 										SELECT (THISFORM.ccursor_D)
 										DELETE ALL IN (THISFORM.ccursor_D)
+
 										=TABLEUPDATE()
 										LsAliasServ = .GrdTipoServ.RecordSource
 										SELECT (LsAliasServ) 
@@ -13838,7 +14953,7 @@ DEFINE CLASS base_form_transac AS base_form
 									m.CodCli	=	.CntCodCli.Value
 									m.NomCli	= 	.CntCodCli.TxtDescripcion.Value
 									m.CodDire 	= 	.CboCodDire.VAlue
-									m.DirCli	=	.CboCodDire.DISPLAYVALUE
+									m.DirCli		=	.CboCodDire.DISPLAYVALUE
 									m.RucCli	=	.TxtRucAux.Value 
 									m.CodMon	= 	.CboCodMon.Value
 									m.TpoCmb	=	.TxtTpoCmb.Value
@@ -13896,6 +15011,7 @@ DEFINE CLASS base_form_transac AS base_form
 					RfTotMinMN	=	IIF(m.Codmon=1,m.ImpTot,ROUND(m.ImpTot*m.TpoCmb,2))
 					m.Agente	=   IIF(THISFORM.ObjCntPage.ChkRetencion.Value and RfTotMinMN>THISFORM.ObJRefTran.XfReteMinMN,'S','') 
 					m.Reten		=   IIF(m.agente='S',round(m.ImpTot*THISFORM.ObJRefTran.XfPorRet/100,2),0)
+					Thisform.pgfDetalle.Page1.txtReten.Value = m.Reten
 				ELSE
 					m.Agente	= ''
 					m.Reten		= 0
@@ -14129,7 +15245,7 @@ DEFINE CLASS base_form_transac AS base_form
 						=TABLEUPDATE()
 						update (THISFORM.ccursor_C) set nroitm = LnNro_Itm
 						LOCATE
-
+						 thisform.PgfDetalle.Page1.TxtNroItm.VALUE = LnNro_Itm
 						THISFORM.OBJREFTRAN.XsNroDoc	= m.NroDoc
 						IF Thisform.xreturn = 'E' && Eliminar transaccion
 
@@ -14229,6 +15345,7 @@ DEFINE CLASS base_form_transac AS base_form
 		IF VARTYPE(PnMonAnt)<>'N'
 			PnMonAnt	= 0
 		ENDIF
+		THisform.LockScreen = .T. 
 		LnMonAct	=thisform.ObjRefTran.XiCodMon    
 		LfTpoCmb	=thisform.ObjRefTran.XfTpoCmb
 		PRIVATE _ImpBrt, _RegAct
@@ -14240,22 +15357,21 @@ DEFINE CLASS base_form_transac AS base_form
 			RETURN 
 		ENDIF
 		IF LlHayRegistros   && Cuando los items del detalle se carga de un documento previo
-
 			thisform.objreftran.gitotitm = RECCOUNT(thisform.cCursor_d)
 			DIMENSION THIS.objRefTran.aDetalle[thisform.objreftran.gitotitm]
-
-		   SELECT(thisform.cCursor_d)
-		   IF  EOF() 
-		   	  GO BOTT 
-		   ENDIF
-		   IF  BOF() 
-		   	  GO TOP
-		   ENDIF
-		   _RegAct = RECNO()   
-		   LOCATE
-		   LlPase = .F.
-		   SCAN 
-		   		DO CASE 
+			SELECT(thisform.cCursor_d)
+			IF  EOF() 
+		   		GO BOTT 
+			ENDIF
+			IF  BOF() 
+		   		GO TOP
+			ENDIF
+			_RegAct = RECNO()   
+			LOCATE
+			LlPase = .F.
+			LnTotItmCur = 0
+			SCAN 
+				DO CASE 
 		   			CASE thisform.Que_transaccion ='ALMACEN'
 			   		        LsCampo = thisform.cCursor_d+'.ImpCto'
 					        _ImpBrt = _ImpBrt + EVALUATE(LsCampo)
@@ -14267,18 +15383,28 @@ DEFINE CLASS base_form_transac AS base_form
 							ENDIF
 						ENDIF
 						LsCampo = thisform.cCursor_d+'.ImpLin'
-					        _ImpBrt = _ImpBrt + EVALUATE(LsCampo)
-					        SCATTER name THIS.ObjRefTran.aDetalle(RECNO())
+					      _ImpBrt = _ImpBrt + EVALUATE(LsCampo)
+						SCATTER name THIS.ObjRefTran.aDetalle(RECNO())
 				ENDCASE
-		        	LlPase = .T.
-		   ENDSCAN
-		   IF _RegAct>0 AND LlPase
-			   GO _RegAct
-		   ENDIF 
 
+				LnTotItmCur = LnTotItmCur + 1
+				LsCmp1=THISFORM.cCursor_D+'.Nro_Itm'
+				LsCmp2=THISFORM.cCursor_D+'.NroItm'
+				DO CASE 
+					CASE	TYPE(LsCmp1) = "N" AND EVALUATE(THISFORM.cCursor_D+'.Nro_Itm') >= 0
+						REPLACE  NRO_ITM WITH LnTotItmCur 
+					CASE	TYPE(LsCmp2) = "N" AND EVALUATE(THISFORM.cCursor_D+'.NroItm') >= 0
+						REPLACE  NROITM WITH LnTotItmCur 
+				ENDCASE
+		      	LlPase = .T.
+			ENDSCAN
+			IF _RegAct>0 AND LlPase
+				GO _RegAct
+			ENDIF 
+			THISFORM.pgfDetalle.page1.TxtNroitm.Value =  LnTotItmCur  
 		   ** VETT  29/11/11 05:34 AM : Calculamos el subtotal de las cuotas. Codigo Provisional 
-		   LOCAL LnDiaVto
-		   IF INLIST(Thisform.ObjRefTran.XsCodDoc, [FACT],[BOLE]) AND UPPER(GsSigCia)='EHOLDING' AND ;
+			LOCAL LnDiaVto
+			IF INLIST(Thisform.ObjRefTran.XsCodDoc, [FACT],[BOLE]) AND UPPER(GsSigCia)='EHOLDING' AND ;
 		   		!EMPTY(thisform.Objcntpage.GrdCuotas.RecordSource)
 				LsCuotaFac = ''
 				LnSelCta	= 0
@@ -14300,8 +15426,8 @@ DEFINE CLASS base_form_transac AS base_form
 			   
 			   		.TxtGlosa2.Value	=	IIF(LnSelCta>0, .TxtGlosa2.Value + IIF(LnSelCta>1, ' CUOTAS: ',' CUOTA: ')+LsCuotaFac,.TxtGlosa2.Value)
 		   		ENDWITH
-		   ENDIF
-		   ** VETT  29/11/11 05:37 AM : FIN: Por ahora lo dejamos asi 
+			ENDIF
+			** VETT  29/11/11 05:37 AM : FIN: Por ahora lo dejamos asi 
 		ELSE
 		*
 			IF thisform.ObjRefTran.GiTotItm>0
@@ -14315,8 +15441,6 @@ DEFINE CLASS base_form_transac AS base_form
 
 		WITH THISFORM.ObjRefTran
 			STORE 0 TO .XfImpBto,.XfImpDto,.XfImpIgv,.XfImpTot
-
-
 			DO CASE
 				CASE INLIST(.XsCODDOC, [FACT],[COTI])
 					DO CASE 
@@ -14327,7 +15451,6 @@ DEFINE CLASS base_form_transac AS base_form
 							.XfImpIgv = ROUND(.XfImpVta*.XfPorIgv/100,2)
 							.XfImpTot = .XfImpVta + .XfImpIgv
 						CASE  .XcDestino='E'
-
 							.XfImpVta   = _ImpBrt
 							.XfImpIgv	= 0 
 							.XfImpBto	= .XfImpVta + .XfImpInt  + .XfImpFlt + .XfImpSeg + .XfImpAdm
@@ -14351,41 +15474,35 @@ DEFINE CLASS base_form_transac AS base_form
 								.XfImpTot = .XfImpBto + .XfImpIgv - .XfImpDto
 						ENDCASE
 					ELSE
-					   .XfImpBto = _ImpBrt
-			  		   .XfImpDto = ROUND(.XfImpBto*.XfPorDto/100,2)   		   
-					   thisform.ObjReftran.XfImpVta = ROUND((thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto)/(1+thisform.ObjReftran.XfporIgv/100),2)
-					   thisform.ObjReftran.XfImpIgv = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto - thisform.ObjReftran.XfImpVta
-					   thisform.ObjReftran.XfImpTot = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto
-					   thisform.ObjReftran.XfImpBto = thisform.ObjReftran.XfImpVta
-				   ENDIF
-
-
-				   
+						.XfImpBto = _ImpBrt
+			  			.XfImpDto = ROUND(.XfImpBto*.XfPorDto/100,2)   		   
+						thisform.ObjReftran.XfImpVta = ROUND((thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto)/(1+thisform.ObjReftran.XfporIgv/100),2)
+						thisform.ObjReftran.XfImpIgv = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto - thisform.ObjReftran.XfImpVta
+						thisform.ObjReftran.XfImpTot = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto
+						thisform.ObjReftran.XfImpBto = thisform.ObjReftran.XfImpVta
+					ENDIF
 				CASE thisform.ObjReftran.XsCODDOC = [PEDI]
-				   IF .f.
-					   .XfImpBto = _ImpBrt
-			  		   .XfImpDto = ROUND(.XfImpBto*.XfPorDto/100,2)   		   
-					   thisform.ObjReftran.XfImpVta = ROUND((thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto)/(1+thisform.ObjReftran.XfporIgv/100),2)
-					   thisform.ObjReftran.XfImpIgv = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto - thisform.ObjReftran.XfImpVta
-					   thisform.ObjReftran.XfImpTot = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto
-					   thisform.ObjReftran.XfImpBto = thisform.ObjReftran.XfImpVta
-				   ELSE
-			   
+					IF .f.
+						.XfImpBto = _ImpBrt
+			  			.XfImpDto = ROUND(.XfImpBto*.XfPorDto/100,2)   		   
+						thisform.ObjReftran.XfImpVta = ROUND((thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto)/(1+thisform.ObjReftran.XfporIgv/100),2)
+						thisform.ObjReftran.XfImpIgv = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto - thisform.ObjReftran.XfImpVta
+						thisform.ObjReftran.XfImpTot = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto
+						thisform.ObjReftran.XfImpBto = thisform.ObjReftran.XfImpVta
+					ELSE
 			   			.XfImpBto = _ImpBrt
 						.XfImpDto = ROUND(.XfImpBto*.XfPorDto/100,2) 
 						.XfImpVta = .XfImpBto - .XfImpDto  + .XfImpInt  + .XfImpFlt
 						.XfImpIgv = ROUND(.XfImpVta*.XfPorIgv/100,2)
 						.XfImpTot = .XfImpVta + .XfImpIgv
-				   ENDIF
-				   
+					ENDIF
 				CASE INLIST(thisform.ObjReftran.XsCODDOC , [PROF])
-				   .XfImpBto = _ImpBrt
-		  		   .XfImpDto = ROUND(.XfImpBto*.XfPorDto/100,2)   		   
-				   thisform.ObjReftran.XfImpVta = ROUND((thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto)/(1+thisform.ObjReftran.XfporIgv/100),2)
-				   thisform.ObjReftran.XfImpIgv = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto - thisform.ObjReftran.XfImpVta
-				   thisform.ObjReftran.XfImpTot = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto
-				   thisform.ObjReftran.XfImpBto = thisform.ObjReftran.XfImpVta
-
+					.XfImpBto = _ImpBrt
+					.XfImpDto = ROUND(.XfImpBto*.XfPorDto/100,2)   		   
+					thisform.ObjReftran.XfImpVta = ROUND((thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto)/(1+thisform.ObjReftran.XfporIgv/100),2)
+					thisform.ObjReftran.XfImpIgv = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto - thisform.ObjReftran.XfImpVta
+					thisform.ObjReftran.XfImpTot = thisform.ObjReftran.XfImpBto - thisform.ObjReftran.XfImpDto
+					thisform.ObjReftran.XfImpBto = thisform.ObjReftran.XfImpVta
 			ENDCASE
 		ENDWITH
 
@@ -14393,22 +15510,45 @@ DEFINE CLASS base_form_transac AS base_form
 		WITH THISFORM.pgfDetalle.PAGE1
 			DO CASE 
 				CASE thisform.Que_transaccion = 'ALMACEN'
-				     .TxtImpBrt.VALUE = _ImpBrt
-				     .TxtImpIgv.VALUE = ROUND(_ImpBrt*.txtPorIgv.VALUE/100,2)
-				     .TxtIMpTot.VALUE = .TxtImpBrt.VALUE + .TxtImpIgv.VALUE
+					.TxtImpBrt.VALUE = _ImpBrt
+					.TxtImpIgv.VALUE = ROUND(_ImpBrt*.txtPorIgv.VALUE/100,2)
+					.TxtIMpTot.VALUE = .TxtImpBrt.VALUE + .TxtImpIgv.VALUE
 				CASE thisform.Que_transaccion = 'VENTAS'     
 
-				     .TxtImpBrt.VALUE = thisform.ObjReftran.XfImpBto
-		   	         .TxtImpDto.VALUE = thisform.Objreftran.XfImpDto
-		   	         .TXtImpVta.VALUE = thisform.Objreftran.XfImpVTA
-		  	         .TxtImpIgv.VALUE = thisform.ObjReftran.XfImpIgv
+					.TxtImpBrt.VALUE = thisform.ObjReftran.XfImpBto
+					.TxtImpDto.VALUE = thisform.Objreftran.XfImpDto
+					.TXtImpVta.VALUE = thisform.Objreftran.XfImpVTA
+					.TxtImpIgv.VALUE = thisform.ObjReftran.XfImpIgv
 
-		  	         IF THISFORM.ObjRefTran.XnTpoVta = 3  && Promociones
-		  	        	 .TxtImpTot.VALUE = 0 
-		  	        	 thisform.ObjReftran.XfImpTot = 0
-					 ELSE 
-					 	.TxtImpTot.VALUE = thisform.ObjReftran.XfImpTot
-					 ENDIF
+
+			  	      IF THISFORM.ObjRefTran.XnTpoVta = 3  && Promociones
+			  	        	 .TxtImpTot.VALUE = 0 
+			  	        	 thisform.ObjReftran.XfImpTot = 0
+					ELSE 
+						 .TxtImpTot.VALUE = THISFORM.ObjReftran.XfImpTot
+					ENDIF
+					IF INLIST(thisform.ObjReftran.XsCODDOC,"FACT","BOLE")
+
+						WITH thisform.objcntpage
+							LfFactor=1
+							IF THISFORM.ObjReftran.XfImpTot<=THISFORM.ObjReftran.XfMinDETR
+								.TxtImpDETR.Value	=	0
+								LfFactor = 0
+							ENDIF
+							IF !INLIST(Thisform.Lctipope2 ,"C","E") AND (.TxtPorDETR.Value<>.bFPorDETR OR .SpnN_Cuotas.Value<>.BfN_Cuotas)
+								IF	.TxtPorDETR.Value<>.bFPorDETR 
+									IF THISFORM.ObjReftran.XfImpTot>THISFORM.ObjReftran.XfMinDETR  && AND .TxtPorDETR.Value>=0  
+										.TxtImpDETR.Value	=	ROUND(THISFORM.ObjReftran.XfImpTot*.TxtPorDETR.Value/100,2)
+									ENDIF
+								ENDIF
+								IF .SpnN_Cuotas.Value<>.BfN_Cuotas OR .TxtPorDETR.Value<>.bFPorDETR 
+									.GenerarCuotas(THISFORM.ObjReftran.XfImpTot - .TxtImpDETR.Value,.SpnN_CUOTAS.Value,.SpnDiaVto.Value )
+								ENDIF
+							ENDIF
+							.CboFmaPgo.Valid
+
+						ENDWITH
+					ENDIF
 
 		    ENDCASE  
 			.cmdAdicionar1.ENABLED	= (thisform.xReturn<> 'E' AND (thisform.objreftran.XsCodRef = 'FREE' or INLIST(thisform.objreftran.XsCodDoc ,'PEDI','PROF','COTI')))
@@ -14418,23 +15558,26 @@ DEFINE CLASS base_form_transac AS base_form
 		*	.txtPORIGV.Value  = thisform.ObjrefTran.XfPorIgv
 		ENDWITH
 		*
+		THisform.LockScreen = .F. 
 	ENDPROC
 
 
 	PROCEDURE limpiar_var
-		with thisform.pgfdetalle.page1
+		WITH Thisform.pgfDetalle.Page1
 			.txtNroDoc.VALUE = []
 			.txtFchDoc.VALUE = DATE()  
 			.TxtObserv.VALUE = []
-		endwith
-
-		with thisform.pgfdetalle.page1
-		*	.txtPorIgv.VALUE = 0
+		ENDWITH
+		WITH Thisform.pgfDetalle.Page1
+		*!*		.txtPorIgv.VALUE = 0
 			.txtImpBrt.VALUE = 0
 			.txtImpIgv.VALUE = 0
 			.txtImpTot.VALUE = 0
-		endwith
-
+			*!*	Valores de retención en 0
+			.txtReten.Value = 0
+			.txtPercep.Value = 0
+			.txtImpTot2.Value = 0
+		ENDWITH
 	ENDPROC
 
 
@@ -14522,21 +15665,27 @@ DEFINE CLASS base_form_transac AS base_form
 				ENDWITH
 
 			CASE thisform.que_transaccion ='VENTAS'
-
+				THISFORM.ObjRefTran.XsSerie	= []
 				DO CASE
 					CASE INLIST(THISFORM.ObjCntCab.CboCodDoc.Value,'F','B','N')
-						THISFORM.ObjRefTran.XsTpoRef = IIF(INLIST(THISFORM.ObjCntCab.CboCodDoc.Value,'F','B'),THISFORM.ObjCntCab.CboTipoFact.Value,'')
-						THISFORM.ObjRefTran.XsCodDoc =	THISFORM.ObjCntCab.CboCodDoc.Value
-						THISFORM.ObjRefTran.XsPtoVta =	THISFORM.ObjCntCab.CboPtoVta.Value
-						THISFORM.ObjRefTran.XsCodVen =	THISFORM.ObjCntCab.CboCodVen.Value
-						THISFORM.ObjRefTran.XnTpoFac =	THISFORM.ObjCntCab.CboTipoFact.ListIndex
-						THISFORM.ObjRefTran.XsCodCli =  THISFORM.ObjCntPage.CntCodCli.Value
-						THISFORM.cValor_ID	=	THISFORM.ObjRefTran.CodSed + ; 
-												THISFORM.ObjRefTran.XsCodDoc +;
-												THISFORM.ObjRefTran.XsPtoVta
-
+						THISFORM.ObjRefTran.XsTpoRef	=	IIF(INLIST(THISFORM.ObjCntCab.CboCodDoc.Value,'F','B'),THISFORM.ObjCntCab.CboTipoFact.Value,'')
+						THISFORM.ObjRefTran.XsCodDoc	=	THISFORM.ObjCntCab.CboCodDoc.Value
+						THISFORM.ObjRefTran.XsPtoVta	=	THISFORM.ObjCntCab.CboPtoVta.Value
+						THISFORM.ObjRefTran.XsCodVen	=	THISFORM.ObjCntCab.CboCodVen.Value
+						THISFORM.ObjRefTran.XnTpoFac	=	THISFORM.ObjCntCab.CboTipoFact.ListIndex
+						THISFORM.ObjRefTran.XsCodCli	=	THISFORM.ObjCntPage.CntCodCli.Value
+						** VETT: Agregamos la serie por punto de venta IDUPD:2512574976-11/09/2024 04:36 PM 
+						THISFORM.ObjRefTran.XsSerie	=	EVALUATE(THISFORM.ObjCntCab.CboPtoVta.cAliasCursor+".Serie")
+						THISFORM.cValor_ID	=	THISFORM.ObjRefTran.CodSed	+ ; 
+												THISFORM.ObjRefTran.XsCodDoc	+;
+												THISFORM.ObjRefTran.XsPtoVta	+;
+												THISFORM.ObjRefTran.XsSerie
+						** VETT: [FIN]  IDUPD:2512574976-11/09/2024 04:36 PM
+						** VETT: ***REVISAR*** URGENTE!!!!!				 IDUPD:2629957524-04/11/2024 09:53 PM 
 						THISFORM.cValor_PK = THISFORM.TraerValor_PK()
 						M.ERR=thisform.ObjRefTran.CfgVar_PK(thisform.ctabla_c)
+						** VETT: 			 IDUPD:2629957524-04/11/2024 09:53 PM 
+
 						IF m.err<0
 							thisform.MensajeErr(m.err)
 							RETURN .f.
@@ -14778,6 +15927,9 @@ DEFINE CLASS base_form_transac AS base_form
 		*!*		APPEND BLANK IN (THISFORM.cCursor_D)
 		*!*		thisform.confirma_trn_detalle(THISFORM.cCursor_D) 
 		ENDIF
+		this.pgfDetalle.Page1.TxtNro_itm.Visible	= .T.
+		this.pgfDetalle.Page1.TxtNroitm.Visible		= .T.
+		this.pgfDetalle.Page1.LblSepTotitm.Visible	= .T. 
 		*** Agregamos campos 
 		WITH thisform.pgfDetalle.page3
 			DO CASE 
@@ -14938,7 +16090,10 @@ DEFINE CLASS base_form_transac AS base_form
 			.LblCodFase.VISIBLE		=	goCfgAlm.lModCsm
 			IF goCfgAlm.lModCsm AND THISFORM.xReturn = "I"
 			    * Muestra los Lotes que corresponde al Predio Seleccionado
-		        .CboLotes.cValoresFiltro=gsCodSed
+			   ** VETT: La sede que esta en maestro correlativos se toma por defecto VTATDOCM para transacciones IDUPD:973092755-30/03/2024 02:36 PM  
+		        .CboLotes.cValoresFiltro=goCfgAlm.CodSed && gsCodSed   
+		        ** VETT:  IDUPD:973092755-30/03/2024 02:36 PM  
+		        
 		        .CboLotes.GenerarCursor()
 		        *
 				.CboLotes.interactivechange()	            
@@ -14982,7 +16137,10 @@ DEFINE CLASS base_form_transac AS base_form
 			**
 			IF LEFT(THISFORM.CboTipMov.VALUE,1) = "T" AND THISFORM.xReturn = "I"
 			    * Muestra los almacenes internos que corresponden a ese Predio 
-		        .CboAlmOri.cValoresFiltro = gsCodSed
+			  ** VETT: La sede que esta en maestro correlativos se toma por defecto VTATDOCM para transacciones IDUPD:973092755-30/03/2024 02:36 PM   
+		        .CboAlmOri.cValoresFiltro = GoCfgAlm.CodSed && gsCodSed
+		        ** VETT:  IDUPD:973092755-30/03/2024 02:36 PM
+		        
 		        .cboAlmOri.cWhereSql      = ' AND SubAlm <> GoCfgAlm.SubAlm'            
 		        .CboAlmOri.GenerarCursor()
 				.CboAlmOri.interactivechange()	            
@@ -15040,13 +16198,17 @@ DEFINE CLASS base_form_transac AS base_form
 			ENDWITH
 			IF THISFORM.xReturn = 'I'   		&& Nuevo Registro
 				**LoDatAdm.correlativo(LcTabla,LcCmps,LcVlrs,LcCmpId,LnLenId,.T.,0,'0')
+				LsMsgDisp = ""
 				THISFORM.OBJREFTRAN.CFGVAR_ID(thisform.objreftran.EntidadCorrelativo)
 				.txtnrodoc.value=THISFORM.OBJREFTRAN.GEN_id('0') 
 				** VETT:excluimos las letras del correlativo antes de verificar si esta en cero  2022/01/18 15:21:43 **
 				m.lcCorrelativo=THISFORM.OBJREFTRAN.Correlativo_sin_serie(.txtnrodoc.value,THISFORM.OBJREFTRAN.XsSerie)
-		*!*			IF val(.txtnrodoc.value)<=0
+		*!*			IF val(.txtnrodoc.value)<=0    ****CHECKTODAY: CodSed
+				LsMsgDisp ='SEDE:'+thisform.objreftran.CodSed+" "+"DOCUMENTO:"+thisform.objreftran.XsCodDoc+" Punto Venta: "+thisform.objcntcab.cboPtoVta.Value+" "+trim(thisform.objcntcab.cboPtoVta.DisplayValue)
 				IF val(m.lcCorrelativo)<=0
-					=messagebox('No existe correlativo definido para este documento, verificar maestro de correlativos',16,'Correlativo sin definir')
+					=messagebox('No existe número correlativo definido para:'+CRLF+;
+					  LsMsgDisp+CRLF+;
+					"Verificar en: Modulo Ventas, menú Maestros/Correlativo de Documentos",16,'Correlativo sin definir')
 					RELEASE LoDatAdm
 					RETURN .f.
 				ENDIF
@@ -15091,9 +16253,6 @@ DEFINE CLASS base_form_transac AS base_form
 					RETURN .f.
 				ENDIF
 			ENDIF
-			*** CONTROLES DEL DETALLE ***
-			thisform.Desvincular_Controles()
-			thisform.Vincular_controles_ventas_detalle 
 			*** 
 			thisform.PgfDetalle.Page1.CmdHelpNrodoc.Enabled=.F.
 			** Capturamos la configuracion de transacciones para el tipo y codigo de la configuración en ALMCFTRA
@@ -15105,7 +16264,9 @@ DEFINE CLASS base_form_transac AS base_form
 			LsCodMov = IIF(LnPosComilla>0,SUBSTR(LsCodMov,LnPosComilla+1,3),LsCodMov)
 			=thisform.objreftran.Cap_Cfg_Transacciones(thisform.ObjRefTran.cTipMov,LsCodMov)
 			thisform.pgfDetalle.page3.cmdHelpCodMat.cvaloresfiltro = thisform.ObjRefTran.SubAlm
-			**
+			*** CONTROLES DEL DETALLE ***
+			thisform.Desvincular_Controles()
+			thisform.Vincular_controles_ventas_detalle 
 			** Contabilidad ***
 			IF INLIST(Thisform.ObjReftran.XsCodDoc , 'PEDI' ,'COTI')
 				THISFORM.XsNroMes = ''
@@ -15160,12 +16321,20 @@ DEFINE CLASS base_form_transac AS base_form
 								.grdCuotas.Readonly = .T. 
 								.grdCuotas.AllowCellSelection = .F. 
 							ENDIF
+							IF INLIST(thisform.ObjRefTran.XsCodDoc,'FACT','BOLE')
+								IF GoCfgVta.L_VTARCUOT
+									.Cargarcuotas(Thisform.ObjRefTran.XsTpoDoc,Thisform.ObjRefTran.XsCodDoc, Thisform.ObjRefTran.XsNroDoc) 
+		*!*							.grdCuotas.Readonly = .T. 
+		*!*							.grdCuotas.AllowCellSelection = .F. 
+									.Cargar_Controles_Modificar
+								ENDIF
+							ENDIF
 							IF THISFORM.Objreftran.XsCodRef='PEDI'
 								THISFORM.Objreftran.XsNroRfb =  .TxtNroPed.VALUE
 							ENDIF
 						OTHERWISE 
 							.TxtTpoCmb.VALUE		=	EVALUATE(this.cCursor_C+'.TpoCmb')
-							.CboCodMon.VALUE 	=	EVALUATE(this.cCursor_C+'.CodMon')
+							.CboCodMon.VALUE 		=	EVALUATE(this.cCursor_C+'.CodMon')
 							.CntCodCli.VALUE		=	EVALUATE(this.cCursor_C+'.CodCli')
 							.CntCodCli.TxtCodigo.InteractiveChange()
 							.CboCodDire.VALUE		= 	EVALUATE(this.cCursor_C+'.CodDire')
@@ -15364,7 +16533,6 @@ DEFINE CLASS base_form_transac AS base_form
 		LOCAL LlModPreVta AS Boolean
 		LlModPreVta	=	HasAccess("ModificarPreciosVenta")	&& OR INLIST(thisform.objreftran.XsCodDoc,'COTI')
 		** VETT  20/04/2016 10:33 AM :  Usamos esta variable para controlar en columna del Grid.
-
 		WITH THIS.pgfDetalle.PAGES(1).grdDetalle
 			.Visible = .T.
 			.RECORDSOURCETYPE	= 1
@@ -15382,14 +16550,15 @@ DEFINE CLASS base_form_transac AS base_form
 				.COLUMNS(4).CONTROLSOURCE = IIF(!INLIST(thisform.objreftran.XsCodDoc,'PEDI','PROF','COTI'),THISFORM.cCursor_D+".CanFac",THISFORM.cCursor_D+".CanPed")
 				.COLUMNS(5).CONTROLSOURCE = THISFORM.cCursor_D+".FacEqu"
 				.COLUMNS(6).CONTROLSOURCE = "ROUND("+THISFORM.cCursor_D+".FacEqu"+"*"+THISFORM.cCursor_D+"."+LsCmpCnt+",2)"
-				.COLUMNS(5).HEADER1.CAPTION = "Factor Unidad  Venta"
-				.COLUMNS(5).HEADER1.WORDWRAP = .T.
-				.COLUMNS(6).HEADER1.CAPTION = "Total"
-				.COLUMNS(5).WIDTH = 0
-				.COLUMNS(6).WIDTH = 0
-				.COLUMNS(5).Readonly = .T.
-				.COLUMNS(6).Readonly = .T.
-
+				IF !INLIST(GsSigCia,'CAUCHO',"ONIBLOM")
+					.COLUMNS(5).HEADER1.CAPTION = "Factor Unidad  Venta"
+					.COLUMNS(5).HEADER1.WORDWRAP = .T.
+					.COLUMNS(6).HEADER1.CAPTION = "Total"
+					.COLUMNS(5).WIDTH = 0
+					.COLUMNS(6).WIDTH = 0
+					.COLUMNS(5).Readonly = .T.
+					.COLUMNS(6).Readonly = .T.
+				ENDIF
 				.COLUMNS(7).WIDTH = thisform.Width_Col7
 				.COLUMNS(8).WIDTH = thisform.Width_Col8
 				.COLUMNS(7).CONTROLSOURCE = THISFORM.cCursor_D+".PreVta"
@@ -15431,7 +16600,7 @@ DEFINE CLASS base_form_transac AS base_form
 						.Columns(3).WIDTH = 76
 					OTHERWISE
 						DO CASE
-							CASE GsSigCia='CAUCHO'	&& Por ahora lo controlamos asi, despues debe de venir en la configuracion, que seria 
+							CASE INLIST(GsSigCia,'CAUCHO',"ONIBLOM")	&& Por ahora lo controlamos asi, despues debe de venir en la configuracion, que seria 
 		*									.COLUMNCOUNT   = 8
 								.COLUMNS(1).CONTROLSOURCE = THISFORM.cCursor_D+".CodMat"
 								.COLUMNS(2).CONTROLSOURCE = THISFORM.cCursor_D+".DesMat"
@@ -15521,14 +16690,14 @@ DEFINE CLASS base_form_transac AS base_form
 				.TxtObserv.VISIBLE		= .T.
 				.TxtGlosa2.VISIBLE		= .F.
 
-				.Lblretencion.Visible = .F.
-				.LblPercep .Visible = .F. 
-				.LblTotal2.Visible= .F.  
-				.LblMoneda2.Visible = .F.  
+				.Lblretencion.Visible = .T.
+				.LblPercep .Visible = .T. 
+				.LblTotal2.Visible= .T.  
+				.LblMoneda2.Visible = .T.  
 
-				.TxtReten.Visible= .F. 
-				.TxtPercep.Visible= .F.  
-				.TxtImpTot2.Visible= .F. 
+				.TxtReten.Visible = .T. 
+				.TxtPercep.Visible = .T.  
+				.TxtImpTot2.Visible = .T. 
 				 
 		*!*			.TxtTpoCmb.VISIBLE		= .T.
 		*!*			.CboCodMon.VISIBLE		= .T.
@@ -15675,6 +16844,7 @@ DEFINE CLASS base_form_transac AS base_form
 					** VETT  19/11/2015 03:10 PM : Borramos registros previos. 
 					SELECT RCUO
 					SET ORDER TO RCUO01   && NRODOC+NROCTA
+		*!*				SET STEP ON
 					SEEK thisform.ObjRefTran.XsNroDoc
 					SCAN WHILE NroDoc = thisform.ObjRefTran.XsNroDoc
 						=RLOCK()
@@ -15749,7 +16919,55 @@ DEFINE CLASS base_form_transac AS base_form
 				ENDWITH
 
 			OTHERWISE 
+				** VETT:   Grabamos las cuotas 	IDUPD:2104234042-07/03/2024 06:32 PM 
 
+		*!*	*!*	*!*			 WITH THISFORM.ObjCntPage
+		*!*	*!*	*!*			 	IF !THIS.Objreftran.L_VTARCUOT
+		*!*	*!*	*!*			 		=MESSAGEBOX("La actualización de cuotas no se puede realizar, se debe actualizar la configuracion de la base de datos",0+48,"Aviso importante | Warning")
+		*!*	*!*	*!*			 		RETURN
+		*!*	*!*	*!*			 	ENDIF 
+		*!*	*!*	*!*				 LsPathDBFCuotas	=	ADDBS(GoEntorno.pathdatacia(GsCodCia))+'VTARCUOT'
+		*!*	*!*	*!*				 LsAliasCur_Cuotas	=	.GrdCuotas.RecordSource
+		*!*	*!*	*!*				 LnCuotas			=  .SpnN_Cuotas.Value
+		*!*	*!*	*!*				IF !USED('RCUO')
+		*!*	*!*	*!*					goentorno.open_dbf1('ABRIR','VTARCUOT','RCUO','FACT','')
+		*!*	*!*	*!*				ENDIF
+		*!*	*!*	*!*				** VETT  19/11/2015 03:10 PM : Borramos registros previos. 
+		*!*	*!*	*!*				SELECT RCUO
+		*!*	*!*	*!*				SET ORDER TO FACT  && TPOREF+CODREF+NROREF
+		*!*	*!*	*!*				SEEK thisform.ObjRefTran.XsTpoDoc+thisform.ObjRefTran.XsCodDoc+thisform.ObjRefTran.XsNroDoc
+		*!*	*!*	*!*				SCAN WHILE TPOREF+CODREF+NROREF = thisform.ObjRefTran.XsTpoDoc+thisform.ObjRefTran.XsCodDoc+thisform.ObjRefTran.XsNroDoc
+		*!*	*!*	*!*					=RLOCK()
+		*!*	*!*	*!*					REPLACE UserElim WITH GoEntorno.User.Login
+		*!*	*!*	*!*					REPLACE FchElim   WITH DATETIME()
+		*!*	*!*	*!*					DELETE
+		*!*	*!*	*!*					UNLOCK
+		*!*	*!*	*!*				ENDSCAN
+		*!*	*!*	*!*				FLUSH IN RCUO
+		*!*	*!*	*!*				*!*									 DELETE FROM (LsPathDBFCuotas)  WHERE  CodDoc = thisform.ObjRefTran.XsCodDoc  AND NroDoc = thisform.ObjRefTran.XsNroDoc  
+		*!*	*!*	*!*				 SELECT (LsAliasCur_Cuotas)
+		*!*	*!*	*!*				 SCAN 
+		*!*	*!*	*!*				 	SCATTER MEMVAR 
+		*!*	*!*	*!*				*!*									 	INSERT  INTO (LsPathDBFCuotas) FROM MEMVAR
+		*!*	*!*	*!*					SELECT RCUO
+		*!*	*!*	*!*					APPEND BLANK
+		*!*	*!*	*!*					GATHER MEMVAR
+		*!*	*!*	*!*					REPLACE TpoRef		WITH Thisform.ObjRefTran.XsTpoDoc  
+		*!*	*!*	*!*					REPLACE CodRef		WITH Thisform.Objreftran.XsCodDoc
+		*!*	*!*	*!*					REPLACE NroRef		WITH Thisform.Objreftran.XsNroDoc
+		*!*	*!*	*!*					IF Thisform.xReturn='I'
+		*!*	*!*	*!*						REPLACE UserCrea WITH GoEntorno.User.Login
+		*!*	*!*	*!*						REPLACE FchCrea   WITH DATETIME()
+		*!*	*!*	*!*					ENDIF
+		*!*	*!*	*!*					IF Thisform.xReturn='A'
+		*!*	*!*	*!*						REPLACE UserModi WITH  GoEntorno.User.Login
+		*!*	*!*	*!*						REPLACE FchModi   WITH DATETIME()
+		*!*	*!*	*!*					ENDIF
+		*!*	*!*	*!*					SELECT (LsAliasCur_Cuotas)
+		*!*	*!*	*!*				 ENDSCAN
+		*!*	*!*	*!*				 FLUSH IN RCUO
+		*!*	*!*	*!*				 
+		*!*	*!*	*!*			 ENDWITH
 		ENDCASE
 	ENDPROC
 
@@ -15789,6 +17007,36 @@ DEFINE CLASS base_form_transac AS base_form
 		ENDCASE 
 
 		RETURN LsValor_PK
+	ENDPROC
+
+
+	*-- Actualiza la retención por item
+	PROCEDURE actualizar_retencion
+		PARAMETERS nTotalParcial
+		IF Thisform.objCntPage.chkRetencion.Value
+			fTpoCmb = Thisform.objCntPage.txtTpoCmb.Value
+			nCodMon = Thisform.objCntPage.cboCodMon.Value
+			fTotMinMN = IIF(nCodmon=1, nTotalParcial, ROUND(nTotalParcial*fTpoCmb,2))
+			nRetenMin = Thisform.objRefTran.XfReteMinMN
+			fPorRetencion = Thisform.objRefTran.XfPorRet/100
+			** VETT: Calculo monto de retencion en base al tope minimo retencion IDUPD:3308496391-12/08/2024 10:47 AM 
+			fMtoRetenidoMN = 0
+			nImpTot2 = 0
+			IF fTotMinMN > nRetenMin
+				fMtoRetenidoMN = fTotMinMN * fPorRetencion
+				Thisform.pgfDetalle.Page1.txtReten.Value = fMtoRetenidoMN
+
+				*!*	Calculamos el total real menos la retención
+				IF nCodMon = 2
+					fRetenME = fMtoRetenidoMN / fTpoCmb
+					nImpTot2 = nTotalParcial - fRetenME
+				ELSE
+					nImpTot2 = nTotalParcial - fMtoRetenidoMN
+				ENDIF
+			ENDIF
+			** VETT: [FIN] IDUPD:3308496391-12/08/2024 10:47 AM 
+			Thisform.pgfDetalle.Page1.txtImpTot2.Value = nImpTot2
+		ENDIF
 	ENDPROC
 
 
@@ -15871,8 +17119,10 @@ DEFINE CLASS base_form_transac AS base_form
 		ENDIF
 
 		ov=CREATEOBJECT('Dosvr.validadatos')
-		LnError=ov.validacodigoalmacen(LcCodMat,LcSubAlm,goCfgAlm.CodSed,LcTipMov,LlStkNeg,LcLote,LfCandes,LdFecha,LcCursor,LsCodCli)
-
+		** VETT: La sede que esta en maestro correlativos se toma por defecto VTATDOCM para transacciones IDUPD:973092755-30/03/2024 02:36 PM  
+		*!*	LnError=ov.validacodigoalmacen(LcCodMat,LcSubAlm,goCfgAlm.CodSed,LcTipMov,LlStkNeg,LcLote,LfCandes,LdFecha,LcCursor,LsCodCli)
+		LnError=ov.validacodigoalmacen(LcCodMat,LcSubAlm,THISFORM.objreftran.CodSed,LcTipMov,LlStkNeg,LcLote,LfCandes,LdFecha,LcCursor,LsCodCli)
+		** VETT: IDUPD:973092755-30/03/2024 02:36 PM  
 		RELEASE ov
 		RETURN LnError
 	ENDPROC
@@ -15884,7 +17134,10 @@ DEFINE CLASS base_form_transac AS base_form
 			CASE THISFORM.QUE_Transaccion=[ALMACEN]
 				=goCfgAlm.Abrir_dbfs_alm()
 		 	CASE THISFORM.QUE_Transaccion=[VENTAS]
-		 		=goCfgAlm.Abrir_dbfs_VTA('FACT')
+		 		IF 	!goCfgAlm.Abrir_dbfs_VTA('FACT')
+		 			MESSAGEBOX(gocfgalm.odatadm.serror+CRLF+"Verificar con el area de TI y volver a intentar luego.",0+48,"Aviso importante")
+		 			thisform.cmdsalir.click 
+		 		ENDIF
 		 		IF UPPER(GsSigCia)='EHOLDING'
 		 			=goentorno.open_dbf1('ABRIR','CCTCONTA','CONT','CONT01','')
 		 			=goentorno.open_dbf1('ABRIR','VTARWEBS','RWEB','RWEB01','')
@@ -15968,526 +17221,6 @@ DEFINE CLASS base_form_transac AS base_form
 	ENDPROC
 
 
-	PROCEDURE txtfchdoc.Valid
-
-		IF !DODEFAULT()
-			RETURN .F. 
-		ENDIF
-		thisform.objcntpage.txttpoCmb.Value =GoCfgAlm._TipoCambio(this.value,thisform.xReturn,thisform.objcntpage.txttpoCmb.Value )
-		thisform.ObjReftran.XdFchDoc = this.Value
-		thisform.ObjReftran.XfTpoCmb = thisform.objcntpage.txttpoCmb.Value
-		** VETT:Verificamos la fecha 2021/12/03 16:40:22 ** 
-		WITH THISFORM.OBJREFTRAN
-		*!*		IF YEAR(.XdFchDoc)<>_ANO
-		*!*			=MESSAGEBOX("Fecha no pertenece al periodo "+STR(_ANO,4),0+16,"Fecha errada")
-		*!*			RETURN .F.
-		*!*		ENDIF
-			** VETT:Solo puede usar fecha de periodos (AÑO) distintos si tiene permiso o es MASTER 2022/01/17 12:11:33 **
-			IF EMPTY(.XdFchDoc)
-				RETURN .T.
-			ENDIF
-			IF HasAccess('NOValidaFechaTransaccion') OR UPPER(TRIM(goentorno.user.groupname))='MASTER'
-				** No valida la fecha de transacción, en caso haya que desactivar esta parte 
-			ELSE
-				IF YEAR(.XdFchDoc)<>_ANO
-					=MESSAGEBOX("Fecha no pertenece al periodo "+STR(_ANO,4),0+16,"Fecha errada")
-					RETURN .F.
-				ENDIF
-
-				.XsNroDoc			= THISFORM.PgfDetalle.page1.txtnrodoc.value
-				thisform.cvalor_pk	= thisform.Traervalor_pk()
-				 
-				LLYaExiste=.F.
-				DO CASE
-					CASE	SEEK(.cValor_PK ,.cAliasCab,.cIndice_PK) AND thisform.xReturn = "I"  
-
-						LLYaExiste=.T.
-						SELECT (.cAliasCab)
-						SCATTER FIELDS TpoDoc,CodDoc,NroDoc,FchDoc NAME oDataRef   
-						IF .XdFchDoc<oDataRef.FchDoc
-							=MESSAGEBOX("Ya existen documentos con fechas mayores a"+DTOC(.XdFchDoc) + ; 
-							" que no corresponden con secuencia del correlativo",0+16,"Fecha inconsistente" )
-							RETURN .F.
-						ENDIF
-
-					CASE	(!SEEK(.cValor_PK ,.cAliasCab,.cIndice_PK) AND thisform.xReturn = "I" ) OR ;
-							( SEEK(.cValor_PK ,.cAliasCab,.cIndice_PK) AND thisform.xReturn = "A" )
-
-						LLYaExiste=.F.
-						LnLenDoc    = LEN(trim(.XsNroDoc))
-						LnNroDoc	= VAL(.XsNroDoc) - 1
-						LsNroDocAnt=RIGHT(REPLI('0',LnLenDoc) + LTRIM(STR(LnNroDoc)), LnLenDoc)
-						LsValor_pk	= thisform.traervalor_pk_ant(LsNroDocAnt)
-						IF SEEK(LsValor_pk ,.cAliasCab,.cIndice_PK)
-							SELECT (.cAliasCab)
-							SCATTER FIELDS TpoDoc,CodDoc,NroDoc,FchDoc NAME oDataRef   
-					    	IF .XdFchDoc<oDataRef.FchDoc
-								=MESSAGEBOX("No se puede usar fecha: "+DTOC(.XdFchDoc) +" es menor a fecha "+DTOC(oDataREF.FchDoc)+ ; 
-								" de documento previo "+oDataREF.CodDoc+oDataREF.NroDoc,0+16,"Fecha inconsistente" )
-								RETURN .F.
-							ENDIF
-						ENDIF
-				ENDCASE
-			ENDIF
-		ENDWITH
-		** VETT: 2021/12/03 16:40:22 **
-
-		IF Thisform.ObjCntPage.TxtTpoCmb.Value<=0
-			=MEssagebox('No hay tipo de cambio definido para esta fecha,actualizar tabla de tipos de cambio',0+16,'Atención')
-			Thisform.ObjCntPage.Enabled = .F.
-		ELSE
-			Thisform.ObjCntPage.Enabled = .T.
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtnrodoc.Valid
-		IF !EMPTY(THIS.VALUE)
-			thisform.LockScreen = .T.
-			thisform.desvincular_controles()
-			IF thisform.xReturn='A'
-				thisform.mod_cabacera() 
-			ENDIF
-			IF thisform.xReturn='E'
-				thisform.Eli_cabecera() 
-			ENDIF
-
-			IF !thisform.Vincular_Controles()
-				thisform.LockScreen = .F.
-				MESSAGEBOX('Nro. de documento invalido',16,'Verificar')
-				RETURN .f.
-			ENDIF
-			IF thisform.ObjRefTran.XcFlgEst = 'A'
-				thisform.ObjCntPage.Deshabilita
-				thisform.hABilita_pagina(.F.,2)
-				thisform.hABilita_pagina(.F.,3)
-				thisform.hABilita_pagina(.F.,4)
-			ELSE
-				thisform.hABilita_pagina(.T.,2)
-				thisform.hABilita_pagina(.T.,3)
-				thisform.hABilita_pagina(.T.,4)
-			ENDIF
-			WITH thisform.PgfDetalle.Page1
-				.TxtFchDoc.ENABLED = HasAccess('ModificaFechaVenta')
-			ENDWITH 
-			thisform.LockScreen = .F.
-
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE cmdhelpnrodoc.Click
-		thisform.capcontrolcab() 
-		DODEFAULT()
-		this.Parent.TxtNroDoc.Value = this.cvalorvalida 
-		this.Parent.TxtNroDoc.SetFocus
-		IF !EMPTY(this.Parent.TxtNroDoc.Value)
-			KEYBOARD '{END}'+'{ENTER}'
-		ENDIF
-		 
-	ENDPROC
-
-
-	PROCEDURE cmdadicionar1.Click
-		IF !THIS.ACTIVADO()
-			RETURN
-		ENDIF
-
-		WITH THIS.PARENT.PARENT.PAGES(1)
-			.TxtFchDoc.ENABLED = .F.
-			.TxtObserv.ENABLED = .F.
-		ENDWITH
-		EXTERNAL ARRAY GaLencod
-		thisform.objCntCab.Deshabilita
-		thisform.objCntPage.Deshabilita
-		thisform.LcTipOpe = 'I'  				&& Agregar item en el detalle
-
-		*thisform.BindControls = .F.
-
-		SELECT (thisform.ccursor_d)
-		*!*	LOCATE FOR EMPTY(CodMat)
-		*!*	IF EOF() 
-			APPEND BLANK
-			thisform.confirma_trn_detalle(thisform.ccursor_d) 
-			replace TpoDoc WITH thisform.objreftran.XsCodRef
-			replace CodDoc WITH thisform.objreftran.XsCodDoc
-			replace NroDoc WITH thisform.objreftran.XsNroDoc
-			replace FchDoc WITH thisform.ObjReftran.XdFchDoc
-		*!*	ENDIF
-		thisform.objreftran.NumEle = RECNO()  && Sera ??
-
-		IF INLIST(thisform.objreftran.XsCodRef , 'FREE' ,'PEDI','PROF','COTI')
-			thisform.objreftran.GiTotItm = thisform.objreftran.GiTotItm + 1
-			DIMENSION thisform.objreftran.aDetalle[thisform.objreftran.GiTotItm]
-			thisform.objreftran.aDetalle[thisform.objreftran.GiTotItm] = CREATEOBJECT('dosvr.lineadetalle')
-		ENDIF
-		*thisform.BindControls = .T.
-		IF thisform.modo_edit_detalle = 1
-			WITH THISFORM.PgfDetalle.page1 
-				.GrdDetalle.ReadOnly = .F. 
-				.GrdDetalle.AllowCellSelection = .T.
-				.CmdAdicionar1.Visible = .F.
-				.CmdModificar1.Visible = .F.
-				.CmdEliminar1.Visible = .F.
-				.CmdCancelar1.Visible = .T.
-				.CmdAceptar1.Visible = .T.
-			ENDWITH 
-		ELSE
-			THISFORM.PgfDetalle.page1.ENABLED	= .F.
-			THISFORM.PgfDetalle.ACTIVEPAGE	= 3
-			WITH THISFORM.PgfDetalle.PAGES(3)
-
-				** Inicializamos Variables
-			*!*	*!*		.TxtCodMat.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.Codmat')))
-			*!*	*!*		.TxtDesMat.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.DesMat')))
-			*!*	*!*		DO CASE 
-			*!*	*!*			CASE thisform.que_transaccion ='ALMACEN'
-			*!*	*!*				.TxtUndStk.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.UndStk')))
-			*!*	*!*			CASE thisform.que_transaccion ='VENTAS'
-			*!*	*!*				.TxtUndStk.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.UndVta')))
-			*!*	*!*		ENDCASE
-
-			*!*	*!*		.TxtLote.VALUE	 = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.Lote')))
-			*!*	*!*		.TxtFchVto.VALUE= CTOD('  \  \    ')
-			*!*	*!*		.TxtCanDes.VALUE = 0.00
-			*!*	*!*		.TxtPreUni.VALUE = 0.00
-			*!*	*!*		.TxtImpCto.VALUE = 0.00
-				** Habilitamos las variables
-				.TxtCodMat.ENABLED = .T.
-				.TxtCanDes.ENABLED = .T.
-				.TxtPreUni.ENABLED = .T.
-				.TxtImpCto.ENABLED = .T.
-				.TxtLote.ENABLED	= .t.
-				.TxtFchVto.ENABLED	= .t.
-				.cmdAceptar2.ENABLED			= .F.
-				.cmdCancelar2.ENABLED			= .T.
-				.TxtCodmat.MaxLength = GaLenCod[3] 
-				.TxtCodMat.InputMask = REPLICATE('X',GnLenDiv)+'-'+REPLICATE('X',GaLencod[3]-GnLenDiv)
-				.CmdHelpCodMat.ENABLED = .T.
-				.CmdHelpLote.ENABLED = .T.
-				.REFRESH
-				.TxtCodMat.SETFOCUS()
-			ENDWITH
-		ENDIF
-
-		WITH THISFORM.PgfDetalle.PAGES(4)
-			** Inicializamos Variables
-
-			.cmdAceptar3.ENABLED			= .T.
-			.cmdCancelar3.ENABLED			= .T.
-		ENDWITH
-
-		thisform.MostrarLineaCredito('MOSTRAR') 
-
-		*thisform.vincular_detalle() 
-	ENDPROC
-
-
-	PROCEDURE cmdmodificar1.Click
-		IF !THIS.ACTIVADO()
-			RETURN
-		ENDIF
-		WITH THISFORM.PgfDetalle.page1 
-			.TxtFchDoc.ENABLED = .F.
-			.TxtObserv.ENABLED = .F.
-		ENDWITH
-		IF thisform.modo_edit_detalle = 1
-			WITH THISFORM.PgfDetalle.page1 
-				.GrdDetalle.ReadOnly = .F. 
-				.GrdDetalle.AllowCellSelection = .T.
-				.CmdAdicionar1.Visible = .F.
-				.CmdModificar1.Visible = .F.
-				.CmdEliminar1.Visible = .F.
-				.CmdCancelar1.Visible = .T.
-				.CmdAceptar1.Visible = .T.
-			ENDWITH 
-		else
-			THISFORM.PgfDetalle.Page1.Enabled = .F.
-			THISFORM.PgfDetalle.ACTIVEPAGE	= 3
-
-			WITH THISFORM.PgfDetalle.PAGES(3)
-
-				** Habilitamos las variables
-				.TxtCodMat.ENABLED	= .T.
-				.TxtCandes.ENABLED	= .T.
-				.TxtPreUni.ENABLED	= .T.
-				.TxtImpCto.ENABLED	= .T.
-				.TxtLote.ENABLED	= .T.
-				.TxtFchVto.ENABLED	= .T.
-
-				.CmdHelpLote.ENABLED = .T.
-				.CmdHelpCodMat.ENABLED = .T.
-				.cmdAceptar2.ENABLED			= .T.
-				.cmdCancelar2.ENABLED			= .T.
-
-				.TxtCodMat.SETFOCUS()
-			ENDWITH
-		ENDIF
-
-		thisform.LcTipOpe = 'A'  				&& Actualizar item en el detalle
-		**
-	ENDPROC
-
-
-	PROCEDURE cmdeliminar1.Click
-		IF !THIS.ACTIVADO()
-			RETURN
-		ENDIF
-		IF MESSAGEBOX("¿Desea Eliminar el item del detalle?",32+4+256,"Eliminar") <> 6
-			RETURN
-		ENDIF
-		m.Usuario			= goEntorno.USER.Login
-		m.Estacion			= goEntorno.USER.Estacion
-		thisform.LcTipOpe = 'E'  				&& Agregar item en el detalle
-		LnControl = 1
-		IF lnControl > 0
-			THISFORM.Grabar_datos(2,thisform.LcTipOpe)
-			IF INLIST(thisform.objreftran.XsCodRef , 'FREE' ,'PEDI','PROF','COTI')
-				thisform.objreftran.GiTotItm = thisform.objreftran.GiTotItm - 1
-			ENDIF
-			LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio(thisform.ccursor_d)
-			* 
-		    * CALCULO TOTALES DEL DOCUMENTO
-		    *
-		    IF (THISFORM.ObjRefTran.lpidpco OR THISFORM.ObjRefTran.lCtoVta)
-		       THISFORM.Calcular_Totales
-		       THISFORM.MostrarLineaCredito('MOSTRAR')
-		    ENDIF
-		    *
-		    WITH THISFORM.PgfDetalle.Page1
-				.GrdDetalle.REFRESH()
-				.CmdModificar1.ENABLED = LlHayRegistros
-				.CmdEliminar1.ENABLED  = LlHayRegistros
-			ENDWITH
-			THISFORM.CmdIMprimir.ENABLED = LlHayRegistros
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtimptot.Valid
-		IF HasAccess('ModificaTotalFactura')
-			IF THis.Value <> This.ValorAnt
-				This.Parent.TxtImpBrt.Value = ROUND(This.Value / (1+ Thisform.Objreftran.XfPorIgv/100) , 2)
-				This.Parent.TxtImpIgv.Value = This.Value - This.Parent.TxtImpBrt.Value
-			ENDIF
-			This.ForeColor = RGB(0,0,0)
-			This.BackColor = RGB(255,255,255)
-			 This.Enabled = .F. 
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtimptot.DblClick
-		IF HasAccess('ModificaTotalFactura')
-			This.Enabled = .T.
-			This.AddProperty('ValorAnt',This.Value) 
-		**	This.ForeColor = RGB(0,255,0)
-			This.BackColor = RGB(230,255,255)
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtimptot.ProgrammaticChange
-		this.Parent.Lblmoneda.Caption = LEFT(thisform.objcntpage.CboCodmon.DisplayValue,4) 
-	ENDPROC
-
-
-	PROCEDURE txtporigv.LostFocus
-		IF thisform.ObjReftran.lpidpco OR thisform.ObjReftran.lCtoVta
-		   THISFORM.Calcular_Totales
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE lbltotal.DblClick
-		this.Parent.TxtImpTot.DblClick 
-	ENDPROC
-
-
-	PROCEDURE txtpordto.LostFocus
-		IF  thisform.ObjReftran.lCtoVta
-			thisform.ObjReftran.XfPorDto = this.value
-		   THISFORM.Calcular_Totales
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtimpint.LostFocus
-		IF thisform.ObjReftran.lCtoVta
-			thisform.ObjReftran.XfImpInt = this.value
-		   THISFORM.Calcular_Totales
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtimpflt.LostFocus
-		IF thisform.ObjReftran.lCtoVta
-			thisform.ObjReftran.XfImpFlt = this.value
-		   THISFORM.Calcular_Totales
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtimpseg.LostFocus
-		IF thisform.ObjReftran.lCtoVta
-			thisform.ObjReftran.XfImpSeg  = this.value
-		   THISFORM.Calcular_Totales
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtimpadm.LostFocus
-		IF thisform.ObjReftran.lCtoVta
-			thisform.ObjReftran.XfImpAdm = this.value
-		   THISFORM.Calcular_Totales
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE cmdaceptar1.Click
-		*!*	*!*	M.ERR=THISFORM.VALIDitem() 
-		*!*	*!*	IF m.err<0
-		*!*	*!*		thisform.MensajeErr(m.err)
-		*!*	*!*		this.Parent.txtCanDes.SetFocus()
-		*!*	*!*
-		*!*	*!*		RETURN 
-		*!*	*!*	ENDIF
-		*!*	*!*	*
-		*!*	*!*	* CALCULO TOTALES DEL DOCUMENTO
-		*!*	*!*	*
-		*!*	*!*	IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
-		*!*	*!*	   THISFORM.Calcular_Totales
-		*!*	*!*	ENDIF
-		*!*	*!*	m.err = thisform.validcliente() 
-		*!*	*!*	IF m.err<0
-		*!*	*!*		thisform.MensajeErr(m.err)
-		*!*	*!*		this.Parent.txtCanDes.SetFocus()
-		*!*	*!*		RETURN 
-		*!*	*!*	ENDIF
-
-
-		*!*	*!*	IF THISFORM.lNuevo AND !THISFORM.lGrabado
-		*!*	*!*		lnOk = MESSAGEBOX("Para proseguir con esta opción deberá grabar el Documento " + CHR(13) + ;
-		*!*	*!*			"¿ Desea grabar en este momento y proseguir ?" , 4+32+256 , "¿ Grabar Datos ?" )
-		*!*	*!*		IF lnOk <> 6
-		*!*	*!*			RETURN
-		*!*	*!*		ENDIF
-
-		*!*	*!*		WAIT WINDOW "Actualizando Datos .... espere" NOWAIT
-		*!*	*!*		THISFORM.lGrabado	= THISFORM.Grabar_Datos(1,'I')
-		*!*	*!*		WAIT CLEAR
-
-		*!*	*!*		IF !THISFORM.lGrabado
-		*!*	*!*			=MESSAGEBOX("¡ No se grabaron correctamente los datos !",64,"Error en Grabación")
-		*!*	*!*			RETURN
-		*!*	*!*		ENDIF
-
-		*!*	*!*		THISFORM.lNuevo	= .F.
-		*!*	*!*		WAIT CLEAR
-		*!*	*!*	ELSE
-		*!*	*!*		WAIT WINDOW "Actualizando Datos .... espere" NOWAIT
-		*!*	*!*		IF !THISFORM.Grabar_Datos(2,THISFORM.LcTipOpe)
-		*!*	*!*			=MESSAGEBOX("¡ No se grabaron correctamente los datos !",64,"Error en Grabación")
-		*!*	*!*			RETURN
-		*!*	*!*		ENDIF
-		*!*	*!*		WAIT CLEAR
-		*!*	*!*	ENDIF
-		**
-		*!*	IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
-		*!*	   THISFORM.Calcular_Totales
-		*!*	ENDIF
-		thisform.confirma_trn_detalle(thisform.ccursor_d) 
-		thisform.cmdGrabar.Enabled  = .t.
-		*
-		THIS.PARENT.Cmdterminar.Click 
-	ENDPROC
-
-
-	PROCEDURE cmdcancelar1.Click
-		thisform.Cancelar_trn_detalle(thisform.ccursor_d)  
-		THIS.PARENT.Cmdterminar.Click
-
-		*!*	WITH THIS.PARENT.PARENT.PAGES(3)
-		*!*
-		*!*		*** Deshabilitar Controles
-		*!*		.CmdHelpCodMat.ENABLED = .F.
-		*!*		.TxtCodMat.ENABLED = .F.
-		*!*		.TxtCanDes.ENABLED = .F.
-		*!*		.TxtPreUni.ENABLED = .F.
-		*!*		.TxtImpCto.ENABLED = .F.
-		*!*		.txtLote.ENABLED	= .f.
-		*!*		.txtFchVto.ENABLED	= .f.
-		*!*		.cmdAceptar2.ENABLED	= .F.
-		*!*		.cmdCancelar2.ENABLED	= .F.
-		*!*		.CmdHelpLote.ENABLED	= .F.
-		*!*		** Inicializarlos ** 
-
-		*!*	ENDWITH
-
-		*!*	THIS.PARENT.cmdAceptar2.ENABLED	= .F.
-		*!*	THIS.ENABLED	= .F.
-		*!*	WITH THIS.PARENT.PARENT
-		*!*		.PAGES(1).ENABLED	= .T.
-		*!*		.ACTIVEPAGE	= 1
-		*!*		LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio(THISFORM.cCursor_d)
-		*!*		.PAGES(1).cmdModificar1.ENABLED	= LlHayRegistros
-		*!*		.PAGES(1).cmdEliminar1.ENABLED	= LlHayRegistros
-		*!*		with thisform
-		*!*			.cmdImprimir.ENABLED	= LlHayRegistros
-		*!*		endwith 
-		*!*		.PAGES(1).grdDetalle.REFRESH()
-		*!*		.PAGES(1).grdDetalle.SETFOCUS()
-		*!*	ENDWITH
-		*!*	IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
-		*!*	   THISFORM.Calcular_Totales
-		*!*	ENDIF
-	ENDPROC
-
-
-	PROCEDURE cmdterminar.Click
-		thisform.LockScreen = .T. 
-		THIS.PARENT.cmdAceptar1.Visible	= .F.
-		THIS.PARENT.cmdCancelar1.Visible = .F.
-
-		WITH THIS.PARENT.PARENT
-		*!*	*!*		.PAGES(1).ENABLED	= .T.
-		*!*	*!*		.ACTIVEPAGE	= 1
-			LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio(THISFORM.cCursor_d)
-			.PAGES(1).cmdAdicionar1.Visible	= .t.
-			.PAGES(1).cmdModificar1.Visible	= .t.
-			.PAGES(1).cmdEliminar1.Visible	= .t.
-
-			.PAGES(1).cmdModificar1.ENABLED	= LlHayRegistros
-			.PAGES(1).cmdEliminar1.ENABLED	= LlHayRegistros
-			with thisform
-				.cmdImprimir.ENABLED	= LlHayRegistros
-			endwith 
-			.PAGES(1).GrdDetalle.ReadOnly = .T. 
-			.PAGES(1).GrdDetalle.AllowCellSelection = .F.
-			.PAGES(1).grdDetalle.REFRESH()
-			.PAGES(1).grdDetalle.SETFOCUS()
-		ENDWITH
-		IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
-		   THISFORM.Calcular_Totales
-		ENDIF
-		*thisform.objCntCab.habilita
-		WITH THIS.PARENT.PARENT.PAGES(1)
-			IF INLIST(THISFORM.xReturn,'A') 
-				.TxtFchDoc.ENABLED = HasAccess('ModificaFechaVenta')
-			ELSE
-				.TxtFchDoc.ENABLED = IIF (INLIST(THISFORM.xReturn,'A','I'), .T.,.F.)
-			ENDIF
-			.TxtObserv.ENABLED = .T.
-		ENDWITH
-		thisform.objCntPage.habilita
-		thisform.objCntPage.CboDestino.InteractiveChange()
-
-		thisform.MostrarLineaCredito('MOSTRAR') 
-
-		thisform.LockScreen = .F.  
-	ENDPROC
-
-
 	PROCEDURE grddetalle.AfterRowColChange
 		LPARAMETERS ncolindex
 		DODEFAULT()
@@ -16521,7 +17254,16 @@ DEFINE CLASS base_form_transac AS base_form
 		ENDWITH
 
 		WITH THISFORM.PgfDetalle.PAGES(1)
-			.TxtNro_Itm.Value = EVALUATE(THISFORM.cCursor_D+'.Nro_Itm')
+			LsCmp1=THISFORM.cCursor_D+'.Nro_Itm'
+			LsCmp2=THISFORM.cCursor_D+'.NroItm'
+			DO CASE 
+				CASE  TYPE(LsCmp1) = "N" AND 	EVALUATE(THISFORM.cCursor_D+'.Nro_Itm') >= 0
+					.TxtNro_Itm.Value = EVALUATE(THISFORM.cCursor_D+'.Nro_Itm')
+				CASE  TYPE(LsCmp2) = "N" AND 	EVALUATE(THISFORM.cCursor_D+'.NroItm') >= 0
+					.TxtNro_Itm.Value = EVALUATE(THISFORM.cCursor_D+'.NroItm')
+				OTHER
+					.TxtNro_Itm.Value = THIS.registro
+			ENDCASE
 		ENDWITH
 	ENDPROC
 
@@ -16614,7 +17356,7 @@ DEFINE CLASS base_form_transac AS base_form
 
 
 	PROCEDURE txtundvta.Valid
-		IF thisform.LcTipOpe = 'A' &&  
+		IF thisform.LcTipOpe = 'A' && 
 		*!*		THIS.Value = CURVAL('UndVta',thisform.cCursor_d)
 			THIS.Parent.Parent.COLUMN5.TxtFacEqu.Value = CURVAL('FacEqu',thisform.cCursor_d)
 		ENDIF
@@ -16730,6 +17472,7 @@ DEFINE CLASS base_form_transac AS base_form
 	PROCEDURE txtcantidad.Valid
 		LOCAL LlOkItem as Boolean ,LfImpCto as Number 
 		LsCmpCnt=IIF(!INLIST(thisform.objreftran.XsCodDoc,'PEDI','PROF','COTI'),'CanFac','CanPed')
+		*!*	SET STEP ON
 		IF thisform.LcTipOpe = 'A' && 
 		*!*		THIS.Value =  CURVAL(LsCmpCnt,thisform.cCursor_d)
 			THIS.Parent.Parent.Column3.TxtUndVta.Value=	CURVAL('UndVta',thisform.cCursor_d)
@@ -17158,6 +17901,529 @@ DEFINE CLASS base_form_transac AS base_form
 				this.Parent.Parent.Parent.Cmdaceptar1.Click 
 
 		ENDCASE
+	ENDPROC
+
+
+	PROCEDURE txtfchdoc.Valid
+
+		IF !DODEFAULT()
+			RETURN .F. 
+		ENDIF
+		thisform.objcntpage.txttpoCmb.Value =GoCfgAlm._TipoCambio(this.value,thisform.xReturn,thisform.objcntpage.txttpoCmb.Value )
+		thisform.ObjReftran.XdFchDoc = this.Value
+		thisform.ObjReftran.XfTpoCmb = thisform.objcntpage.txttpoCmb.Value
+		** VETT:Verificamos la fecha 2021/12/03 16:40:22 ** 
+		WITH THISFORM.OBJREFTRAN
+		*!*		IF YEAR(.XdFchDoc)<>_ANO
+		*!*			=MESSAGEBOX("Fecha no pertenece al periodo "+STR(_ANO,4),0+16,"Fecha errada")
+		*!*			RETURN .F.
+		*!*		ENDIF
+			** VETT:Solo puede usar fecha de periodos (AÑO) distintos si tiene permiso o es MASTER 2022/01/17 12:11:33 **
+			IF EMPTY(.XdFchDoc)
+				RETURN .T.
+			ENDIF
+			IF HasAccess('NOValidaFechaTransaccion') OR UPPER(TRIM(goentorno.user.groupname))='MASTER'
+				** No valida la fecha de transacción, en caso haya que desactivar esta parte 
+			ELSE
+				IF YEAR(.XdFchDoc)<>_ANO
+					=MESSAGEBOX("Fecha no pertenece al periodo "+STR(_ANO,4),0+16,"Fecha errada")
+					RETURN .F.
+				ENDIF
+
+				.XsNroDoc			= THISFORM.PgfDetalle.page1.txtnrodoc.value
+				thisform.cvalor_pk	= thisform.Traervalor_pk()
+				 
+				LLYaExiste=.F.
+				DO CASE
+					CASE	SEEK(.cValor_PK ,.cAliasCab,.cIndice_PK) AND thisform.xReturn = "I"  
+
+						LLYaExiste=.T.
+						SELECT (.cAliasCab)
+						SCATTER FIELDS TpoDoc,CodDoc,NroDoc,FchDoc NAME oDataRef   
+						IF .XdFchDoc<oDataRef.FchDoc
+							=MESSAGEBOX("Ya existen documentos con fechas mayores a"+DTOC(.XdFchDoc) + ; 
+							" que no corresponden con secuencia del correlativo",0+16,"Fecha inconsistente" )
+							RETURN .F.
+						ENDIF
+
+					CASE	(!SEEK(.cValor_PK ,.cAliasCab,.cIndice_PK) AND thisform.xReturn = "I" ) OR ;
+							( SEEK(.cValor_PK ,.cAliasCab,.cIndice_PK) AND thisform.xReturn = "A" )
+
+						LLYaExiste=.F.
+						LnLenDoc    = LEN(trim(.XsNroDoc))
+						LnNroDoc	= VAL(.XsNroDoc) - 1
+						LsNroDocAnt=RIGHT(REPLI('0',LnLenDoc) + LTRIM(STR(LnNroDoc)), LnLenDoc)
+						LsValor_pk	= thisform.traervalor_pk_ant(LsNroDocAnt)
+						IF SEEK(LsValor_pk ,.cAliasCab,.cIndice_PK)
+							SELECT (.cAliasCab)
+							SCATTER FIELDS TpoDoc,CodDoc,NroDoc,FchDoc NAME oDataRef   
+					    	IF .XdFchDoc<oDataRef.FchDoc
+								=MESSAGEBOX("No se puede usar fecha: "+DTOC(.XdFchDoc) +" es menor a fecha "+DTOC(oDataREF.FchDoc)+ ; 
+								" de documento previo "+oDataREF.CodDoc+oDataREF.NroDoc,0+16,"Fecha inconsistente" )
+								RETURN .F.
+							ENDIF
+						ENDIF
+				ENDCASE
+			ENDIF
+		ENDWITH
+		** VETT: 2021/12/03 16:40:22 **
+
+		IF Thisform.ObjCntPage.TxtTpoCmb.Value<=0
+			=MEssagebox('No hay tipo de cambio definido para esta fecha,actualizar tabla de tipos de cambio',0+16,'Atención')
+			Thisform.ObjCntPage.Enabled = .F.
+		ELSE
+			Thisform.ObjCntPage.Enabled = .T.
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtnrodoc.Valid
+		IF !EMPTY(THIS.VALUE)
+			thisform.LockScreen = .T.
+			thisform.desvincular_controles()
+			IF thisform.xReturn='A'
+				thisform.mod_cabacera() 
+			ENDIF
+			IF thisform.xReturn='E'
+				thisform.Eli_cabecera() 
+			ENDIF
+
+			IF !thisform.Vincular_Controles()
+				thisform.LockScreen = .F.
+				MESSAGEBOX('Nro. de documento invalido',16,'Verificar')
+				RETURN .f.
+			ENDIF
+			IF thisform.ObjRefTran.XcFlgEst = 'A'
+				thisform.ObjCntPage.Deshabilita
+				thisform.hABilita_pagina(.F.,2)
+				thisform.hABilita_pagina(.F.,3)
+				thisform.hABilita_pagina(.F.,4)
+			ELSE
+				thisform.hABilita_pagina(.T.,2)
+				thisform.hABilita_pagina(.T.,3)
+				thisform.hABilita_pagina(.T.,4)
+			ENDIF
+			WITH thisform.PgfDetalle.Page1
+				.TxtFchDoc.ENABLED = HasAccess('ModificaFechaVenta')
+			ENDWITH 
+			thisform.LockScreen = .F.
+
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE cmdhelpnrodoc.Click
+		thisform.capcontrolcab() 
+		DODEFAULT()
+		this.Parent.TxtNroDoc.Value = this.cvalorvalida 
+		this.Parent.TxtNroDoc.SetFocus
+		IF !EMPTY(this.Parent.TxtNroDoc.Value)
+			KEYBOARD '{END}'+'{ENTER}'
+		ENDIF
+		 
+	ENDPROC
+
+
+	PROCEDURE cmdadicionar1.Click
+		IF !THIS.ACTIVADO()
+			RETURN
+		ENDIF
+
+		WITH THIS.PARENT.PARENT.PAGES(1)
+			.TxtFchDoc.ENABLED = .F.
+			.TxtObserv.ENABLED = .F.
+		ENDWITH
+		EXTERNAL ARRAY GaLencod
+		thisform.objCntCab.Deshabilita
+		thisform.objCntPage.Deshabilita
+		thisform.LcTipOpe = 'I'  				&& Agregar item en el detalle
+
+		*thisform.BindControls = .F.
+
+		SELECT (thisform.ccursor_d)
+		*!*	LOCATE FOR EMPTY(CodMat)
+		*!*	IF EOF() 
+			APPEND BLANK
+			thisform.confirma_trn_detalle(thisform.ccursor_d) 
+			replace TpoDoc WITH thisform.objreftran.XsCodRef
+			replace CodDoc WITH thisform.objreftran.XsCodDoc
+			replace NroDoc WITH thisform.objreftran.XsNroDoc
+			replace FchDoc WITH thisform.ObjReftran.XdFchDoc
+		*!*	ENDIF
+		thisform.objreftran.NumEle = RECNO()  && Sera ??
+
+		IF INLIST(thisform.objreftran.XsCodRef , 'FREE' ,'PEDI','PROF','COTI')
+			thisform.objreftran.GiTotItm = thisform.objreftran.GiTotItm + 1
+			DIMENSION thisform.objreftran.aDetalle[thisform.objreftran.GiTotItm]
+			thisform.objreftran.aDetalle[thisform.objreftran.GiTotItm] = CREATEOBJECT('dosvr.lineadetalle')
+		ENDIF
+		*thisform.BindControls = .T.
+		IF thisform.modo_edit_detalle = 1
+			WITH THISFORM.PgfDetalle.page1 
+				.GrdDetalle.ReadOnly = .F. 
+				.GrdDetalle.AllowCellSelection = .T.
+				.CmdAdicionar1.Visible = .F.
+				.CmdModificar1.Visible = .F.
+				.CmdEliminar1.Visible = .F.
+				.CmdCancelar1.Visible = .T.
+				.CmdAceptar1.Visible = .T.
+			ENDWITH 
+		ELSE
+			THISFORM.PgfDetalle.page1.ENABLED	= .F.
+			THISFORM.PgfDetalle.ACTIVEPAGE	= 3
+			WITH THISFORM.PgfDetalle.PAGES(3)
+
+				** Inicializamos Variables
+			*!*	*!*		.TxtCodMat.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.Codmat')))
+			*!*	*!*		.TxtDesMat.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.DesMat')))
+			*!*	*!*		DO CASE 
+			*!*	*!*			CASE thisform.que_transaccion ='ALMACEN'
+			*!*	*!*				.TxtUndStk.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.UndStk')))
+			*!*	*!*			CASE thisform.que_transaccion ='VENTAS'
+			*!*	*!*				.TxtUndStk.VALUE = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.UndVta')))
+			*!*	*!*		ENDCASE
+
+			*!*	*!*		.TxtLote.VALUE	 = SPACE(LEN(EVALUATE(thisform.cCursor_D+'.Lote')))
+			*!*	*!*		.TxtFchVto.VALUE= CTOD('  \  \    ')
+			*!*	*!*		.TxtCanDes.VALUE = 0.00
+			*!*	*!*		.TxtPreUni.VALUE = 0.00
+			*!*	*!*		.TxtImpCto.VALUE = 0.00
+				** Habilitamos las variables
+				.TxtCodMat.ENABLED = .T.
+				.TxtCanDes.ENABLED = .T.
+				.TxtPreUni.ENABLED = .T.
+				.TxtImpCto.ENABLED = .T.
+				.TxtLote.ENABLED	= .t.
+				.TxtFchVto.ENABLED	= .t.
+				.cmdAceptar2.ENABLED			= .F.
+				.cmdCancelar2.ENABLED			= .T.
+				.TxtCodmat.MaxLength = GaLenCod[3] 
+				.TxtCodMat.InputMask = REPLICATE('X',GnLenDiv)+'-'+REPLICATE('X',GaLencod[3]-GnLenDiv)
+				.CmdHelpCodMat.ENABLED = .T.
+				.CmdHelpLote.ENABLED = .T.
+				.REFRESH
+				.TxtCodMat.SETFOCUS()
+			ENDWITH
+		ENDIF
+
+		WITH THISFORM.PgfDetalle.PAGES(4)
+			** Inicializamos Variables
+
+			.cmdAceptar3.ENABLED			= .F.
+			.cmdCancelar3.ENABLED			= .F.
+		ENDWITH
+
+		thisform.MostrarLineaCredito('MOSTRAR') 
+
+		*thisform.vincular_detalle() 
+	ENDPROC
+
+
+	PROCEDURE cmdmodificar1.Click
+		IF !THIS.ACTIVADO()
+			RETURN
+		ENDIF
+		WITH THISFORM.PgfDetalle.page1 
+			.TxtFchDoc.ENABLED = .F.
+			.TxtObserv.ENABLED = .F.
+		ENDWITH
+		IF thisform.modo_edit_detalle = 1
+			WITH THISFORM.PgfDetalle.page1 
+				.GrdDetalle.ReadOnly = .F. 
+				.GrdDetalle.AllowCellSelection = .T.
+				.CmdAdicionar1.Visible = .F.
+				.CmdModificar1.Visible = .F.
+				.CmdEliminar1.Visible = .F.
+				.CmdCancelar1.Visible = .T.
+				.CmdAceptar1.Visible = .T.
+			ENDWITH 
+		else
+			THISFORM.PgfDetalle.Page1.Enabled = .F.
+			THISFORM.PgfDetalle.ACTIVEPAGE	= 3
+
+			WITH THISFORM.PgfDetalle.PAGES(3)
+
+				** Habilitamos las variables
+				.TxtCodMat.ENABLED	= .T.
+				.TxtCandes.ENABLED	= .T.
+				.TxtPreUni.ENABLED	= .T.
+				.TxtImpCto.ENABLED	= .T.
+				.TxtLote.ENABLED	= .T.
+				.TxtFchVto.ENABLED	= .T.
+
+				.CmdHelpLote.ENABLED = .T.
+				.CmdHelpCodMat.ENABLED = .T.
+				.cmdAceptar2.ENABLED			= .T.
+				.cmdCancelar2.ENABLED			= .T.
+
+				.TxtCodMat.SETFOCUS()
+			ENDWITH
+		ENDIF
+
+		thisform.LcTipOpe = 'A'  				&& Actualizar item en el detalle
+		**
+	ENDPROC
+
+
+	PROCEDURE cmdeliminar1.Click
+		IF !THIS.ACTIVADO()
+			RETURN
+		ENDIF
+		IF MESSAGEBOX("¿Desea Eliminar el item del detalle?",32+4+256,"Eliminar") <> 6
+			RETURN
+		ENDIF
+		m.Usuario			= goEntorno.USER.Login
+		m.Estacion			= goEntorno.USER.Estacion
+		thisform.LcTipOpe = 'E'  				&& Agregar item en el detalle
+		LnControl = 1
+		IF lnControl > 0
+			THISFORM.Grabar_datos(2,thisform.LcTipOpe)
+			IF INLIST(thisform.objreftran.XsCodRef , 'FREE' ,'PEDI','PROF','COTI')
+				thisform.objreftran.GiTotItm = thisform.objreftran.GiTotItm - 1
+			ENDIF
+			LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio(thisform.ccursor_d)
+			* 
+		    * CALCULO TOTALES DEL DOCUMENTO
+		    *
+		    IF (THISFORM.ObjRefTran.lpidpco OR THISFORM.ObjRefTran.lCtoVta)
+		       THISFORM.Calcular_Totales
+		       THISFORM.MostrarLineaCredito('MOSTRAR')
+		    ENDIF
+		    *
+		    WITH THISFORM.PgfDetalle.Page1
+				.GrdDetalle.REFRESH()
+				.CmdModificar1.ENABLED = LlHayRegistros
+				.CmdEliminar1.ENABLED  = LlHayRegistros
+			ENDWITH
+			THISFORM.CmdIMprimir.ENABLED = LlHayRegistros
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtimptot.Valid
+		IF HasAccess('ModificaTotalFactura')
+			IF THis.Value <> This.ValorAnt
+				This.Parent.TxtImpBrt.Value = ROUND(This.Value / (1+ Thisform.Objreftran.XfPorIgv/100) , 2)
+				This.Parent.TxtImpIgv.Value = This.Value - This.Parent.TxtImpBrt.Value
+			ENDIF
+			This.ForeColor = RGB(0,0,0)
+			This.BackColor = RGB(255,255,255)
+			 This.Enabled = .F. 
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtimptot.DblClick
+		IF HasAccess('ModificaTotalFactura')
+			This.Enabled = .T.
+			This.AddProperty('ValorAnt',This.Value) 
+		**	This.ForeColor = RGB(0,255,0)
+			This.BackColor = RGB(230,255,255)
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtimptot.ProgrammaticChange
+		this.Parent.Lblmoneda.Caption = LEFT(thisform.objcntpage.CboCodmon.DisplayValue,4) 
+	ENDPROC
+
+
+	PROCEDURE txtporigv.LostFocus
+		IF thisform.ObjReftran.lpidpco OR thisform.ObjReftran.lCtoVta
+		   THISFORM.Calcular_Totales
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE lbltotal.DblClick
+		this.Parent.TxtImpTot.DblClick 
+	ENDPROC
+
+
+	PROCEDURE txtpordto.LostFocus
+		IF  thisform.ObjReftran.lCtoVta
+			thisform.ObjReftran.XfPorDto = this.value
+		   THISFORM.Calcular_Totales
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtimpint.LostFocus
+		IF thisform.ObjReftran.lCtoVta
+			thisform.ObjReftran.XfImpInt = this.value
+		   THISFORM.Calcular_Totales
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtimpflt.LostFocus
+		IF thisform.ObjReftran.lCtoVta
+			thisform.ObjReftran.XfImpFlt = this.value
+		   THISFORM.Calcular_Totales
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtimpseg.LostFocus
+		IF thisform.ObjReftran.lCtoVta
+			thisform.ObjReftran.XfImpSeg  = this.value
+		   THISFORM.Calcular_Totales
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE txtimpadm.LostFocus
+		IF thisform.ObjReftran.lCtoVta
+			thisform.ObjReftran.XfImpAdm = this.value
+		   THISFORM.Calcular_Totales
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE cmdaceptar1.Click
+		*!*	*!*	M.ERR=THISFORM.VALIDitem() 
+		*!*	*!*	IF m.err<0
+		*!*	*!*		thisform.MensajeErr(m.err)
+		*!*	*!*		this.Parent.txtCanDes.SetFocus()
+		*!*	*!*
+		*!*	*!*		RETURN 
+		*!*	*!*	ENDIF
+		*!*	*!*	*
+		*!*	*!*	* CALCULO TOTALES DEL DOCUMENTO
+		*!*	*!*	*
+		*!*	*!*	IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
+		*!*	*!*	   THISFORM.Calcular_Totales
+		*!*	*!*	ENDIF
+		*!*	*!*	m.err = thisform.validcliente() 
+		*!*	*!*	IF m.err<0
+		*!*	*!*		thisform.MensajeErr(m.err)
+		*!*	*!*		this.Parent.txtCanDes.SetFocus()
+		*!*	*!*		RETURN 
+		*!*	*!*	ENDIF
+
+
+		*!*	*!*	IF THISFORM.lNuevo AND !THISFORM.lGrabado
+		*!*	*!*		lnOk = MESSAGEBOX("Para proseguir con esta opción deberá grabar el Documento " + CHR(13) + ;
+		*!*	*!*			"¿ Desea grabar en este momento y proseguir ?" , 4+32+256 , "¿ Grabar Datos ?" )
+		*!*	*!*		IF lnOk <> 6
+		*!*	*!*			RETURN
+		*!*	*!*		ENDIF
+
+		*!*	*!*		WAIT WINDOW "Actualizando Datos .... espere" NOWAIT
+		*!*	*!*		THISFORM.lGrabado	= THISFORM.Grabar_Datos(1,'I')
+		*!*	*!*		WAIT CLEAR
+
+		*!*	*!*		IF !THISFORM.lGrabado
+		*!*	*!*			=MESSAGEBOX("¡ No se grabaron correctamente los datos !",64,"Error en Grabación")
+		*!*	*!*			RETURN
+		*!*	*!*		ENDIF
+
+		*!*	*!*		THISFORM.lNuevo	= .F.
+		*!*	*!*		WAIT CLEAR
+		*!*	*!*	ELSE
+		*!*	*!*		WAIT WINDOW "Actualizando Datos .... espere" NOWAIT
+		*!*	*!*		IF !THISFORM.Grabar_Datos(2,THISFORM.LcTipOpe)
+		*!*	*!*			=MESSAGEBOX("¡ No se grabaron correctamente los datos !",64,"Error en Grabación")
+		*!*	*!*			RETURN
+		*!*	*!*		ENDIF
+		*!*	*!*		WAIT CLEAR
+		*!*	*!*	ENDIF
+		**
+		*!*	IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
+		*!*	   THISFORM.Calcular_Totales
+		*!*	ENDIF
+		thisform.confirma_trn_detalle(thisform.ccursor_d)
+		thisform.cmdGrabar.Enabled  = .t.
+		*
+		thisform.LcTipope2 = thisform.xReturn 
+		THIS.PARENT.Cmdterminar.Click 
+		Thisform.Actualizar_Retencion(Thisform.pgfDetalle.Page1.txtImpTot.Value)
+	ENDPROC
+
+
+	PROCEDURE cmdcancelar1.Click
+		thisform.Cancelar_trn_detalle(thisform.ccursor_d)  
+		THISFORM.Lctipope2 = 'C'
+		THIS.PARENT.Cmdterminar.Click
+
+		*!*	WITH THIS.PARENT.PARENT.PAGES(3)
+		*!*
+		*!*		*** Deshabilitar Controles
+		*!*		.CmdHelpCodMat.ENABLED = .F.
+		*!*		.TxtCodMat.ENABLED = .F.
+		*!*		.TxtCanDes.ENABLED = .F.
+		*!*		.TxtPreUni.ENABLED = .F.
+		*!*		.TxtImpCto.ENABLED = .F.
+		*!*		.txtLote.ENABLED	= .f.
+		*!*		.txtFchVto.ENABLED	= .f.
+		*!*		.cmdAceptar2.ENABLED	= .F.
+		*!*		.cmdCancelar2.ENABLED	= .F.
+		*!*		.CmdHelpLote.ENABLED	= .F.
+		*!*		** Inicializarlos ** 
+
+		*!*	ENDWITH
+
+		*!*	THIS.PARENT.cmdAceptar2.ENABLED	= .F.
+		*!*	THIS.ENABLED	= .F.
+		*!*	WITH THIS.PARENT.PARENT
+		*!*		.PAGES(1).ENABLED	= .T.
+		*!*		.ACTIVEPAGE	= 1
+		*!*		LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio(THISFORM.cCursor_d)
+		*!*		.PAGES(1).cmdModificar1.ENABLED	= LlHayRegistros
+		*!*		.PAGES(1).cmdEliminar1.ENABLED	= LlHayRegistros
+		*!*		with thisform
+		*!*			.cmdImprimir.ENABLED	= LlHayRegistros
+		*!*		endwith 
+		*!*		.PAGES(1).grdDetalle.REFRESH()
+		*!*		.PAGES(1).grdDetalle.SETFOCUS()
+		*!*	ENDWITH
+		*!*	IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
+		*!*	   THISFORM.Calcular_Totales
+		*!*	ENDIF
+	ENDPROC
+
+
+	PROCEDURE cmdterminar.Click
+		thisform.LockScreen = .T. 
+		THIS.PARENT.cmdAceptar1.Visible	= .F.
+		THIS.PARENT.cmdCancelar1.Visible = .F.
+
+		WITH THIS.PARENT.PARENT
+		*!*	*!*		.PAGES(1).ENABLED	= .T.
+		*!*	*!*		.ACTIVEPAGE	= 1
+			LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio(THISFORM.cCursor_d)
+			.PAGES(1).cmdAdicionar1.Visible	= .t.
+			.PAGES(1).cmdModificar1.Visible	= .t.
+			.PAGES(1).cmdEliminar1.Visible	= .t.
+
+			.PAGES(1).cmdModificar1.ENABLED	= LlHayRegistros
+			.PAGES(1).cmdEliminar1.ENABLED	= LlHayRegistros
+			with thisform
+				.cmdImprimir.ENABLED	= LlHayRegistros
+			endwith 
+			.PAGES(1).GrdDetalle.ReadOnly = .T. 
+			.PAGES(1).GrdDetalle.AllowCellSelection = .F.
+			.PAGES(1).grdDetalle.REFRESH()
+			.PAGES(1).grdDetalle.SETFOCUS()
+		ENDWITH
+		IF thisform.ObjRefTran.lpidpco OR thisform.ObjRefTran.lCtoVta
+		   THISFORM.Calcular_Totales
+		ENDIF
+		*thisform.objCntCab.habilita
+		WITH THIS.PARENT.PARENT.PAGES(1)
+			IF INLIST(THISFORM.xReturn,'A') 
+				.TxtFchDoc.ENABLED = HasAccess('ModificaFechaVenta')
+			ELSE
+				.TxtFchDoc.ENABLED = IIF (INLIST(THISFORM.xReturn,'A','I'), .T.,.F.)
+			ENDIF
+			.TxtObserv.ENABLED = .T.
+		ENDWITH
+		thisform.objCntPage.habilita
+		thisform.objCntPage.CboDestino.InteractiveChange()
+
+		thisform.MostrarLineaCredito('MOSTRAR') 
+
+		thisform.LockScreen = .F.  
 	ENDPROC
 
 
@@ -17833,94 +19099,6 @@ DEFINE CLASS base_form_transac AS base_form
 	ENDPROC
 
 
-	PROCEDURE cmdaceptar3.Click
-		WITH THIS.PARENT
-
-		    *!* Verifica Actualización de Datos
-		    IF THISFORM.xReturn = "I"
-				IF EMPTY(.TxtSubAlm.Value) OR ISNULL(.TxtSubAlm.Value)
-					=MESSAGEBOX("ERROR : Código de Almacen no puede estar vacío...",48)
-					.TxtSubAlm.SetFocus()
-					RETURN
-				ENDIF
-				.TxtSubAlm.VALID()
-			ENDIF
-			*
-			IF EMPTY(.TxtDesSub.Value) OR ISNULL(.TxtDesSub.Value)
-				=MESSAGEBOX("ERROR : La Descripción del Almacen no puede estar vacía...",48)
-				.TxtDesSub.SetFocus()
-				RETURN
-			ENDIF
-			*
-			SELE ALMA 
-			m.CodAlm        =  GsCodAlm
-			m.SubAlm		= .TxtSubAlm.Value
-			m.DesSub		= .TxtDesSub.Value
-			m.FchCie        = .TxtFchCie.Value
-			*
-		ENDWITH
-		LnControl = 1
-		IF lnControl > 0
-			DO CASE
-
-			    *!* Adicionar Registro
-				CASE THISFORM.xReturn = "I" 
-					INSERT INTO ALMTALMA FROM MEMVAR
-					THISFORM.GenerarLog("0395",THIS.PARENT.PARENT.PAGES(1).cmdAdicionar1.CodigoBoton)
-					*** Actualizar Cursor Local
-					SELE ALMA
-					APPEND BLANK
-					GATHER MEMVAR
-
-				*!* Modificar Registro
-				CASE THISFORM.xReturn = "A"   
-					UPDATE ALMTALMA  SET ;
-					DesSub   = m.DesSub ,;
-					FchCie   = m.FchCie  ;
-		    		WHERE CodSed = GsCodSed and SubAlm = m.SubAlm
-
-		   			SELE ALMA 
-					GATHER MEMVAR
-					THISFORM.GenerarLog("0396",THIS.PARENT.PARENT.PAGES(1).cmdModificar1.CodigoBoton)
-			ENDCASE
-
-			THIS.PARENT.cmdCancelar2.CLICK()
-
-		ENDIF
-	ENDPROC
-
-
-	PROCEDURE cmdcancelar3.Click
-		WITH THIS.PARENT.PARENT.PAGES(2)
-
-		     ** Deshabilitar Controles
-			.TxtSubAlm.ENABLED = .F.     
-			.TxtDesSub.ENABLED = .F.
-			.TxtFchCie.ENABLED = .F.
-
-			.cmdAceptar2.ENABLED	= .F.
-			.cmdCancelar2.ENABLED	= .F.
-
-			** Inicializarlos ** 
-
-		ENDWITH
-
-		THIS.PARENT.cmdAceptar2.ENABLED	= .F.
-		THIS.ENABLED	= .F.
-
-		WITH THIS.PARENT.PARENT
-			.PAGES(1).ENABLED	= .T.
-			.ACTIVEPAGE	= 1
-			LlHayRegistros = NOT THISFORM.Tools.cursor_esta_vacio("ALMA")
-			.PAGES(1).cmdModificar1.ENABLED	= LlHayRegistros
-			.PAGES(1).cmdEliminar1.ENABLED	= LlHayRegistros
-			.PAGES(1).cmdImprimir1.ENABLED	= LlHayRegistros
-			.PAGES(1).grdAlmacen.REFRESH()
-			.PAGES(1).grdAlmacen.SETFOCUS()
-		ENDWITH
-	ENDPROC
-
-
 	PROCEDURE cntcodtra.txtCodigo.Valid
 		DODEFAULT()
 		IF EMPTY(this.value)
@@ -18143,8 +19321,10 @@ DEFINE CLASS base_form_transac AS base_form
 		thisform.tools.closetable([C_CORRE])
 		thisform.tools.closetable([C_GDOC])
 		thisform.tools.closetable([C_DETA])
-		thisform.tools.closetable(thisform.objcntpage.c_validcliente)
-		thisform.tools.closetable(thisform.objcntpage.c_validNroRef)
+		IF VARTYPE(thisform.objcntpage)='O'
+			thisform.tools.closetable(thisform.objcntpage.c_validcliente)
+			thisform.tools.closetable(thisform.objcntpage.c_validNroRef)
+		ENDIF
 		thisform.tools.closetable([C_CODMAT])
 		thisform.tools.closetable(thisform.c_validitem)
 		thisform.tools.closetable([V_MATERIALES_X_LOTE])
@@ -19635,7 +20815,7 @@ ENDDEFINE
 *-- Class:        base_textbox_numero (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_textbox (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    textbox
-*-- Time Stamp:   04/11/00 12:21:12 PM
+*-- Time Stamp:   01/18/24 08:01:08 AM
 *
 DEFINE CLASS base_textbox_numero AS base_textbox
 
@@ -19652,7 +20832,10 @@ DEFINE CLASS base_textbox_numero AS base_textbox
 
 
 	PROCEDURE InteractiveChange
-		THIS.ForeColor = IIF(THIS.Value<0,RGB(255,0,0),RGB(0,0,255))
+		IF VARTYPE(this.Value)<>"N"
+		ELSE
+			THIS.ForeColor = IIF(THIS.Value<0,RGB(255,0,0),RGB(0,0,255))
+		ENDIF
 	ENDPROC
 
 
@@ -19893,7 +21076,7 @@ ENDDEFINE
 *-- Class:        base_textbox_cmdhelp (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  container
 *-- BaseClass:    container
-*-- Time Stamp:   03/05/14 05:14:04 PM
+*-- Time Stamp:   01/19/24 05:47:14 PM
 *
 DEFINE CLASS base_textbox_cmdhelp AS container
 
@@ -19928,6 +21111,8 @@ DEFINE CLASS base_textbox_cmdhelp AS container
 	ccampobusqueda = ([])
 	*-- Define si trae información desde el Servidor o de modo Local
 	lservidor = .F.
+	*-- Especificar si se puede modificar la descripción
+	leditdescripcion = .F.
 	Name = "base_textbox_cmdhelp"
 
 	*-- Se ingresa sentencia para la Clausua WHERE en lenguaje SQL (incluir operador AND,OR)
@@ -20147,6 +21332,19 @@ DEFINE CLASS base_textbox_cmdhelp AS container
 	ENDPROC
 
 
+	PROCEDURE lservidor_assign
+		LPARAMETERS vNewVal
+		*To do: Modify this routine for the Assign method
+		THIS.lServidor = m.vNewVal
+		This.cmdhelp.lServidor  = m.vNewVal
+	ENDPROC
+
+
+	PROCEDURE SetFocus
+		THIS.txtCodigo.SETFOCUS()
+	ENDPROC
+
+
 	PROCEDURE Init
 		THIS.lblCaption.Caption = THIS.cEtiqueta 
 		THIS.ControlSource		= THIS.ControlSource
@@ -20166,19 +21364,6 @@ DEFINE CLASS base_textbox_cmdhelp AS container
 			THIS.cWhereSQL			= THIS.cWhereSQL
 			THIS.cModoObtenerdatos	= THIS.cModoObtenerdatos
 		ENDIF
-	ENDPROC
-
-
-	PROCEDURE SetFocus
-		THIS.txtCodigo.SETFOCUS()
-	ENDPROC
-
-
-	PROCEDURE lservidor_assign
-		LPARAMETERS vNewVal
-		*To do: Modify this routine for the Assign method
-		THIS.lServidor = m.vNewVal
-		This.cmdhelp.lServidor  = m.vNewVal
 	ENDPROC
 
 

@@ -7,7 +7,7 @@
 *-- Class:        contabilidad (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   05/19/21 11:45:11 PM
+*-- Time Stamp:   11/12/24 07:12:11 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -331,8 +331,25 @@ DEFINE CLASS contabilidad AS custom
 			SCAN FOR !EMPTY(Variable) AND !EMPTY(clfaux) && FOR CodCfg='CFG'
 				LsVar = Variable
 				PUBLIC &LsVar
-				&LsVar = ClfAux
+				IF CodCfg="CTA"
+					** VETT: Configuracion para procesos de detraccion , percepcion , retenciones y otros que afectan documentos de cobranza y pago IDUPD:1358422556-13/03/2024 09:58 AM
+					&LsVar = CodCta1
+				ELSE
+					&LsVar = ClfAux
+				ENDIF
+				** VETT: Variables para control de actualizacion al SEE - Sunat IDUPD:724333515-26/02/2024 12:26 PM
+				IF 	CodCfg='CFG' AND UPPER(Variable) = "GSCLFSEE" AND VARTYPE(GsClfSEE) = "C" AND GsClfSEE="SEE" 	&& Aqui falta pensar una forma que no use hardcode
+					PUBLIC vSunatSEE
+					DIMENSION vSunatSEE[4]
+					vSunatSEE = ""
+					FOR K = 1 TO 4
+						LsVar="vSunatSEE["+alltrim(STR(k,2,0))+"]"
+						&LsVar = ALLTRIM(EVALUATE([CodAux]+alltrim(STR(k,2,0))))
+					ENDFOR
+				ENDIF
+				** VETT:  IDUPD:271524106-26/02/2024 12:30 PM
 			ENDSCAN 
+			** 
 			USE IN TCNFG
 		ENDIF
 
@@ -377,6 +394,7 @@ DEFINE CLASS contabilidad AS custom
 			RESTORE FROM THIS.oentorno.tspathcia+'vtaCONFG.MEM' ADDITIVE
 			this.XfPorIgv = CFGADMIGV
 		ENDIF
+
 
 		RETURN .t.
 	ENDPROC
@@ -701,9 +719,10 @@ DEFINE CLASS contabilidad AS custom
 					XsNroVou = oData1.NroDoc
 				ENDIF
 				IF _Que_transaccion = 'VENTAS_ANULAR'
-					this.MovBorra(XsNroMes,XsCodOpe,XsNroAst)
+					nErrCode = this.MovBorra(XsNroMes,XsCodOpe,XsNroAst)
 					this.oDatAdm.Close_File('CTB')
-					RETURN
+					** VETT: Devolver codigo de anulación de registro exitoso  IDUPD:2234801126-12/11/2024 06:42 PM 
+					RETURN nErrCode
 				ENDIF
 				* Grabamos Cabecera *
 				** Valores Fijos
@@ -770,15 +789,31 @@ DEFINE CLASS contabilidad AS custom
 						XsTipDoc = TDOC.TpoDocSN
 						XsCodDoc = TDOC.TpoDocSN  && IIF(SEEK(cParm1,'DOCM'),DOCM.TpoDocSN,'')    &&GDOC->CodDoc
 						XsNroDoc = oData1.NroDoc
-						XsNroRef = oData1.NroRef
+		*!*					XsNroRef = oData1.NroRef
 						XdFchDoc = oData1.FchDoc
 						XdFchVto = oData1.FchVto
 					ELSE
 						XsCodDoc = []
 						XsNroDoc = []
-						XsNroRef = []
+		*!*					XsNroRef = []
 						XdFchDoc = {}
 						XdFchVto = {}
+					ENDIF
+					IF Ctas.PidGlo = "S"
+						*!*	MAAV: Pone el tipo de documento de referencia cuando sea una guia.
+						XsTipRef = IIF(SEEK(oData1.CodRef,'TDOC'),TDOC.TpoDocSN,'')
+						XsNroRef = GDOC.NroRef
+						=SEEK(oData1.CodDoc,"TDOC")
+		*!*					** VETT  15/03/2018 05:06 PM : Obtenemos fecha de documento de referencia 
+		*!*					LiRecActGDOC = RECNO('GDOC')
+		*!*					LsLLaveRef1=GDOC.TpoRef+GDOC.CodRef+GDOC.NroRef
+		*!*				    IF SEEK(LsLLaveRef1,'GDOC')
+		*!*				    	XdFchRef = GDOC.FchDOc
+		*!*				    ENDIF
+		*!*				    GO LiRecActGDOC  IN GDOC
+					ELSE
+						XsTipRef = ""
+						XsNroRef = ""
 					ENDIF
 					this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
 					**=Movbveri(XsNroMes+XsCodOpe+XsNroAst+STR(C_RMOV.NroItm,5),0,'','')
@@ -819,6 +854,22 @@ DEFINE CLASS contabilidad AS custom
 							XsNroRef = []
 							XdFchDoc = {}
 							XdFchVto = {}
+						ENDIF
+						IF Ctas.PidGlo = "S"
+							*!*	MAAV: Pone el tipo de documento de referencia cuando sea una guia.
+							XsTipRef = IIF(SEEK(oData1.CodRef,'TDOC'),TDOC.TpoDocSN,'')
+							XsNroRef = GDOC.NroRef
+							=SEEK(oData1.CodDoc,"TDOC")
+			*!*					** VETT  15/03/2018 05:06 PM : Obtenemos fecha de documento de referencia 
+			*!*					LiRecActGDOC = RECNO('GDOC')
+			*!*					LsLLaveRef1=GDOC.TpoRef+GDOC.CodRef+GDOC.NroRef
+			*!*				    IF SEEK(LsLLaveRef1,'GDOC')
+			*!*				    	XdFchRef = GDOC.FchDOc
+			*!*				    ENDIF
+			*!*				    GO LiRecActGDOC  IN GDOC
+						ELSE
+							XsTipRef = ""
+							XsNroRef = ""
 						ENDIF
 						XiNroItm = XiNroItm + 1
 						this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','') 
@@ -876,7 +927,7 @@ DEFINE CLASS contabilidad AS custom
 							XfImport	=	IIF(oData1.CodDoc='BOLE',IIF(GoCfgVta.XfPorIgv>0,ROUND(ImpLin/(1+GoCfgVta.XfPorIgv/100),2),0 ),ImpLin)
 							IF !SEEK(XsCodCta,"CTAS")
 								WAIT WINDOW 'Cuenta contable no existe' 
-								RETURN .F.
+								RETURN NO_EXISTE_CUENTA_CONTABLE
 								LOOP
 							ELSE
 								IF CTAS.PIDAUX<>"S"
@@ -899,9 +950,24 @@ DEFINE CLASS contabilidad AS custom
 									XdFchDoc = {}
 									XdFchVto = {}
 								ENDIF
+								IF Ctas.PidGlo = "S"
+									*!*	MAAV: Pone el tipo de documento de referencia cuando sea una guia.
+									XsTipRef = IIF(SEEK(oData1.CodRef,'TDOC'),TDOC.TpoDocSN,'')
+									XsNroRef = GDOC.NroRef
+									=SEEK(oData1.CodDoc,"TDOC")
+					*!*					** VETT  15/03/2018 05:06 PM : Obtenemos fecha de documento de referencia 
+					*!*					LiRecActGDOC = RECNO('GDOC')
+					*!*					LsLLaveRef1=GDOC.TpoRef+GDOC.CodRef+GDOC.NroRef
+					*!*				    IF SEEK(LsLLaveRef1,'GDOC')
+					*!*				    	XdFchRef = GDOC.FchDOc
+					*!*				    ENDIF
+					*!*				    GO LiRecActGDOC  IN GDOC
+								ELSE
+									XsTipRef = ""
+									XsNroRef = ""
+								ENDIF
 								XiNroItm = XiNroItm + 1
 								this.MovbVeri(XsNroMes+XsCodOpe+XsNroAst+STR(XiNroItm,5),0,'','')
-
 							ENDIF
 							SELECT cDetaVenta2
 						ENDSCAN
@@ -2908,14 +2974,6 @@ DEFINE CLASS contabilidad AS custom
 	ENDPROC
 
 
-	PROCEDURE Init
-		this.oentorno=CREATEOBJECT('Dosvr.Env') 
-		this.oentorno.GsCodcia = GsCodCia
-		this.odatadm=CREATEOBJECT('Dosvr.DataAdmin')
-		this.odatadm.oentorno.GsCodcia = GsCodCia
-	ENDPROC
-
-
 	PROCEDURE Error
 		LPARAMETERS nError, cMethod, nLine
 		IF SET("Development")='ON' 
@@ -2942,6 +3000,14 @@ DEFINE CLASS contabilidad AS custom
 			RETURN CONTEXT_E_ABORTED
 
 		ENDIF
+	ENDPROC
+
+
+	PROCEDURE Init
+		this.oentorno=CREATEOBJECT('Dosvr.Env') 
+		this.oentorno.GsCodcia = GsCodCia
+		this.odatadm=CREATEOBJECT('Dosvr.DataAdmin')
+		this.odatadm.oentorno.GsCodcia = GsCodCia
 	ENDPROC
 
 
@@ -3988,7 +4054,7 @@ ENDDEFINE
 *-- Class:        dataadmin (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   10/25/19 08:25:07 AM
+*-- Time Stamp:   04/01/24 03:46:03 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -4075,6 +4141,7 @@ DEFINE CLASS dataadmin AS custom
 		select (cAlias)
 		oTable=CREATEOBJECT('table_parser')
 		oTable.cur2obj(cAlias,cForCondition,cWhileCondition,this.cIndicePk,this.cValorPk )
+
 		select (sv_alias)
 		return oTable
 	ENDPROC
@@ -5213,9 +5280,11 @@ DEFINE CLASS dataadmin AS custom
 		ENDIF 
 		IF !VARTYPE(&LsValCmpNroItm)='N'
 			IF _nLen_ID>0
-				X_CmpNroItm = 'SUBSTR('+_CmpNroItm+','+STR(_nLen_ID+1,1,0)+')'
+				*!*	MAAV_20240328: Cambio para que cuando el prefijo pase a tener dos digitos y no solo uno
+				*!*	X_CmpNroItm = 'SUBSTR('+_CmpNroItm+','+STR(_nLen_ID+1,1,0)+')' && Antes
+				X_CmpNroItm = 'SUBSTR('+_CmpNroItm+','+ALLTRIM(STR(_nLen_ID+1,2,0))+')' && Despues
 			ELSE
-			    X_CmpNroItm = _CmpNroItm
+				X_CmpNroItm = _CmpNroItm
 			ENDIF
 
 			m.x   =  &LsValCmpNroItm 
@@ -5310,6 +5379,7 @@ DEFINE CLASS dataadmin AS custom
 		endif
 
 		create cursor tmpCursor  from array this.arrstru
+		=CURSORSETPROP("AutoIncError", .F. , "tmpCursor" )
 		select (cAlias)
 		scan  for &cForCondition while &cWhileCondition
 		    scatter memvar memo
@@ -5370,9 +5440,11 @@ DEFINE CLASS dataadmin AS custom
 		*  Restore Cursor from object
 		******************************
 		lparameters oTable,cAlias
-
+		IF ISNULL(oTable)
+			RETURN  
+		ENDIF
 		create cursor &cAlias from array oTable.arrstru
-
+		CURSORSETPROP("AutoIncError", .F. , cAlias )
 		if oTable.NumberOfRecords = 0
 		    return
 		endif
@@ -7811,7 +7883,7 @@ ENDDEFINE
 *-- Class:        env (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   05/25/18 04:20:09 PM
+*-- Time Stamp:   02/04/24 09:56:01 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -7840,6 +7912,23 @@ DEFINE CLASS env AS custom
 	tspathdata = ([])
 	*-- Para guardar la ruta de inicio en tiempo de desarrollo
 	tspathinicio = ([])
+	*-- Ruta donde se almacenan los archivos de interface necesarios para el PLE (Programa de libros electronicos de la SUNAT)
+	tspath_ple = ([])
+	*-- Ruta donde se almacenan los archivos de interface necesarios para el SFS (Sistema facturación electrónica SUNAT)
+	tspath_sfs = ([])
+	*-- Ruta para envio de archivos de interfase para proveedor OSE Guias de remisión electronica GRE
+	tspath_ose_gre = ([])
+	*-- Ruta para envio de archivos de interfase para proveedor OSE Factura electronica GRE
+	tspath_ose_fact = ([])
+	*-- Ruta para envio de archivos de interfase para proveedor OSE formato de intercambio de datos CSV UTF-8 no BOM
+	tspath_ose_csv = ([])
+	rutasee_sfs = ([])
+	rutasee_ple = ([])
+	rutasee_gre = ([])
+	rutasee_fact = ([])
+	rutasee_csv = ([])
+	*-- Ruta de la compañia(empresa) y año (periodo)
+	tspathcia_ano = ([])
 	Name = "env"
 	sistema = .F.
 	modulo = .F.
@@ -7878,7 +7967,7 @@ DEFINE CLASS env AS custom
 		IF !VARTYPE(_CodCia)='C'
 			_CodCia ='001'  && Siempre la primera por defecto
 		ENDIF
-		RETURN JUSTPATH(ADDBS(THIS.TsPathadm))+'\CIA'+_CODCIA+'\'
+		RETURN JUSTPATH(ADDBS(IIF(":"$THIS.TsPathadm,THIS.TsPathadm,SYS(5)+THIS.tspathadm)))+'\CIA'+_CODCIA+'\'
 	ENDPROC
 
 
@@ -7980,22 +8069,74 @@ DEFINE CLASS env AS custom
 	ENDPROC
 
 
-	PROCEDURE Error
-		LPARAMETERS nError, cMethod, nLine
-		IF SET("Development")='ON' 
-			MESSAGEBOX(cMethod+" "+TTOC(DATETIME())+CRLF+;
-					"Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF+ ;
-					"  "+MESSAGE()+CRLF,2+16+256,'Ha ocurrido un error en el sistema')
+	*-- Rutas para interfaces de facturación electronica y PLE para SFS , OSE y intercambio de datos por CSV
+	PROCEDURE ruta_interfaces_see_ose_csv
+		** VETT: Configuramos las rutas de interface para SEE SFS PLE OSE CSV IDUPD:3880443489-11/01/2024 12:16 PM 
+		*!*	LsDirIntf = SYS(5)+'\o-Negocios\Interface'
+		LsDirIntf = this.TsPath_SFS 
+		LsDirIntf = IIF(":"$LsDirIntf,LsDirIntf,SYS(5)+LsDirIntf)
 
-			RETURN CONTEXT_E_ABORTED
-		ELSE
-
-
-			STRTOFILE(cMethod+" "+TTOC(DATETIME())+CRLF,ERRLOGFILE,.T.)
-			STRTOFILE("Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF,ERRLOGFILE,.T.)
-			STRTOFILE("  "+MESSAGE()+CRLF,ERRLOGFILE,.T.)
-			RETURN CONTEXT_E_ABORTED
+		IF !DIRECTORY(LsDirIntf)
+			MD(LsDirIntf)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsDirIntf+ ;
+			'  Este directorio se usara para almacenar los archivos de .txt o .csv necesarios para realizar la interface de datos con SEE - SFS',64,'ATENCION !!' )
 		ENDIF
+		LsRutaSEE_SFS= ADDBS(LsDirIntf)+'Facturador\cia_'+IIF(GsSigCia='OLTURSA',RIGHT(GsCodCia,2),GsCodCia)  && RIGHT(GsCodCia,2)
+		this.RutaSEE_SFS = LsRutaSEE_SFS
+
+		LsDirIntf = this.TsPath_PLE 
+		LsDirIntf = IIF(":"$LsDirIntf,LsDirIntf,SYS(5)+LsDirIntf)
+
+		IF !DIRECTORY(LsDirIntf)
+			MD(LsDirIntf)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsDirIntf+ ;
+			'  Este directorio se usara para almacenar los archivos de .txt o .csv necesarios para realizar la interface de datos con PLE-SIRE Sunat',64,'ATENCION !!' )
+		ENDIF
+		LsRutaSEE_PLE= ADDBS(LsDirIntf)+'Facturador\cia_'+IIF(GsSigCia='OLTURSA',RIGHT(GsCodCia,2),GsCodCia)  && RIGHT(GsCodCia,2)
+		this.RutaSEE_PLE = LsRutaSEE_PLE
+
+		LsDirIntf = this.TsPath_OSE_GRE 
+		LsDirIntf = IIF(":"$LsDirIntf,LsDirIntf,SYS(5)+LsDirIntf)
+
+		IF !DIRECTORY(LsDirIntf)
+			MD(LsDirIntf)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsDirIntf+ ;
+			'  Este directorio se usara para almacenar los archivos de .txt o .csv necesarios para realizar la interface de CSV',64,'ATENCION !!' )
+		ENDIF
+		this.RutaSEE_GRE =  LsDirIntf
+
+		LsDirIntf = this.TsPath_OSE_FACT 
+		LsDirIntf = IIF(":"$LsDirIntf,LsDirIntf,SYS(5)+LsDirIntf)
+
+		IF !DIRECTORY(LsDirIntf)
+			MD(LsDirIntf)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsDirIntf+ ;
+			'  Este directorio se usara para almacenar los archivos de .txt o .csv necesarios para realizar la interface de FACT con OSE',64,'ATENCION !!' )
+		ENDIF
+		this.RutaSEE_FACT =  LsDirIntf
+
+		LsDirIntf = this.TsPath_OSE_CSV  
+		LsDirIntf = IIF(":"$LsDirIntf,LsDirIntf,SYS(5)+LsDirIntf)
+		IF !DIRECTORY(LsDirIntf)
+			MD(LsDirIntf)
+			=MESSAGEBOX('Se ha creado el Directorio o Carpeta --> ' + LsDirIntf+ ;
+			'  Este directorio se usara para almacenar los archivos de .txt o .csv necesarios para realizar la interface de FACT con OSE',64,'ATENCION !!' )
+		ENDIF
+		this.RutaSEE_FACT =  LsDirIntf
+
+
+		RETURN	 LsRutaSEE_SFS
+	ENDPROC
+
+
+	*-- Formar la ruta de compañia y año (empresa y periodo)
+	PROCEDURE pathdatacia_ano
+		PARAMETERS PsPeriodo
+		IF VARTYPE(PsPeriodo)<>"C"
+			PsPeriodo = This.GsPeriodo
+		ENDIF
+		this.tspathcia = this.pathdatacia(this.gscodcia) 
+		this.tspathcia_ano = ADDBS(ADDBS(this.tspathcia)+"C"+LEFT(PsPeriodo,4)) 
 	ENDPROC
 
 
@@ -8058,6 +8199,25 @@ DEFINE CLASS env AS custom
 		oIniVal.getinientry(@lcvalue,'Path Database','Data Source',LcFileIni)
 		This.tspathData	= LcValue
 
+		** VETT: Rutas para interface de archivos PLE SFS y OSE IDUPD:3396165289-11/01/2024 09:22 AM 
+		LcValue =''
+		oIniVal.getinientry(@lcvalue,'Ruta Interfaces','Path PLE',LcFileIni) 
+		this.TsPath_PLE 	= LcValue
+		LcValue =''
+		oIniVal.getinientry(@lcvalue,'Ruta Interfaces','Path SFS',LcFileIni)
+		This.TsPath_SFS 	= LcValue
+		LcValue =''
+		oIniVal.getinientry(@lcvalue,'Ruta Interfaces','Path OSE GRE',LcFileIni)
+		This.TsPath_OSE_GRE	= LcValue
+		LcValue =''
+		oIniVal.getinientry(@lcvalue,'Ruta Interfaces','Path OSE FACT',LcFileIni)
+		This.TsPath_OSE_FACT	= LcValue
+		LcValue =''
+		oIniVal.getinientry(@lcvalue,'Ruta Interfaces','Path OSE CSV',LcFileIni)
+		This.TsPath_OSE_CSV	= LcValue
+		** VETT: [FIN] IDUPD:3396165289-11/01/2024 09:22 AM 
+
+
 		THIS.TmpPath	= IIF( EMPTY( lcTmpPath ) , ADDBS( GETENV( "TEMP" ) ) , lcTmpPath )
 		THIS.LocPath	= IIF( EMPTY( lcLocPath ) , "C:\Temp" , lcLocPath )
 		this.cdefaultbackendconecct = IIF( EMPTY( lcDefaBackEnd ) , "VFPDBC" , lcDefaBackEnd )
@@ -8095,9 +8255,48 @@ DEFINE CLASS env AS custom
 	ENDPROC
 
 
+	PROCEDURE Error
+		LPARAMETERS nError, cMethod, nLine
+		IF SET("Development")='ON' 
+			MESSAGEBOX(cMethod+" "+TTOC(DATETIME())+CRLF+;
+					"Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF+ ;
+					"  "+MESSAGE()+CRLF,2+16+256,'Ha ocurrido un error en el sistema')
+
+			RETURN CONTEXT_E_ABORTED
+		ELSE
+
+
+			STRTOFILE(cMethod+" "+TTOC(DATETIME())+CRLF,ERRLOGFILE,.T.)
+			STRTOFILE("Error : "+TRANS(nError)+", Linea:"+TRANS(nLine)+CRLF,ERRLOGFILE,.T.)
+			STRTOFILE("  "+MESSAGE()+CRLF,ERRLOGFILE,.T.)
+			RETURN CONTEXT_E_ABORTED
+		ENDIF
+	ENDPROC
+
+
 ENDDEFINE
 *
 *-- EndDefine: env
+**************************************************
+
+
+**************************************************
+*-- Class:        guia_r (k:\aplvfp\classgen\vcxs\dosvr.vcx)
+*-- ParentClass:  acabecera (k:\aplvfp\classgen\vcxs\o-n.vcx)
+*-- BaseClass:    custom
+*-- Time Stamp:   01/04/24 04:54:06 AM
+*
+DEFINE CLASS guia_r AS acabecera
+
+
+	*-- objeto con los campos del registro actual
+	oregistro = .NULL.
+	Name = "guia_r"
+
+
+ENDDEFINE
+*
+*-- EndDefine: guia_r
 **************************************************
 
 
@@ -8191,7 +8390,7 @@ ENDDEFINE
 *-- Class:        onegocios (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   01/19/22 05:21:10 AM
+*-- Time Stamp:   12/19/24 08:21:04 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -8566,6 +8765,16 @@ DEFINE CLASS onegocios AS custom
 	xfporisc = 0
 	*-- Serie del documento
 	xsserie = ([])
+	*-- control existencia de entidad para gestion de cuotas
+	l_vtarcuot = .F.
+	*-- Porcentaje de  detracción
+	xfpordetr = 0
+	*-- Minimo tope no afecto a detracción
+	xfmindetr = 0
+	*-- Porcentaje de percepción
+	xfporperc = 0
+	*-- Tope minimo no afecto a percepción
+	xfminperc = 0
 	Name = "onegocios"
 	lpidrf1 = .F.
 	lpidrf2 = .F.
@@ -8651,6 +8860,7 @@ DEFINE CLASS onegocios AS custom
 		     RETURN [ ]
 		ENDCASE
 		** VETT  21/05/18 14:00 :  : IDUPD: _57F0U0IYR
+		 
 	ENDPROC
 
 
@@ -9311,6 +9521,11 @@ DEFINE CLASS onegocios AS custom
 		this.XfPorIgv = CFGADMIGV
 		** VETT:Actualización SFS v1.3.2 2020/07/01 09:47:16 ** 
 		this.XfPorIsc = CFGADMISC
+		** VETT: Parametros para detracción y Percepción IDUPD:4268062266-15/03/2024 02:11 AM 
+		This.XfPorDETR		= IIF(VARTYPE(CFGADMDETR)="N",CFGADMDETR,0)
+		This.XfMinDETR		= IIF(VARTYPE(CFGADMMINDETR)="N",CFGADMMINDETR,0)
+		This.XfPorPERC		= IIF(VARTYPE(CFGADMPERC)="N",CFGADMPERC,0)
+		This.XfMinPERC		= IIF(VARTYPE(CFGADMMINPERC)="N",CFGADMMINPERC,0)
 		this.XfPorDto = 0
 		this.XfImpBto = 0
 		this.XfImpDto = 0
@@ -9895,6 +10110,14 @@ DEFINE CLASS onegocios AS custom
 				IF !THIS.oDatAdm.AbrirTabla('ABRIR','almtDIVF','DIVF','DIVF01','')
 				   LlRetVal =  .f.
 				ENDIF
+				IF verifyvar('VTARCUOT',"TABLE",'INDBC','CIA'+GsCodCia)
+					IF !THIS.oDatAdm.AbrirTabla('ABRIR','VTARCUOT','RCUO','RCUO01','')
+						LlRetVal =  .f.
+					ENDIF
+					this.L_VTARCUOT  = .T.
+				ENDIF
+
+
 				** Archivo Auxiliar **
 				IF USED('AUXI')
 					SELECT auxi
@@ -10289,7 +10512,13 @@ DEFINE CLASS onegocios AS custom
 				IF VerifyVar('FchModi','','CAMPO',THIS.cAliasCab)
 					REPLACE FchModi WITH DATETIME()
 				ENDIF
-
+				** VETT: Datos de cuotas y detracción IDUPD:3196777385-08/03/2024 04:14 PM 
+				IF INLIST(this.XsCoddoc,'FACT','BOLE')
+					THIS.GrbCmp2Dbf('N_Cuotas' ,'',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('PorDETR'	 ,'',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('ImpDETR'	 ,'',THIS.cAliasCab,THIS.cCursor_c)
+					THIS.GrbCmp2Dbf('Cat54DETR','',THIS.cAliasCab,THIS.cCursor_c)
+				ENDIF
 				this.graba_detalle_ventas(this.XsCodRef) 
 				** ACTUALIZAMOS CONTABILIDAD **
 				IF !INLIST(this.XsCoddoc,'PEDI','COTI')
@@ -10302,14 +10531,23 @@ DEFINE CLASS onegocios AS custom
 					cKeyTpoDocSN = THIS.Codsed+This.XsCodDoc+This.XsPtoVta
 					LnOk=this.oContab.Actualiza_Contabilidad(cQue_transaccion,cKeyTpoDocSN,@oData1,@oData2)
 
-
+					** VETT: ** Cargamos cursores con las cuotas y Guias - VTARCUOT y VTAVGUIA ** IDUPD:1223076144-01/03/2024 07:46 AM 
+					SELECT GUIA
+					oData3 = this.odatadm.genobjdatos("GUIA",[CodFac+NroFac="]+THIS.XsCodDoc+This.XsNroDoc+["])
+					IF this.L_vtarcuot 
+						SELECT RCUO
+						oData4 = this.odatadm.genobjdatos("RCUO",[CodRef+NroRef="]+THIS.XsCodDoc+This.XsNroDoc+["])
+					ELSE
+						oData4 = null
+					ENDIF
+					** VETT:  IDUPD:1223076144-01/03/2024 07:46 AM
 					IF LnOk = LnOkTrn && No Hay error 
 						SELECT  (THIS.cAliasCab)
 						REPLACE NroMes	WITH oData1.NroMes
 						REPLACE CodOpe	WITH oData1.CodOpe
 						REPLACE NroAst	WITH oData1.NroAst
 						REPLACE FlgCtb	WITH oData1.FlgCtb
-					 
+					 	*!*	SET STEP ON
 						** VETT  07/07/2017 07:57 PM : Llamemos a nuestro amiguito FACTURADOR SEE - SFS
 						this.envio_see_sfs_v1 && with oData1 , oData2, oData1,This.RutaSEE_SFS
 
@@ -10446,7 +10684,9 @@ DEFINE CLASS onegocios AS custom
 		m.Len_ID 	= Len_id
 		m.LsSerie	= TRIM(Serie) 
 		m.LnLenSer	= LEN(Serie)
-		This.XsSerie= TRIM(m.LsSerie)
+		This.XsSerie = TRIM(m.LsSerie)
+		** VETT  12/12/2023 08:37 PM : Para controlar longitud del correlativo en el formulario 
+		This.nLen_id = Len_id
 		IF  _cValor =="SERIE"
 			RETURN This.XsSerie
 		ENDIF
@@ -10467,6 +10707,10 @@ DEFINE CLASS onegocios AS custom
 		*!*	   UPDATE (_cTabla) SET &LsCampo2. = LnNroDoc ;
 		*!*	   WHERE TipMov=_Tipmov and Codmov=_Codmov and SubAlm=_Almacen
 		ENDIF
+		*!*	** ** VETT: La sede que esta en maestro correlativos se toma por defecto VTATDOCM para transacciones IDUPD:973092755-30/03/2024 02:36 PM  
+		*!*	This.Codsed = CodSed
+		*!*	** VETT:   IDUPD:973092755-30/03/2024 02:36 PM
+
 		USE IN (LcCursor)
 
 		 
@@ -10501,8 +10745,7 @@ DEFINE CLASS onegocios AS custom
 		ENDIF
 		this.cIndice_id	=	TRIM(c_cdxs.indice)
 		this.ccmps_id	=	TRIM(c_cdxs.Llave) 
-		this.cvalor_id	=	EVALUATE(c_dbfs.eval_valor_pk)
-
+		this.cvalor_id	=	EVALUATE(c_dbfs.eval_valor_pk)  && VTATDOCM: THIS.CodSed +THIS.XsCodDoc +THIS.XsPtoVta
 		this.ccampo_id	=	TRIM(c_dbfs.eval_campo_id) 
 
 		*!*	LcCursor = SYS(2015) 
@@ -10593,9 +10836,9 @@ DEFINE CLASS onegocios AS custom
 						APPEND BLANK
 						GATHER MEMVAR fields except nro_reg
 						REPLACE FchDoc WITH THIS.XdFchDoc
-					    REPLACE TpoDoc WITH this.XsTpoDoc
-					    REPLACE CodDoc WITH THis.XsCodDoc
-					    REPLACE NroDoc WITH THIS.XsNroDoc
+						REPLACE TpoDoc WITH this.XsTpoDoc
+						REPLACE CodDoc WITH THis.XsCodDoc
+						REPLACE NroDoc WITH THIS.XsNroDoc
 						UNLOCK 
 						SELECT (this.cCursor_d)
 					ENDSCAN 
@@ -11007,9 +11250,66 @@ DEFINE CLASS onegocios AS custom
 
 				ENDCASE 
 
-		RETURN
-
 		ENDCASE
+		** VETT:   Grabamos las cuotas 	IDUPD:2104234042-07/03/2024 06:32 PM 
+		IF !INLIST(THIS.XsCodDoc ,'FACT','BOLE') 
+			RETURN 
+		ENDIF
+		IF   !THIS.L_VTARCUOT
+			=MESSAGEBOX("La actualización de cuotas no se puede realizar, se debe actualizar la configuracion de la base de datos",0+48,"Aviso importante | Warning")
+		 	RETURN
+		ENDIF 
+		LsPathDBFCuotas	=	ADDBS(GoEntorno.pathdatacia(GsCodCia))+'VTARCUOT'
+		LsAliasCur_Cuotas	=	this.cCurCuotas
+		** VETT: Si esta vacio el cursor de cuotas regresamos IDUPD:3898398588-07/03/2024 06:12 PM
+		IF EMPTY(LsAliasCur_Cuotas)
+			RETURN
+		ENDIF
+		** VETT: [FIN]   IDUPD:3898398588-07/03/2024 06:12 PM
+
+		*!*	 LnCuotas		=  .SpnN_Cuotas.Value
+		IF !USED('RCUO')
+			IF !goentorno.open_dbf1('ABRIR','VTARCUOT','RCUO','FACT','')
+				RETURN 
+			ENDIF
+		ENDIF
+		** VETT  19/11/2015 03:10 PM : Borramos registros previos. 
+		SELECT RCUO
+		SET ORDER TO FACT  && TPOREF+CODREF+NROREF
+		SEEK THIS.XsTpoDoc+THIS.XsCodDoc+THIS.XsNroDoc
+		SCAN WHILE TPOREF+CODREF+NROREF = THIS.XsTpoDoc+THIS.XsCodDoc+THIS.XsNroDoc
+			=RLOCK()
+			REPLACE UserElim WITH GoEntorno.User.Login
+			REPLACE FchElim   WITH DATETIME()
+			DELETE
+			UNLOCK
+		ENDSCAN
+		FLUSH IN RCUO
+		*!*									 DELETE FROM (LsPathDBFCuotas)  WHERE  CodDoc = thisform.ObjRefTran.XsCodDoc  AND NroDoc = thisform.ObjRefTran.XsNroDoc  
+		SELECT (LsAliasCur_Cuotas)
+		SCAN 
+			SCATTER MEMVAR 
+		*!*									 	INSERT  INTO (LsPathDBFCuotas) FROM MEMVAR
+			SELECT RCUO
+			APPEND BLANK
+			GATHER MEMVAR FIELDS EXCEPT TpoDoc,CodDoc,NroDoc,FlgEst,FlgFac
+			REPLACE TpoRef		WITH This.XsTpoDoc  
+			REPLACE CodRef		WITH This.XsCodDoc
+			REPLACE NroRef		WITH This.XsNroDoc
+			REPLACE FlgEst		WITH "E"	&& Emitido
+			REPLACE FlgFac		WITH "F"	&& Facturado
+			IF This.Crear 
+				REPLACE UserCrea WITH GoEntorno.User.Login
+				REPLACE FchCrea   WITH DATETIME()
+			ELSE
+				REPLACE UserModi WITH  GoEntorno.User.Login
+				REPLACE FchModi   WITH DATETIME()
+			ENDIF
+			SELECT (LsAliasCur_Cuotas)
+		ENDSCAN
+		FLUSH IN RCUO
+					 
+		RETURN
 	ENDPROC
 
 
@@ -11437,7 +11737,8 @@ DEFINE CLASS onegocios AS custom
 		******************************************************************************
 		*!*	PROCEDURE xBorrar
 		PARAMETERS cQue_transaccion 
-
+		LnOk = 0
+		LnOkTrn = S_OK
 		DO CASE 
 			CASE cQue_transaccion = 'ALMACEN'
 			CASE cQue_transaccion = 'VENTAS'
@@ -11447,41 +11748,36 @@ DEFINE CLASS onegocios AS custom
 				IF !FOUND()
 					RETURN DOCUMENTO_NO_EXISTE
 				ENDIF
-
-
 				DO CASE 
 					CASE INLIST(this.XsCodDoc,'F','B','N') 
 						IF FlgEst#"P" .AND. FlgEst# "A"
 						   **WAIT "INVALIDO REGISTRO A ANULAR" NOWAIT WINDOW
 				   			RETURN INVALIDO_REGISTRO
 						ENDIF
-
 						IF SdoDoc#ImpTot
 						   **WAIT "DOCUMENTO TIENE AMORTIZACIONES" NOWAIT WINDOW
-						   RETURN TIENE_AMORTIZACIONES
+							RETURN TIENE_AMORTIZACIONES
 						ENDIF
 						IF FlgCtb   && Ya paso a Contabilidad
-						   XdFchDoc = GDOC->FchDoc
-						   IF !this.verica_cierre_contable(XdFchDoc)
-						      this.sErr = "Mes Cerrado, acceso denegado"
-						      SELECT(this.cAliasCab)
-						      RETURN MES_CERRADO
-						   ENDIF
-						   SELECT(this.cAliasCab)
+							XdFchDoc = GDOC->FchDoc
+							IF !this.verica_cierre_contable(XdFchDoc)
+								this.sErr = "Mes Cerrado, acceso denegado"
+						      	SELECT(this.cAliasCab)
+						      	RETURN MES_CERRADO
+						   	ENDIF
+							SELECT(this.cAliasCab)
 						ENDIF
-
 						IF !F1_RLOCK(5)
-
-						    RETURN REGISTRO_BLOQUEADO
+							RETURN REGISTRO_BLOQUEADO
 						ENDIF
 						IF CodRef = [PEDI]
-						   SELE VPED
-						   SEEK GDOC->NroPed
-						   IF !RLOCK()
-						      SELECT(this.cAliasCab)
-						      UNLOCK
-						      RETURN REGISTRO_BLOQUEADO
-						   ENDIF
+							SELE VPED
+							SEEK GDOC->NroPed
+							IF !RLOCK()
+						      	SELECT(this.cAliasCab)
+						      	UNLOCK
+						      	RETURN REGISTRO_BLOQUEADO
+						      ENDIF
 						ENDIF
 						** Anulamos de Acuerdo al Tipo de Factura
 						SELECT(this.caliascab) && GDOC
@@ -11489,29 +11785,36 @@ DEFINE CLASS onegocios AS custom
 						* * 
 						SELECT(this.caliascab) && GDOC
 						SCATTER NAME oData1
-
-						IF GDOC.FlgCtb
-						   this.oContab.Actualiza_Contabilidad(cQue_transaccion+cSufijo_Transaccion, '' ,@oData1)
+						IF GDOC.FlgCtb	&& Anulamos asiento en contabilidad
+							LnOk=this.oContab.Actualiza_Contabilidad(cQue_transaccion+cSufijo_Transaccion, '' ,@oData1)
 						ENDIF
-
 						* * * * *
 						* anulado total
 						* * * * *
 						SELECT(this.caliascab)
 						IF FlgEst = "A"  && PARA QUE DESAPARESCA
-						   DELETE
+							DELETE
 						ELSE
-
 							REPLACE FlgEst WITH [A]
 							REPLACE FchAct WITH DATE()
 							REPLACE SdoDoc WITH 0
 							REPLACE ImpTOT	WITH 0
 							IF VerifyVar('UserElim','','CAMPO',THIS.cAliasCab)
-									REPLACE UserElim WITH GoEntorno.User.Login
+								REPLACE UserElim WITH GoEntorno.User.Login
 							ENDIF
 							IF VerifyVar('FchElim','','CAMPO',THIS.cAliasCab)
-									REPLACE FchElim WITH DATETIME()
+								REPLACE FchElim WITH DATETIME()
 							ENDIF
+							** VETT: BAJA EN SUNAT IDUPD:1550315198-12/11/2024 10:34 AM 
+							IF LnOk = LnOkTrn && No Hay error 
+								oData2 = null && this.odatadm.genobjdatos(this.ccursor_d)    
+								oData3 = null && this.odatadm.genobjdatos("GUIA",[CodFac+NroFac="]+THIS.XsCodDoc+This.XsNroDoc+["])
+								oData4 = null
+								** Controlar si es para anular(dar de baja) con el oData1.FlgEst="A" y la oData1.FchDoc
+								SCATTER NAME oData1
+								this.envio_see_sfs_v1 && with oData1 , oData2, oData1,This.RutaSEE_SFS
+							ENDIF
+							** VETT: [FIN]  IDUPD:1067159789-12/11/2024 10:34 AM
 						ENDIF
 						UNLOCK
 						SKIP
@@ -11522,22 +11825,18 @@ DEFINE CLASS onegocios AS custom
 							   **WAIT "INVALIDO REGISTRO A ANULAR" NOWAIT WINDOW
 					   			RETURN INVALIDO_REGISTRO
 							ENDIF
-
 							IF SdoDoc#ImpTot
 							   **WAIT "DOCUMENTO TIENE AMORTIZACIONES" NOWAIT WINDOW
-							   RETURN TIENE_AMORTIZACIONES
+								RETURN TIENE_AMORTIZACIONES
 							ENDIF
 						ENDIF
 						IF INLIST(THIS.XsCodDoc,'PEDI')
 
 						ENDIF
 						IF !F1_RLOCK(5)
-
-						    RETURN REGISTRO_BLOQUEADO
+							RETURN REGISTRO_BLOQUEADO
 						ENDIF
-
 						THIS.BOrra_registro_transaccion(this.XsCodRef) 
-
 						* * 
 						SELECT(this.caliascab) && GDOC
 						SCATTER NAME oData1
@@ -11852,6 +12151,14 @@ DEFINE CLASS onegocios AS custom
 				ENDCASE 
 
 		ENDCASE 
+
+		IF	INLIST(THIS.XsCodDoc ,"FACT","BOLE")
+			** VETT: Borramos registro de cuotas IDUPD:2422452329-08/03/2024 01:31 PM 
+			IF THIS.l_vtarcuot 
+				LsPathDBFCuotas	=	ADDBS(GoEntorno.pathdatacia(GsCodCia))+'VTARCUOT'
+				DELETE FROM (LsPathDBFCuotas)  WHERE  TpoRef = this.XsTpoDoc  AND CodRef = this.XsCodDoc  AND NroRef = this.XsNroDoc  
+			ENDIF
+		ENDIF
 	ENDPROC
 
 
@@ -13562,7 +13869,9 @@ DEFINE CLASS onegocios AS custom
 					ENDIF
 
 					RfPreUni	= &PsCurSor..PreUni 
-					RfFacEqu	= &PsCurSor..FacEqu
+					** VETT: Control del campo factor de equivalencia segun la tabla destino VTARITEM,ALMDTRAN IDUPD:2271586846-01/04/2024 09:51 PM
+					RfFacEqu	= ICASE(TYPE(PsCurSor+'.FacEqu') = 'N', &PsCurSor..FacEqu,TYPE(PsCurSor+'.Factor') = 'N' ,&PsCurSor..Factor,1) 
+					** VETT:  IDUPD:2271586846-01/04/2024 09:51 PM
 					RfImpLin = ROUND(RfCantidad*RfFacEqu*RfPreUni,2)
 					IF TYPE(PsCurSor+'.ImpLin')='N'
 						REPLACE ImpLin WITH RfImpLin &&RPED.ImpLin 
@@ -14249,7 +14558,72 @@ DEFINE CLASS onegocios AS custom
 		IF EMPTY(This.RutaSEE_SFS) 
 			This.RutaSEE_SFS	=	THIS.Ruta_Factura_SEE_SFS() 
 		ENDIF
-		DO Vta_Genera_Archivos_SEE-SFS_v1 WITH oData1 , oData2, oData1,This.RutaSEE_SFS
+		LnCurAreaAct = SELECT()
+		DO CASE
+			CASE VARTYPE(GsClfSEE) = 'C'  AND TYPE("vSunatSEE",1)="A"
+				DO CASE
+					CASE vSunatSEE[1]="OSE"
+
+						DO CASE
+							CASE vSunatSEE[2]="EFACT"
+								** VETT: Segun las rutas cargadas desdel el Config.INI para interfases SUNAT SEE SFS OSE CSV IDUPD:2676736086-11/01/2024 05:14 PM
+								IF EMPTY(goentpub.rutasee_sfs) 
+									goentpub.ruta_Interfaces_SEE_OSE_CSV()
+								ENDIF
+								DO CASE 
+									CASE	INLIST(THIS.XsCodDoc,'FACT','BOLE')  AND  UPPER(This.Entidadcorrelativo)='VTATDOCM'  &&AND !This.Tporf1="G/R"&&AND !This.Tporf1="G/R" 
+										LsRuta1=GoEntPub.TsPath_OSE_FACT
+									CASE	THIS.XsTpoRef	=	"G/R" AND This.Tporf1="G/R"  AND UPPER(This.Entidadcorrelativo)='ALMCDOCM'
+										LsRuta1=GoEntPub.TsPath_OSE_GRE
+										oData4 = NULL 
+									CASE	INLIST(THIS.XsCodDoc,'N/D','N/C') 
+								ENDCASE
+								LsRuta2=GoEntPub.TsPath_OSE_CSV
+								DO vta_genera_txt_csv-efact_v1 WITH oData1,odata2,odata3,oData4,LsRuta1,LsRuta2
+								** VETT: [FIN] IDUPD:2676736086-11/01/2024 05:14 PM
+
+							** VETT: Envio sunat via NUBEFACT - OSE - RESELLER - PSE IDUPD:1966290125-07/08/2024 07:03 PM 
+							CASE  vSunatSEE[2]="NUBEFACT"
+								IF EMPTY(goentpub.rutasee_sfs)
+									goentpub.ruta_interfaces_see_ose_csv()
+								ENDIF
+								DO CASE 
+									CASE	INLIST(THIS.XsCodDoc,'FACT','BOLE')  AND  UPPER(This.Entidadcorrelativo)='VTATDOCM'  &&AND !This.Tporf1="G/R"&&AND !This.Tporf1="G/R" 
+										LsRuta1=GoEntPub.TsPath_OSE_FACT
+									CASE	THIS.XsTpoRef	=	"G/R" AND This.Tporf1="G/R"  AND UPPER(This.Entidadcorrelativo)='ALMCDOCM'
+										LsRuta1=GoEntPub.TsPath_OSE_GRE
+										oData4 = NULL 
+									CASE	INLIST(THIS.XsCodDoc,'N/D','N/C') 
+									OTHER
+										LsRuta1 = goentpub.tspath_ose_gre
+								ENDCASE
+
+								LsRuta2 = goentpub.tspath_ose_csv
+								DO vta_prggeneraarchivos_nubefact.prg  WITH oData1, oData2, oData3, oData4, LsRuta1, LsRuta2
+								** VETT:  [FIN] IIDUPD:1966290125-07/08/2024 07:03 PM
+							OTHERWISE 
+						ENDCASE
+					CASE vSunatSEE[1]="PSE"	&& Proveedor de servicios electrónicos
+
+					CASE vSunatSEE[1]="SFS"		&& Sistema Facturador Sunat v2.1  
+						** VETT: Procedimientos para envio de archivos planos IDUPD:3946907515-01/05/2024 06:28 PM
+						LsRuta2=GoEntPub.TsPath_OSE_CSV   && Usar esta ruta en caso se quiera copiar el archivo a otro lugar adicional
+						DO CASE 
+							CASE INLIST(THIS.XsCodDoc,'FACT','BOLE')  AND  UPPER(This.Entidadcorrelativo)='VTATDOCM'  &&AND !This.Tporf1="G/R" 
+								DO Vta_Genera_Archivos_SEE-SFS_v1 WITH oData1 , oData2, oData1,This.RutaSEE_SFS
+							CASE This.XsTpoRef = "G/R" AND This.Tporf1 = "G/R" AND UPPER(This.Entidadcorrelativo)='ALMCDOCM'
+								*!*	GRE  XML - JSON
+								DO Vta_Genara_Archivos_SEE_SFS_GRE_V1 WITH oData1,odata2,odata3,oData1,LsRuta1,LsRuta2
+						ENDCASE
+						** VETT:  IDUPD:3946907515-01/05/2024 06:28 PM
+					CASE vSunatSEE[1]="OWN"	&& Sistema del contibuyente 
+
+				ENDCASE
+			OTHERWISE 
+				DO Vta_Genera_Archivos_SEE-SFS_v1 WITH oData1 , oData2, oData1,This.RutaSEE_SFS
+
+		ENDCASE
+		SELECT(LnCurAreaAct)
 	ENDPROC
 
 
@@ -14265,9 +14639,9 @@ DEFINE CLASS onegocios AS custom
 		IF VARTYPE(PsSerie)<>"C"
 			PsSerie = ""
 		ENDIF
-		IF EMPTY(PsSerie)
-			RETURN ""
-		ENDIF
+		*!*	IF EMPTY(PsSerie)
+		*!*		RETURN ""
+		*!*	ENDIF
 
 		m.lcSource = RIGHT(PsNroDoc,LEN(PsNroDoc)-LEN(PsSerie))
 		m.lcReturnToMe = "0123456789"
@@ -15068,7 +15442,7 @@ ENDDEFINE
 *-- Class:        validadatos (k:\aplvfp\classgen\vcxs\dosvr.vcx)
 *-- ParentClass:  custom
 *-- BaseClass:    custom
-*-- Time Stamp:   05/23/18 09:22:08 PM
+*-- Time Stamp:   01/05/24 03:21:01 PM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -15267,6 +15641,12 @@ DEFINE CLASS validadatos AS custom
 		m.OrdenAct = ORDER()
 		m.Nra_CALM = 0
 		IF m.CurrArea#[CALM]
+			IF EOF("CALM")
+				SKIP -1 IN CALM
+			ENDIF
+			IF BOF("CALM")
+				SKIP +1 IN CALM
+			ENDIF
 		   m.NRA_CALM=RECNO([CALM])
 		   IF ORDER([CALM])=[CATA01]
 		      =SEEK(sSubAlm+sCodmat,[CALM])

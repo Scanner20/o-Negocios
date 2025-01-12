@@ -653,4 +653,129 @@ LcString = FILETOSTR(LcFile)
 ADDBS(JUSTPATH(lcfile))+"prueba_utf8.csv"
 STRTOFILE(STRCONV(lcString,9),ADDBS(JUSTPATH(lcfile))+"prueba_utf8.csv")
 RETURN
- 
+
+**************
+Gen_Text_JSON
+**************
+TEXT TO PJSON NOSHOW
+	{
+		"from": "<<lcUserZenvia>>",
+		"to": "<<tcPhoneNumber>>",
+		"contents": [
+			{
+				"type": "text",
+				"text": "<<tcMessageText>>"
+			}
+		]
+	}	
+ENDTEXT
+
+*********************
+FUNCTION TestXMLHTTP1
+*********************
+* Función necesaria para obtener el handle
+DECLARE INTEGER GetModuleHandle IN kernel32;
+    STRING lpModuleName
+    
+LOCAL loXMLHTTP
+loXMLHTTP = CreateObject("MSXML2.ServerXMLHTTP")
+
+IF VARTYPE(loXMLHTTP) = "O"
+    *? "Versión: " + loXMLHTTP.Version
+    
+    * Información adicional de la DLL
+    DECLARE INTEGER GetModuleFileName IN kernel32;
+        INTEGER hModule, STRING @lpFilename, INTEGER nSize
+    
+    LOCAL lcPath, lnHandle
+    lcPath = SPACE(255)
+    lnHandle = GetModuleHandle("msxml3.dll")
+    = GetModuleFileName(lnHandle, @lcPath, LEN(lcPath))
+    
+    ? "Ruta DLL: " + ALLTRIM(lcPath)
+ELSE
+    ? "No se pudo crear el objeto"
+ENDIF
+*********************
+FUNCTION TestXMLHTTP2
+*********************
+LOCAL lcCommand, lcOutput
+lcCommand = 'reg query "HKEY_CLASSES_ROOT\MSXML2.ServerXMLHTTP\CLSID" /ve'
+lcOutput = SPACE(255)
+
+DECLARE INTEGER WinExec IN win32api STRING lpCmdLine, INTEGER nCmdShow
+DECLARE INTEGER GetShortPathName IN kernel32;
+    STRING lpszLongPath, STRING @ lpszShortPath, INTEGER cchBuffer
+    
+*= WinExec(lcCommand + " > %TEMP%\version.txt", 0)
+= WinExec(lcCommand + " > D:\TEMP\version.txt", 0)
+WAIT WINDOW "Consultando registro..." TIMEOUT 2
+
+*lcOutput = FILETOSTR(GETENV("TEMP") + "\version.txt")
+lcOutput = FILETOSTR("D:\TEMP\version.txt")
+? "Información del registro:"
+? lcOutput
+**********************
+FUNCTION TestXMLHTTP2a
+**********************
+LOCAL loShell, loExec, lcCommand, lcOutput
+lcCommand = 'reg query "HKEY_CLASSES_ROOT\MSXML2.ServerXMLHTTP\CLSID" /ve'
+loShell = CREATEOBJECT("WScript.Shell")
+loExec = loShell.Exec(lcCommand + " > D:\TEMP\version.txt")
+DO WHILE loExec.Status = 0   
+	WAIT WINDOW "Esperando ejecución del comando..." TIMEOUT 1
+ENDDO
+lcOutput = FILETOSTR("D:\TEMP\version.txt")
+? "Información del registro:"
+? lcOutput
+loExec = .NULL.
+loShell = .NULL.
+RETURN
+*********************
+FUNCTION TestXMLHTTP3
+*********************
+LOCAL loXMLHTTP
+loXMLHTTP = CreateObject("MSXML2.ServerXMLHTTP")
+
+IF VARTYPE(loXMLHTTP) = "O"
+    * Intentamos determinar la versión por las características soportadas
+    LOCAL lcVersion
+    lcVersion = "Desconocida"
+    
+    TRY
+        * Prueba características específicas de MSXML6
+        loXMLHTTP.setOption(2, 13056)  && Si esto funciona, probablemente es 6.0
+        lcVersion = "Probablemente 6.0"
+    CATCH
+        TRY
+            * Prueba características de MSXML3
+            loXMLHTTP.setRequestHeader("Test", "Test")
+            lcVersion = "3.0 o superior"
+        CATCH
+            lcVersion = "Anterior a 3.0"
+        ENDTRY
+    ENDTRY
+    
+    ? "Versión aproximada: " + lcVersion
+    ? "Objeto creado exitosamente"
+ELSE
+    ? "No se pudo crear el objeto"
+ENDIF
+
+*********************
+FUNCTION TestXMLHTTP4
+*********************
+* Verifica los archivos DLL instalados
+LOCAL lcPath
+lcPath = SYS(2003) + "\System32"  && o SysWOW64 para sistemas 64-bit
+? "DLLs MSXML instaladas:"
+? "------------------------"
+IF FILE(lcPath + "\msxml6.dll")
+    ? "MSXML 6.0 instalado"
+ENDIF
+IF FILE(lcPath + "\msxml4.dll")
+    ? "MSXML 4.0 instalado"
+ENDIF
+IF FILE(lcPath + "\msxml3.dll")
+    ? "MSXML 3.0 instalado"
+ENDIF
