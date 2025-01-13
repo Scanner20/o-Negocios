@@ -33,3 +33,4 @@ _*.FPT
 *.zip
 Thumbs.db
 ehthumbs.db
+update_idc.sh
