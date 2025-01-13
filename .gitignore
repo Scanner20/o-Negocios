@@ -3,6 +3,7 @@ bk_Foxcode/
 Bsinfo/*.dbf
 Bsinfo/*.cdx
 Bsinfo/*.fpt
+Bsinfo/rutas_main_idc.txt
 bsinfo1/
 bsinfo2/
 bsinfo3/
@@ -29,5 +30,6 @@ _*.DBF
 _*.CDX
 _*.FPT
 *.rar
+*.zip
 Thumbs.db
 ehthumbs.db
