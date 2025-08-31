@@ -30,7 +30,9 @@ _*.DBF
 _*.CDX
 _*.FPT
 *.rar
+!Bsinfo/DATA/*.rar
 *.zip
+!Bsinfo/DATA/*.zip
 Thumbs.db
 ehthumbs.db
 update_idc.sh
