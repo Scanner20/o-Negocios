@@ -1,12 +1,12 @@
 *       *********************************************************
 *       *                                                         
-*       * 26/02/2024           FUNCBDM00.MPR            15:33:54  
+*       * 16/01/2025           FUNCBDM00.MPR            12:04:46  
 *       *                                                         
 *       *********************************************************
 *       *                                                         
 *       * Victor E. Torres Tejada                                 
 *       *                                                         
-*       * Copyright (C) 2024 o-Negocios S.A.C                     
+*       * Copyright (C) 2025 o-Negocios S.A.C                     
 *       * Calle Las Palomas 120 - 701 - Torre 1                   
 *       * LIMA, LIMA  L034                                          
 *       * PERU                                              
@@ -27,25 +27,25 @@
 SET SYSMENU TO
 SET SYSMENU AUTOMATIC
 
-DEFINE PAD _6u90xc60x OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw29k OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
 	KEY ALT+M, ""
-DEFINE PAD _6u90xc60y OF _MSYSMENU PROMPT "Transacciones" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw29l OF _MSYSMENU PROMPT "Transacciones" COLOR SCHEME 3 ;
 	KEY ALT+T, ""
-DEFINE PAD _6u90xc60z OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw29m OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
 	KEY ALT+R, "ALT+R"
-DEFINE PAD _6u90xc610 OF _MSYSMENU PROMPT "Procesos" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw29n OF _MSYSMENU PROMPT "Procesos" COLOR SCHEME 3 ;
 	KEY ALT+P, ""
-DEFINE PAD _6u90xc611 OF _MSYSMENU PROMPT "Configuración" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw29o OF _MSYSMENU PROMPT "Configuración" COLOR SCHEME 3 ;
 	KEY ALT+C, ""
-DEFINE PAD _6u90xc612 OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw29p OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
 	KEY ALT+S, ""
-ON PAD _6u90xc60x OF _MSYSMENU ACTIVATE POPUP maestros
-ON PAD _6u90xc60y OF _MSYSMENU ACTIVATE POPUP transaccio
-ON PAD _6u90xc60z OF _MSYSMENU ACTIVATE POPUP reportes
-ON PAD _6u90xc610 OF _MSYSMENU ACTIVATE POPUP procesos
-ON PAD _6u90xc611 OF _MSYSMENU ACTIVATE POPUP configurac
-ON SELECTION PAD _6u90xc612 OF _MSYSMENU ;
-	DO _6u90xc613 ;
+ON PAD _73b0pw29k OF _MSYSMENU ACTIVATE POPUP maestros
+ON PAD _73b0pw29l OF _MSYSMENU ACTIVATE POPUP transaccio
+ON PAD _73b0pw29m OF _MSYSMENU ACTIVATE POPUP reportes
+ON PAD _73b0pw29n OF _MSYSMENU ACTIVATE POPUP procesos
+ON PAD _73b0pw29o OF _MSYSMENU ACTIVATE POPUP configurac
+ON SELECTION PAD _73b0pw29p OF _MSYSMENU ;
+	DO _73b0pw29q ;
 	IN LOCFILE("MENUS2\FUNCBDM00" ,"MPX;MPR|FXP;PRG" ,"WHERE is FUNCBDM00?")
 
 DEFINE POPUP maestros MARGIN RELATIVE SHADOW COLOR SCHEME 4
@@ -306,7 +306,7 @@ ON SELECTION BAR 12 OF configurac Do cbd_CbdTpres
 
 *       *********************************************************
 *       *                                                         
-*       * _6U90XC613  ON SELECTION PAD                            
+*       * _73B0PW29Q  ON SELECTION PAD                            
 *       *                                                         
 *       * Procedure Origin:                                       
 *       *                                                         
@@ -317,7 +317,7 @@ ON SELECTION BAR 12 OF configurac Do cbd_CbdTpres
 *       *                                                         
 *       *********************************************************
 *
-PROCEDURE _6u90xc613
+PROCEDURE _73b0pw29q
 if MESSAGEBOX("¿Desea Salir de la Aplicación?",4+32+256,"Salir...")=6
    clear events
    set sysmenu to

@@ -3940,7 +3940,7 @@ ENDDEFINE
 *-- Class:        cntpage_ventas (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_container (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    container
-*-- Time Stamp:   09/11/24 08:13:07 PM
+*-- Time Stamp:   01/16/25 11:15:07 AM
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
 *
@@ -4084,21 +4084,6 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Width = 13, ;
 		ZOrderSet = 7, ;
 		Name = "TxtCndPgo"
-
-
-	ADD OBJECT base_label1 AS base_label WITH ;
-		FontName = "Lucida Console", ;
-		FontSize = 8, ;
-		Anchor = 9, ;
-		Caption = "VCTO.", ;
-		Height = 13, ;
-		Left = 404, ;
-		Top = 71, ;
-		Visible = .F., ;
-		Width = 37, ;
-		TabIndex = 36, ;
-		ZOrderSet = 8, ;
-		Name = "Base_label1"
 
 
 	ADD OBJECT lbldiavto AS base_label WITH ;
@@ -4331,24 +4316,6 @@ DEFINE CLASS cntpage_ventas AS base_container
 		Width = 49, ;
 		ZOrderSet = 23, ;
 		Name = "CboCodMon"
-
-
-	ADD OBJECT cmdhelpnroped AS base_cmdhelp_multiselect WITH ;
-		Top = 88, ;
-		Left = 155, ;
-		Height = 18, ;
-		Width = 24, ;
-		Anchor = 0, ;
-		Enabled = .F., ;
-		TabIndex = 25, ;
-		ZOrderSet = 25, ;
-		cvaloresfiltro = (GoCfgVta.XcFlgEst_Ref), ;
-		ccamposfiltro = "FlgEst", ;
-		cnombreentidad = "vtavpedi", ;
-		ccamporetorno = "nrodoc", ;
-		caliascursor = "c_Pedido", ;
-		ccampovisualizacion = "NomCli", ;
-		Name = "CmdHelpNroPed"
 
 
 	ADD OBJECT lbltpovta AS base_label WITH ;
@@ -4645,6 +4612,39 @@ DEFINE CLASS cntpage_ventas AS base_container
 		lblCaption.Name = "lblCaption"
 
 
+	ADD OBJECT base_label1 AS base_label WITH ;
+		FontName = "Lucida Console", ;
+		FontSize = 8, ;
+		Anchor = 9, ;
+		Caption = "VCTO.", ;
+		Height = 13, ;
+		Left = 404, ;
+		Top = 71, ;
+		Visible = .F., ;
+		Width = 37, ;
+		TabIndex = 36, ;
+		ZOrderSet = 8, ;
+		Name = "Base_label1"
+
+
+	ADD OBJECT cmdhelpnroped AS base_cmdhelp_multiselect WITH ;
+		Top = 88, ;
+		Left = 155, ;
+		Height = 18, ;
+		Width = 24, ;
+		Anchor = 0, ;
+		Enabled = .F., ;
+		TabIndex = 25, ;
+		ZOrderSet = 25, ;
+		cvaloresfiltro = (GoCfgVta.XcFlgEst_Ref), ;
+		ccamposfiltro = "FlgEst", ;
+		cnombreentidad = "vtavpedi", ;
+		ccamporetorno = "nrodoc", ;
+		caliascursor = "c_Pedido", ;
+		ccampovisualizacion = "NomCli", ;
+		Name = "CmdHelpNroPed"
+
+
 	ADD OBJECT chkcertificado AS base_checkbox WITH ;
 		Top = 131, ;
 		Left = 182, ;
@@ -4784,37 +4784,12 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
-	PROCEDURE limpiar_var
-		WITH this
-			LOCAL i
-			FOR i = 1 to .ControlCount
-				DO CASE 
-					CASE AT('FECHA',UPPER(.Controls(i).Class))>0
-						.Controls(i).Value = {}
-					CASE AT('NUMERO',UPPER(.Controls(i).Class))>0
-						.Controls(i).Value = 0
-					CASE AT('MONEDA',UPPER(.Controls(i).Class))>0
-						.Controls(i).Value = 0.00
-					CASE AT('TEXTBOX',UPPER(.Controls(i).Class))>0
-						.Controls(i).Value = []
-					CASE AT('CBOHELP',UPPER(.Controls(i).Class))>0
-						.Controls(i).Value = []
-
-				ENDCASE
-
-			NEXT 
-		ENDWITH
-	ENDPROC
-
-
-	PROCEDURE iniciar_var
-		WITH THIS
-			LOCAL i
-			FOR i = 1 to .ControlCount
-				.Controls(i).Enabled  = .F.
-				.Controls(i).Visible  = .F.
-			NEXT 
-		ENDWITH
+	PROCEDURE habilita_controles_valores_iniciales
+		IF UPPER(GsSigCia)='EHOLDING'
+			This.LblNroPed.Caption  = 'ORD.SERV'
+		ELSE
+			This.LblNroPed.Caption  = 'PEDIDO'
+		ENDIF
 	ENDPROC
 
 
@@ -4994,12 +4969,37 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
-	PROCEDURE habilita_controles_valores_iniciales
-		IF UPPER(GsSigCia)='EHOLDING'
-			This.LblNroPed.Caption  = 'ORD.SERV'
-		ELSE
-			This.LblNroPed.Caption  = 'PEDIDO'
-		ENDIF
+	PROCEDURE iniciar_var
+		WITH THIS
+			LOCAL i
+			FOR i = 1 to .ControlCount
+				.Controls(i).Enabled  = .F.
+				.Controls(i).Visible  = .F.
+			NEXT 
+		ENDWITH
+	ENDPROC
+
+
+	PROCEDURE limpiar_var
+		WITH this
+			LOCAL i
+			FOR i = 1 to .ControlCount
+				DO CASE 
+					CASE AT('FECHA',UPPER(.Controls(i).Class))>0
+						.Controls(i).Value = {}
+					CASE AT('NUMERO',UPPER(.Controls(i).Class))>0
+						.Controls(i).Value = 0
+					CASE AT('MONEDA',UPPER(.Controls(i).Class))>0
+						.Controls(i).Value = 0.00
+					CASE AT('TEXTBOX',UPPER(.Controls(i).Class))>0
+						.Controls(i).Value = []
+					CASE AT('CBOHELP',UPPER(.Controls(i).Class))>0
+						.Controls(i).Value = []
+
+				ENDCASE
+
+			NEXT 
+		ENDWITH
 	ENDPROC
 
 
@@ -5022,19 +5022,6 @@ DEFINE CLASS cntpage_ventas AS base_container
 			this.Parent.TxtCndPgo.Value =   EVALUATE(LsCodigo)
 			this.Parent.SpnDiaVto.Value =   EVALUATE(LsDiaVTo)
 		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtnroped.When
-		IF thisform.ObjRefTran.XnTpofac <> 2 
-			RETURN .F.
-		ENDIF
-		*!*	IF thisform.xreturn = 'I' AND EMPTY(this.Parent.CntCodCli.Value)
-			this.ToolTipText = 'Ingrese el nro. de pedido'
-		*!*	ELSE
-		*!*		this.ToolTipText = ''
-		*!*	ENDIF
-		RETURN thisform.xreturn = 'I'  && AND !EMPTY(this.Parent.CntCodCli.Value)
 	ENDPROC
 
 
@@ -5116,25 +5103,25 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
+	PROCEDURE txtnroped.When
+		IF thisform.ObjRefTran.XnTpofac <> 2 
+			RETURN .F.
+		ENDIF
+		*!*	IF thisform.xreturn = 'I' AND EMPTY(this.Parent.CntCodCli.Value)
+			this.ToolTipText = 'Ingrese el nro. de pedido'
+		*!*	ELSE
+		*!*		this.ToolTipText = ''
+		*!*	ENDIF
+		RETURN thisform.xreturn = 'I'  && AND !EMPTY(this.Parent.CntCodCli.Value)
+	ENDPROC
+
+
 	PROCEDURE txtfchped.When
 		IF INLIST(THISFORM.ObjRefTran.XsCodDoc,'PEDI')
 			RETURN .T.
 		ELSE
 			RETURN .F.
 		ENDIF
-	ENDPROC
-
-
-	PROCEDURE txtnroref.When
-		IF !inlist(thisform.ObjRefTran.XnTpofac , 3,4) 
-			RETURN .F.
-		ENDIF
-		*!*	IF thisform.xreturn = 'I'   AND EMPTY(this.Parent.CntCodCli.Value) 
-				this.ToolTipText = 'Ingrese Nro. de Guia de Remisión '
-		*!*	ELSE
-		*!*		this.ToolTipText = ''
-		*!*	ENDIF
-		RETURN thisform.xreturn = 'I'  && AND !EMPTY(this.Parent.CntCodCli.Value) 
 	ENDPROC
 
 
@@ -5181,9 +5168,16 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
-	PROCEDURE cbocodmon.InteractiveChange
-		THISFORM.PgfDetalle.Page1.LblMoneda.Caption = LEFT(THIS.DisplayValue,4)
-		thisform.ObjRefTran.XiCodMon = THIS.Value
+	PROCEDURE txtnroref.When
+		IF !inlist(thisform.ObjRefTran.XnTpofac , 3,4) 
+			RETURN .F.
+		ENDIF
+		*!*	IF thisform.xreturn = 'I'   AND EMPTY(this.Parent.CntCodCli.Value) 
+				this.ToolTipText = 'Ingrese Nro. de Guia de Remisión '
+		*!*	ELSE
+		*!*		this.ToolTipText = ''
+		*!*	ENDIF
+		RETURN thisform.xreturn = 'I'  && AND !EMPTY(this.Parent.CntCodCli.Value) 
 	ENDPROC
 
 
@@ -5192,58 +5186,24 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
-	PROCEDURE cmdhelpnroped.When
-		IF thisform.ObjRefTran.XnTpofac <> 2
-			RETURN .F.
-		ENDIF
-
-		*!*	IF thisform.xreturn = 'I' AND EMPTY(this.Parent.CntCodCli.Value)
-			this.ToolTipText = 'Buscar pedidos pendientes de atender'
-		*!*	ELSE
-		*!*		this.ToolTipText = ''
-		*!*	ENDIF
-		RETURN thisform.xreturn = 'I'   && AND !EMPTY(this.Parent.CntCodCli.Value)
+	PROCEDURE cbocodmon.InteractiveChange
+		THISFORM.PgfDetalle.Page1.LblMoneda.Caption = LEFT(THIS.DisplayValue,4)
+		thisform.ObjRefTran.XiCodMon = THIS.Value
 	ENDPROC
 
 
-	PROCEDURE cmdhelpnroped.Click
-		DO CASE 
-			CASE INLIST(THISFORM.ObjRefTran.XsCodDoc,'N/C','NC','N\C')
-				thisform.ObjRefTran.Traer_Items_G_R_CLI('GUIA', ; 
-														'CodCli+FlgEst', ;
-														thisform.objreftran.xscodcli+'F',;
-														'VGUI04',;
-														'CodFac',;
-														'FACT',;
-														'AUXI')
-				THISFORM.ObjCntRef.Iniciar_var()
-				THISFORM.ObjCntRef.Visible = .t.
-			CASE INLIST(THISFORM.ObjRefTran.XsCodDoc,'FAC','BOL','N\D','N/D','ND','PROF')
-				DO CASE 
-					CASE thisform.ObjrefTran.XnTpoFac = 4		&& Varias Guias
-						thisform.ObjRefTran.Traer_Items_G_R_CLI()
-						THISFORM.ObjCntRef.Iniciar_var()
-						thisform.ObjCntRef.Visible = .t.
-					CASE thisform.ObjrefTran.XnTpoFac = 3		&& Una Guia
-						DODEFAULT()
-						this.Parent.TxtNroRef.Value = this.cvalorvalida 
-						this.Parent.TxtNroRef.SetFocus
-						IF !EMPTY(this.Parent.TxtNroRef.Value)
-							KEYBOARD '{END}'+'{ENTER}'
-						ENDIF
-					CASE thisform.ObjrefTran.XnTpoFac = 2		&& Un Pedido
-					       THIS.cwheresql = " AND CodCli = ["+ THIS.PARENT.cntCodCli.VALUE+"]"
-					  	DODEFAULT()
-						this.Parent.TxtNroPed.Value = PADR(this.cvalorvalida,this.LonCmpRet  )
-						this.Parent.TxtNroPed.SetFocus
-						IF !EMPTY(this.Parent.TxtNroPed.Value)
-							KEYBOARD '{END}'+'{ENTER}'
-						ENDIF
-		*!*					thisform.ObjRefTran.Traer_Items_G_R_CLI()
-		*!*					THISFORM.ObjCntRef.Iniciar_var()
-		*!*					thisform.ObjCntRef.Visible = .t.
-				 ENDCASE 
-		 ENDCASE
+	PROCEDURE cmdhelpnroref.When
+		IF !inlist(thisform.ObjRefTran.XnTpofac , 3,4) 
+			RETURN .F.
+		ENDIF
+
+		*!*	IF thisform.xreturn = 'I' AND EMPTY(this.Parent.CntCodCli.Value) 
+				this.ToolTipText = 'Buscar G/Remisión pendientes de facturar'
+		*!*	ELSE
+		*!*		this.ToolTipText = ''
+		*!*	ENDIF
+
+		RETURN thisform.xreturn = 'I'  && AND !EMPTY(this.Parent.CntCodCli.Value) 
 	ENDPROC
 
 
@@ -5291,29 +5251,9 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
-	PROCEDURE cmdhelpnroref.When
-		IF !inlist(thisform.ObjRefTran.XnTpofac , 3,4) 
-			RETURN .F.
-		ENDIF
-
-		*!*	IF thisform.xreturn = 'I' AND EMPTY(this.Parent.CntCodCli.Value) 
-				this.ToolTipText = 'Buscar G/Remisión pendientes de facturar'
-		*!*	ELSE
-		*!*		this.ToolTipText = ''
-		*!*	ENDIF
-
-		RETURN thisform.xreturn = 'I'  && AND !EMPTY(this.Parent.CntCodCli.Value) 
-	ENDPROC
-
-
 	PROCEDURE cbotpovta.Valid
 		thisform.ObjRefTran.XnTpoVta = VAL(THIS.Value)
 		thisform.Calcular_Totales()
-	ENDPROC
-
-
-	PROCEDURE cbodestino.LostFocus
-		this.InteractiveChange() 
 	ENDPROC
 
 
@@ -5334,6 +5274,11 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
+	PROCEDURE cbodestino.LostFocus
+		this.InteractiveChange() 
+	ENDPROC
+
+
 	PROCEDURE chkretencion.Valid
 		thisform.ObjRefTran.XlRete	= this.Value
 	ENDPROC
@@ -5343,6 +5288,73 @@ DEFINE CLASS cntpage_ventas AS base_container
 		DODEFAULT()
 		this.parent.CboFmaPgo.Value  = this.cvalorvalida
 		this.parent.CboFmaPgo.Valid()
+	ENDPROC
+
+
+	PROCEDURE cntcodcli.TxtCodigo.KeyPress
+		LPARAMETERS nKeyCode, nShiftAltCtrl
+		IF INLIST(nKeyCode, ENTER,F8) AND EMPTY(this.value)
+			this.Parent.cmdhelp.Click
+		ENDIF
+	ENDPROC
+
+
+	PROCEDURE cntcodcli.TxtCodigo.Valid
+
+		DODEFAULT()
+		IF EMPTY(this.Value)
+			RETURN 
+		ENDIF
+
+		M.ERR=thisform.ValidCliente()
+		IF m.Err = CUST_NOT_FOUND  && Creamos Cliente al Paso sin salir del Formulario de transacciones
+			LsCurCursor=this.parent.parent.ccursor_local
+			this.Parent.Parent.ccursor_local = this.Parent.cAliasCursor
+			LnOp=MESSAGEBOX('Desea agregar nuevo cliente?',32+4,'ATENCION!!!') 
+			IF LnOp=6
+				this.Value = this.parent.parent.mant_clientes(1)
+				IF !EMPTY(this.Value)
+					XsCodAux = THIS.VALUE
+					Llok= thisform.ValidCliente()
+				ENDIF
+			ENDIF
+			this.Parent.Parent.cCursor_Local = LsCurCursor
+		ENDIF
+		IF m.err<0
+			thisform.MensajeErr(m.err)
+			RETURN .f.
+		ENDIF
+		thisform.ObjRefTran.XsCodCli = this.Value
+		thisform.ObjRefTran.XlRete	 = 	EVALUATE(this.PARENT.parent.C_validCliente+'.Rete')
+		*this.parent.txtdirAux.value=EVALUATE(this.PARENT.c_validCliente+'.DesDire')
+		this.PARENT.parent.txtrucAux.Value=EVALUATE(this.PARENT.parent.C_validCliente+'.NroRuc')
+		this.PARENT.parent.ChkRetencion.Value=EVALUATE(this.PARENT.parent.C_validCliente+'.Rete')
+		this.PARENT.parent.ChkRetencion.Visible = thisform.ObjRefTran.XlRete
+		this.PARENT.Parent.cmdHELPNROREF.ccamposfiltro  = [FlgEst;CodCli]
+		this.PARENT.Parent.cmDHELPNROREF.cvaloresfiltro = thisform.ObjRefTran.XcFlgEst_Ref+';'+thisform.objreftran.XsCodCli
+
+		this.PARENT.Parent.CmdHelpNroPed.ccamposfiltro  = [FlgEst;CodCli]
+		this.PARENT.Parent.cmdHelpNroPed.cvaloresfiltro = thisform.ObjRefTran.XcFlgEst_Ref+';'+thisform.objreftran.XsCodCli
+
+
+		this.InteractiveChange() 
+		** VETT  13/01/2016 04:05 PM : Verificamos si tiene documentos pendientes de pago
+
+		oCredito    = CREATEOBJECT("o_n1.calculo_credito")
+		oCredito.cliente1(thisform.ObjRefTran.XsCodCli ,,,)
+		IF INLIST(oCredito.aparams(16,2),0,-1,-2,2,3,-3)  && Se muestra solo si tiene datos 
+			thisform.MostrarLineaCredito('MOSTRAR')
+			IF ( oCredito.aparams(21,2)>0  AND oCredito.aParams[25,2]	<>0 ) OR (oCredito.aparams(22,2)>0  AND oCredito.aParams[26,2]	<>0 )
+				Thisform.PgfDetalle.Page1.CmdAdicionar1.Visible = .F.
+				Thisform.PgfDetalle.Page1.CmdModificar1.Visible = .F.
+				Thisform.PgfDetalle.Page1.CmdEliminar1.Visible 	= .F.
+			ELSE
+				Thisform.PgfDetalle.Page1.CmdAdicionar1.Visible = .T.
+				Thisform.PgfDetalle.Page1.CmdModificar1.Visible = .T.
+				Thisform.PgfDetalle.Page1.CmdEliminar1.Visible 	= .T.
+			ENDIF
+		ENDIF
+		RELEASE oCredito
 	ENDPROC
 
 
@@ -5393,70 +5405,58 @@ DEFINE CLASS cntpage_ventas AS base_container
 	ENDPROC
 
 
-	PROCEDURE cntcodcli.TxtCodigo.Valid
-
-		DODEFAULT()
-		IF EMPTY(this.Value)
-			RETURN 
-		ENDIF
-
-		M.ERR=thisform.ValidCliente()
-		IF m.Err = CUST_NOT_FOUND  && Creamos Cliente al Paso sin salir del Formulario de transacciones
-			LsCurCursor=this.parent.parent.ccursor_local
-			this.Parent.Parent.ccursor_local = this.Parent.cAliasCursor
-			LnOp=MESSAGEBOX('Desea agregar nuevo cliente?',32+4,'ATENCION!!!') 
-			IF LnOp=6
-				this.Value = this.parent.parent.mant_clientes(1)
-				IF !EMPTY(this.Value)
-					XsCodAux = THIS.VALUE
-					Llok= thisform.ValidCliente()
-				ENDIF
-			ENDIF
-			this.Parent.Parent.cCursor_Local = LsCurCursor
-		ENDIF
-		IF m.err<0
-			thisform.MensajeErr(m.err)
-			RETURN .f.
-		ENDIF
-		thisform.ObjRefTran.XsCodCli = this.Value
-		thisform.ObjRefTran.XlRete	 = 	EVALUATE(this.PARENT.parent.C_validCliente+'.Rete')
-		*this.parent.txtdirAux.value=EVALUATE(this.PARENT.c_validCliente+'.DesDire')
-		this.PARENT.parent.txtrucAux.Value=EVALUATE(this.PARENT.parent.C_validCliente+'.NroRuc')
-		this.PARENT.parent.ChkRetencion.Value=EVALUATE(this.PARENT.parent.C_validCliente+'.Rete')
-		this.PARENT.parent.ChkRetencion.Visible = thisform.ObjRefTran.XlRete
-		this.PARENT.Parent.cmdHELPNROREF.ccamposfiltro  = [FlgEst;CodCli]
-		this.PARENT.Parent.cmDHELPNROREF.cvaloresfiltro = thisform.ObjRefTran.XcFlgEst_Ref+';'+thisform.objreftran.XsCodCli
-
-		this.PARENT.Parent.CmdHelpNroPed.ccamposfiltro  = [FlgEst;CodCli]
-		this.PARENT.Parent.cmdHelpNroPed.cvaloresfiltro = thisform.ObjRefTran.XcFlgEst_Ref+';'+thisform.objreftran.XsCodCli
-
-
-		this.InteractiveChange() 
-		** VETT  13/01/2016 04:05 PM : Verificamos si tiene documentos pendientes de pago
-
-		oCredito    = CREATEOBJECT("o_n.calculo_credito")
-		oCredito.cliente1(thisform.ObjRefTran.XsCodCli ,,,)
-		IF INLIST(oCredito.aparams(16,2),0,-1,-2,2,3,-3)  && Se muestra solo si tiene datos 
-			thisform.MostrarLineaCredito('MOSTRAR')
-			IF ( oCredito.aparams(21,2)>0  AND oCredito.aParams[25,2]	<>0 ) OR (oCredito.aparams(22,2)>0  AND oCredito.aParams[26,2]	<>0 )
-				Thisform.PgfDetalle.Page1.CmdAdicionar1.Visible = .F.
-				Thisform.PgfDetalle.Page1.CmdModificar1.Visible = .F.
-				Thisform.PgfDetalle.Page1.CmdEliminar1.Visible 	= .F.
-			ELSE
-				Thisform.PgfDetalle.Page1.CmdAdicionar1.Visible = .T.
-				Thisform.PgfDetalle.Page1.CmdModificar1.Visible = .T.
-				Thisform.PgfDetalle.Page1.CmdEliminar1.Visible 	= .T.
-			ENDIF
-		ENDIF
-		RELEASE oCredito
+	PROCEDURE cmdhelpnroped.Click
+		DO CASE 
+			CASE INLIST(THISFORM.ObjRefTran.XsCodDoc,'N/C','NC','N\C')
+				thisform.ObjRefTran.Traer_Items_G_R_CLI('GUIA', ; 
+														'CodCli+FlgEst', ;
+														thisform.objreftran.xscodcli+'F',;
+														'VGUI04',;
+														'CodFac',;
+														'FACT',;
+														'AUXI')
+				THISFORM.ObjCntRef.Iniciar_var()
+				THISFORM.ObjCntRef.Visible = .t.
+			CASE INLIST(THISFORM.ObjRefTran.XsCodDoc,'FAC','BOL','N\D','N/D','ND','PROF')
+				DO CASE 
+					CASE thisform.ObjrefTran.XnTpoFac = 4		&& Varias Guias
+						thisform.ObjRefTran.Traer_Items_G_R_CLI()
+						THISFORM.ObjCntRef.Iniciar_var()
+						thisform.ObjCntRef.Visible = .t.
+					CASE thisform.ObjrefTran.XnTpoFac = 3		&& Una Guia
+						DODEFAULT()
+						this.Parent.TxtNroRef.Value = this.cvalorvalida 
+						this.Parent.TxtNroRef.SetFocus
+						IF !EMPTY(this.Parent.TxtNroRef.Value)
+							KEYBOARD '{END}'+'{ENTER}'
+						ENDIF
+					CASE thisform.ObjrefTran.XnTpoFac = 2		&& Un Pedido
+					       THIS.cwheresql = " AND CodCli = ["+ THIS.PARENT.cntCodCli.VALUE+"]"
+					  	DODEFAULT()
+						this.Parent.TxtNroPed.Value = PADR(this.cvalorvalida,this.LonCmpRet  )
+						this.Parent.TxtNroPed.SetFocus
+						IF !EMPTY(this.Parent.TxtNroPed.Value)
+							KEYBOARD '{END}'+'{ENTER}'
+						ENDIF
+		*!*					thisform.ObjRefTran.Traer_Items_G_R_CLI()
+		*!*					THISFORM.ObjCntRef.Iniciar_var()
+		*!*					thisform.ObjCntRef.Visible = .t.
+				 ENDCASE 
+		 ENDCASE
 	ENDPROC
 
 
-	PROCEDURE cntcodcli.TxtCodigo.KeyPress
-		LPARAMETERS nKeyCode, nShiftAltCtrl
-		IF INLIST(nKeyCode, ENTER,F8) AND EMPTY(this.value)
-			this.Parent.cmdhelp.Click
+	PROCEDURE cmdhelpnroped.When
+		IF thisform.ObjRefTran.XnTpofac <> 2
+			RETURN .F.
 		ENDIF
+
+		*!*	IF thisform.xreturn = 'I' AND EMPTY(this.Parent.CntCodCli.Value)
+			this.ToolTipText = 'Buscar pedidos pendientes de atender'
+		*!*	ELSE
+		*!*		this.ToolTipText = ''
+		*!*	ENDIF
+		RETURN thisform.xreturn = 'I'   && AND !EMPTY(this.Parent.CntCodCli.Value)
 	ENDPROC
 
 
@@ -12166,7 +12166,7 @@ ENDDEFINE
 *-- Class:        base_form_transac (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- ParentClass:  base_form (k:\aplvfp\classgen\vcxs\admvrs.vcx)
 *-- BaseClass:    form
-*-- Time Stamp:   12/20/24 05:31:11 PM
+*-- Time Stamp:   01/17/25 09:02:08 AM
 *-- Formulario base de transacciones
 *
 #INCLUDE "k:\aplvfp\bsinfo\progs\const.h"
@@ -15681,6 +15681,11 @@ DEFINE CLASS base_form_transac AS base_form
 												THISFORM.ObjRefTran.XsPtoVta	+;
 												THISFORM.ObjRefTran.XsSerie
 						** VETT: [FIN]  IDUPD:2512574976-11/09/2024 04:36 PM
+
+						** VETT: FALTABA ESTO!!!! Asignacion de los campos del ID en la entidad de correlativo IDUPD:3310176165-17/01/2025 08:59 AM
+							THISFORM.cCmps_ID = THISFORM.ObjRefTran.cCmps_ID
+						** VETT: [FIN] IDUPD:3310176165-17/01/2025 08:59 AM 
+
 						** VETT: ***REVISAR*** URGENTE!!!!!				 IDUPD:2629957524-04/11/2024 09:53 PM 
 						THISFORM.cValor_PK = THISFORM.TraerValor_PK()
 						M.ERR=thisform.ObjRefTran.CfgVar_PK(thisform.ctabla_c)
@@ -16770,7 +16775,7 @@ DEFINE CLASS base_form_transac AS base_form
 			CASE PcModo	=	'MOSTRAR'
 				** Cargamos datos de linea de credito del cliente ** 
 				IF INLIST(THISFORM.ObjRefTran.XsCodDoc,'FACT','BOLE','PEDI','PROF')
-					oCredito    = CREATEOBJECT("o_n.calculo_credito")
+					oCredito    = CREATEOBJECT("o_n1.calculo_credito")
 					oCredito.cliente1(thisform.ObjRefTran.XsCodCli ,thisform.ObjReftran.XfImpTot,thisform.ObjRefTran.XiCodMon,Thisform.ObjRefTran.XfTpoCmb)
 		*!*				SET STEP ON 
 					IF INLIST(oCredito.aparams(16,2),0,-1,-2,2,3,-3)  && Se muestra solo si tiene datos 

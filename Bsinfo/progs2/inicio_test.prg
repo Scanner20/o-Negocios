@@ -7,27 +7,26 @@ SET SYSMENU TO DEFA
 	IF INLIST(SYS(5),'F','E','D')
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
 		SET DEFA TO \AplVfp\bsinfo
-		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT 'Lucida Console',14
+		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60  TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\APLVFP\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
 		ACTIVATE WINDOW desktop2
 	ELSE
 		CD SYS(5)+'\aplvfp\bsinfo\proys\'
 		SET DEFA TO \AplVfp\bsinfo
-		DEFINE WINDOW desktop2 FROM 0+5,0+60 TO 22.5+5,64.875+60 TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT 'Lucida Console',14
-		ACTIVATE WINDOW desktop2
+		DEFINE WINDOW desktop2  FROM 0+5,0+60 TO 22.5+5,64.875+60 TITLE 'Las Bebitas' FLOAT GROW CLOSE MINIMIZE FILL FILE LOCFILE(SYS(5)+'\aplvfp\grafgen\jpeg\Jane\jane_joan_3.JPG') FONT "roboto mono",9
+		ACTIVATE WINDOW desktop2 
  	ENDIF
 *!*	Activar los Paths para sus formularios personales.... (xUsuario)
-
 SET PATH TO .\Forms , ; 
-			.\Forms2, ;
+			.\Forms2, ; 
             .\Progs , ;
-			.\Progs2, ;
+            .\Progs2, ;
             .\Reports , ;
             .\Reports2, ;
             .\Menus , ;
-            .\Menus2, ;
-            .\vcxs ,;
-			O:\o-negocios\ConexSur , ;
-            O:\o-negocios\ConexSur\Data , ;
+            .\Menus2 , ;
+            .\vcxs , ;
+	     	D:\o-negocios\test , ;
+            D:\o-negocios\test\Data , ;
 			..\classgen\vcxs , ;
 			..\classgen\Forms ,;
 			..\classgen\Reports ,;
@@ -42,20 +41,21 @@ SET DECI  TO 6
 SET ASSERTS ON
 SET MULTILOCKS ON
 SET DELETED ON
+*!*	SET UDFPARMS TO REFERENCE
 
 ** Cosntantes Globales independientes de que modulo se este ejecutando
 #include const.h 	
 *!*	Las 2 lineas anteriores, apuntan hacia las clases generales
 
 *!*	Activar las Librerias de clases generales
-**SET CLASSLIB TO ADMNOVIS , ADMTBAR , ADMVRS , ADMGRAL ,DOSVR, o-N,registry
 SET CLASSLIB TO ADMNOVIS , ADMTBAR , ADMVRS , ADMGRAL ,DOSVR, o-N1, registry, o-NLib,GridExtras
 CLOSE DATABASES ALL
-SET PROCEDURE TO JANESOFT,FXGEN_2
+SET PROCEDURE TO JANESOFT,FXGEN_2,JSON
 SET LIBRARY TO VFPEncryption71.FLL
 DO def_v_publicas
 DO def_color
 *!*	SET PROCEDURE TO ALMPLIBF ADDITIVE
+
 
 
 *!*	PUBLIC goEntorno , goConexion , goAlmplibf
@@ -66,12 +66,15 @@ PUBLIC goEntorno , goConexion , GoCfgAlm , GoCfgCpi , GoSvrCbd,GoCfgVta,GoEntPub
 
 
 		goConexion	= CREATEOBJECT('cnxgen_ODBC')
-
-*!*		IF !goConexion.Conectar()
-*!*			=MESSAGEBOX("¡ No se pudo establecer la conexión con el servidor!",64,"Error de conexión")
-*!*			RELEASE goConexion , goEntorno
-*!*			RETURN
-*!*		ENDIF
+IF  GoConexion.cBackEnd ='VFPDBC'
+	** No se establece conexion mediante ODBC
+ELSE
+	IF !goConexion.Conectar()
+		=MESSAGEBOX("¡ No se pudo establecer la conexión con el servidor!",64,"Error de conexión")
+		RELEASE goConexion , goEntorno
+		RETURN
+	ENDIF
+ENDIF
 
 Public GsCodCia,GsNomCia,GsSigCia,GsDirCia,GsTlfCia,GsRptCia,GsRucCia,GsSistema
 GsCodCia = '001'
@@ -80,8 +83,6 @@ goEntorno	= CREATEOBJECT("Entorno")
 goEntPub	= CREATEOBJECT("Env")
 
 goEntPub.TsPathInicio = SET('PATH')
-
-
 goCfgCpi	= CREATEOBJECT("DOSVR.Cpiplibf") &&AMAA 28-12-06
 
 goSvrCbd    = CREATEOBJECT("DOSVR.Contabilidad") 	&& Servicios para contabilidad
@@ -116,13 +117,17 @@ DO config_almacen
 
 && Clasificacion auxiliar de clientes y proveedores de la tabla CBDMAUXI
 DO FORM gen4_login.scx WITH 'ADM'
+** VETT:Inicio rapido escoger Login, Empresa(Compañia) y Modulo 2022/02/19 15:22:39 ** 
+READ EVENTS
 *!*	Goentorno.User.Login= 'Prueba'
 *!*	GoEntorno.USER.GroupName		= 'Ventas'
 *!*	GsUsuario = 'Prueba'
 =BuildAccessCursor()
 xAcceso = .T.
-*
-**
+DO FORM funfun_compañias.scx
+DO FORM funfun_selec_contab.scx
+** VETT: 2022/02/19 15:22:39 **
+
 ************************
 PROCEDURE Config_almacen
 ************************

@@ -1,0 +1,22 @@
+Listado de programas y formularios y subrutinas relacionadas con situacion de item ALMDTRAN.Situ 
+janesoft.prg
+
+	Borrar_transaccion_Alm
+	Borrar transaccion_Alm_arv
+	Actualiza_Ítem_almacen_borrados
+	ExtAlmCen
+	GrbDetAlm_ITEM
+	GrbDetAlm
+	ITEM_ALMACEN_LOTE
+	ITEM_ALMACEN_SERIE
+	alm_Carga_Stock_Almpcsm1
+	alm_Carga_Stock_Almpcsm2
+	Alm_Descarga_stock_ALMpdsm1
+	Alm_Descarga_stock_ALMpdsm2
+	
+	funalm_transacciones.scx 
+	funalm_config_ingresos.scx 
+	alm_almkarta.scx
+	cpi_resumenmovo_t.scx  
+	alm_control_de_situacion.scx
+	alm_control_de_situacion_browse.scx 

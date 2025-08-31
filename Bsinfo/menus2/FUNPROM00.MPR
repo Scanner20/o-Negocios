@@ -1,12 +1,12 @@
 *       *********************************************************
 *       *                                                         
-*       * 02/01/2024           FUNPROM00.MPR            14:48:37  
+*       * 16/01/2025           FUNPROM00.MPR            12:04:46  
 *       *                                                         
 *       *********************************************************
 *       *                                                         
 *       * Victor E. Torres Tejada                                 
 *       *                                                         
-*       * Copyright (C) 2024 o-Negocios S.A.C                     
+*       * Copyright (C) 2025 o-Negocios S.A.C                     
 *       * Calle Las Palomas 120 - 701 - Torre 1                   
 *       * LIMA, LIMA  L034                                          
 *       * PERU                                              
@@ -27,22 +27,22 @@
 SET SYSMENU TO
 SET SYSMENU AUTOMATIC
 
-DEFINE PAD _6sq0vqrzz OF _MSYSMENU PROMPT "Tablas y Maestros" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2ka OF _MSYSMENU PROMPT "Tablas y Maestros" COLOR SCHEME 3 ;
 	KEY ALT+T, ""
-DEFINE PAD _6sq0vqs00 OF _MSYSMENU PROMPT "Transacciones" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2kb OF _MSYSMENU PROMPT "Transacciones" COLOR SCHEME 3 ;
 	KEY ALT+T, ""
-DEFINE PAD _6sq0vqs01 OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2kc OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
 	KEY ALT+R, ""
-DEFINE PAD _6sq0vqs02 OF _MSYSMENU PROMPT "Procesos" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2kd OF _MSYSMENU PROMPT "Procesos" COLOR SCHEME 3 ;
 	KEY ALT+P, ""
-DEFINE PAD _6sq0vqs03 OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2ke OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
 	KEY ALT+S, ""
-ON PAD _6sq0vqrzz OF _MSYSMENU ACTIVATE POPUP tablasymae
-ON PAD _6sq0vqs00 OF _MSYSMENU ACTIVATE POPUP transaccio
-ON PAD _6sq0vqs01 OF _MSYSMENU ACTIVATE POPUP reportes
-ON PAD _6sq0vqs02 OF _MSYSMENU ACTIVATE POPUP procesos
-ON SELECTION PAD _6sq0vqs03 OF _MSYSMENU ;
-	DO _6sq0vqs04 ;
+ON PAD _73b0pw2ka OF _MSYSMENU ACTIVATE POPUP tablasymae
+ON PAD _73b0pw2kb OF _MSYSMENU ACTIVATE POPUP transaccio
+ON PAD _73b0pw2kc OF _MSYSMENU ACTIVATE POPUP reportes
+ON PAD _73b0pw2kd OF _MSYSMENU ACTIVATE POPUP procesos
+ON SELECTION PAD _73b0pw2ke OF _MSYSMENU ;
+	DO _73b0pw2kf ;
 	IN LOCFILE("MENUS2\FUNPROM00" ,"MPX;MPR|FXP;PRG" ,"WHERE is FUNPROM00?")
 
 DEFINE POPUP tablasymae MARGIN RELATIVE SHADOW COLOR SCHEME 4
@@ -142,7 +142,7 @@ ON SELECTION BAR 1 OF procesos do form funpro_reproceso_parte_diario
 
 *       *********************************************************
 *       *                                                         
-*       * _6SQ0VQS04  ON SELECTION PAD                            
+*       * _73B0PW2KF  ON SELECTION PAD                            
 *       *                                                         
 *       * Procedure Origin:                                       
 *       *                                                         
@@ -153,7 +153,7 @@ ON SELECTION BAR 1 OF procesos do form funpro_reproceso_parte_diario
 *       *                                                         
 *       *********************************************************
 *
-PROCEDURE _6sq0vqs04
+PROCEDURE _73b0pw2kf
 if MESSAGEBOX("¿Desea Salir de la Aplicación?",4+32+256,"Salir...")=6
    clear events
    set sysmenu to

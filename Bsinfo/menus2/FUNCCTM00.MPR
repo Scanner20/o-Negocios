@@ -1,12 +1,12 @@
 *       *********************************************************
 *       *                                                         
-*       * 21/03/2024           FUNCCTM00.MPR            12:56:05  
+*       * 16/01/2025           FUNCCTM00.MPR            12:04:46  
 *       *                                                         
 *       *********************************************************
 *       *                                                         
 *       * Victor E. Torres Tejada                                 
 *       *                                                         
-*       * Copyright (C) 2024 o-Negocios S.A.C                     
+*       * Copyright (C) 2025 o-Negocios S.A.C                     
 *       * Calle Las Palomas 120 - 701 - Torre 1                   
 *       * LIMA, LIMA  L034                                          
 *       * PERU                                              
@@ -27,34 +27,34 @@
 SET SYSMENU TO
 SET SYSMENU AUTOMATIC
 
-DEFINE PAD _6ux0rq142 OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2f5 OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
 	KEY ALT+M, ""
-DEFINE PAD _6ux0rq143 OF _MSYSMENU PROMPT "Transacciones" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2f6 OF _MSYSMENU PROMPT "Transacciones" COLOR SCHEME 3 ;
 	KEY ALT+T, ""
-DEFINE PAD _6ux0rq144 OF _MSYSMENU PROMPT "Consultas" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2f7 OF _MSYSMENU PROMPT "Consultas" COLOR SCHEME 3 ;
 	KEY ALT+C, ""
-DEFINE PAD _6ux0rq145 OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2f8 OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
 	KEY ALT+R, ""
-DEFINE PAD _6ux0rq146 OF _MSYSMENU PROMPT "Letras" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2f9 OF _MSYSMENU PROMPT "Letras" COLOR SCHEME 3 ;
 	KEY ALT+L, ""
-DEFINE PAD _6ux0rq147 OF _MSYSMENU PROMPT "Procesos" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2fa OF _MSYSMENU PROMPT "Procesos" COLOR SCHEME 3 ;
 	KEY ALT+P, ""
-DEFINE PAD _6ux0rq148 OF _MSYSMENU PROMPT "Tablas Generales" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2fb OF _MSYSMENU PROMPT "Tablas Generales" COLOR SCHEME 3 ;
 	KEY ALT+T, ""
-DEFINE PAD _6ux0rq149 OF _MSYSMENU PROMPT "Configuracion" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2fc OF _MSYSMENU PROMPT "Configuracion" COLOR SCHEME 3 ;
 	KEY ALT+C, ""
-DEFINE PAD _6ux0rq14a OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2fd OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
 	KEY ALT+S, ""
-ON PAD _6ux0rq142 OF _MSYSMENU ACTIVATE POPUP maestros
-ON PAD _6ux0rq143 OF _MSYSMENU ACTIVATE POPUP transaccio
-ON PAD _6ux0rq144 OF _MSYSMENU ACTIVATE POPUP consultas
-ON PAD _6ux0rq145 OF _MSYSMENU ACTIVATE POPUP reportes
-ON PAD _6ux0rq146 OF _MSYSMENU ACTIVATE POPUP nuevoeleme
-ON PAD _6ux0rq147 OF _MSYSMENU ACTIVATE POPUP procesos
-ON PAD _6ux0rq148 OF _MSYSMENU ACTIVATE POPUP tablasgene
-ON PAD _6ux0rq149 OF _MSYSMENU ACTIVATE POPUP configurac
-ON SELECTION PAD _6ux0rq14a OF _MSYSMENU ;
-	DO _6ux0rq14b ;
+ON PAD _73b0pw2f5 OF _MSYSMENU ACTIVATE POPUP maestros
+ON PAD _73b0pw2f6 OF _MSYSMENU ACTIVATE POPUP transaccio
+ON PAD _73b0pw2f7 OF _MSYSMENU ACTIVATE POPUP consultas
+ON PAD _73b0pw2f8 OF _MSYSMENU ACTIVATE POPUP reportes
+ON PAD _73b0pw2f9 OF _MSYSMENU ACTIVATE POPUP nuevoeleme
+ON PAD _73b0pw2fa OF _MSYSMENU ACTIVATE POPUP procesos
+ON PAD _73b0pw2fb OF _MSYSMENU ACTIVATE POPUP tablasgene
+ON PAD _73b0pw2fc OF _MSYSMENU ACTIVATE POPUP configurac
+ON SELECTION PAD _73b0pw2fd OF _MSYSMENU ;
+	DO _73b0pw2fe ;
 	IN LOCFILE("MENUS2\FUNCCTM00" ,"MPX;MPR|FXP;PRG" ,"WHERE is FUNCCTM00?")
 
 DEFINE POPUP maestros MARGIN RELATIVE SHADOW COLOR SCHEME 4
@@ -226,7 +226,7 @@ ON SELECTION BAR 1 OF configurac do form adm_cambioclave
 
 *       *********************************************************
 *       *                                                         
-*       * _6UX0RQ14B  ON SELECTION PAD                            
+*       * _73B0PW2FE  ON SELECTION PAD                            
 *       *                                                         
 *       * Procedure Origin:                                       
 *       *                                                         
@@ -237,7 +237,7 @@ ON SELECTION BAR 1 OF configurac do form adm_cambioclave
 *       *                                                         
 *       *********************************************************
 *
-PROCEDURE _6ux0rq14b
+PROCEDURE _73b0pw2fe
 if MESSAGEBOX("¿Desea Salir de la Aplicación?",4+32+256,"Salir...")=6
    clear events
    set sysmenu to

@@ -1,12 +1,12 @@
 *       *********************************************************
 *       *                                                         
-*       * 15/12/2023           FUNVTAM00.MPR            05:50:31  
+*       * 16/01/2025           FUNVTAM00.MPR            12:04:46  
 *       *                                                         
 *       *********************************************************
 *       *                                                         
 *       * Victor E. Torres Tejada                                 
 *       *                                                         
-*       * Copyright (C) 2023 o-Negocios S.A.C                     
+*       * Copyright (C) 2025 o-Negocios S.A.C                     
 *       * Calle Las Palomas 120 - 701 - Torre 1                   
 *       * LIMA, LIMA  L034                                          
 *       * PERU                                              
@@ -27,28 +27,28 @@
 SET SYSMENU TO
 SET SYSMENU AUTOMATIC
 
-DEFINE PAD _6s60cisac OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2oa OF _MSYSMENU PROMPT "Maestros" COLOR SCHEME 3 ;
 	KEY ALT+M, ""
-DEFINE PAD _6s60cisad OF _MSYSMENU PROMPT "Transaciones" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2ob OF _MSYSMENU PROMPT "Transaciones" COLOR SCHEME 3 ;
 	KEY ALT+T, ""
-DEFINE PAD _6s60cisae OF _MSYSMENU PROMPT "Consultas" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2oc OF _MSYSMENU PROMPT "Consultas" COLOR SCHEME 3 ;
 	KEY ALT+C, ""
-DEFINE PAD _6s60cisaf OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2od OF _MSYSMENU PROMPT "Reportes" COLOR SCHEME 3 ;
 	KEY ALT+R, ""
-DEFINE PAD _6s60cisag OF _MSYSMENU PROMPT "Tablas \<Generales" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2oe OF _MSYSMENU PROMPT "Tablas \<Generales" COLOR SCHEME 3 ;
 	KEY ALT+G, ""
-DEFINE PAD _6s60cisah OF _MSYSMENU PROMPT "Configuracion" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2of OF _MSYSMENU PROMPT "Configuracion" COLOR SCHEME 3 ;
 	KEY ALT+C, ""
-DEFINE PAD _6s60cisai OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
+DEFINE PAD _73b0pw2og OF _MSYSMENU PROMPT "Salir" COLOR SCHEME 3 ;
 	KEY ALT+S, ""
-ON PAD _6s60cisac OF _MSYSMENU ACTIVATE POPUP maestros
-ON PAD _6s60cisad OF _MSYSMENU ACTIVATE POPUP transacion
-ON PAD _6s60cisae OF _MSYSMENU ACTIVATE POPUP consultas
-ON PAD _6s60cisaf OF _MSYSMENU ACTIVATE POPUP reportes
-ON PAD _6s60cisag OF _MSYSMENU ACTIVATE POPUP tablasgene
-ON PAD _6s60cisah OF _MSYSMENU ACTIVATE POPUP configurac
-ON SELECTION PAD _6s60cisai OF _MSYSMENU ;
-	DO _6s60cisaj ;
+ON PAD _73b0pw2oa OF _MSYSMENU ACTIVATE POPUP maestros
+ON PAD _73b0pw2ob OF _MSYSMENU ACTIVATE POPUP transacion
+ON PAD _73b0pw2oc OF _MSYSMENU ACTIVATE POPUP consultas
+ON PAD _73b0pw2od OF _MSYSMENU ACTIVATE POPUP reportes
+ON PAD _73b0pw2oe OF _MSYSMENU ACTIVATE POPUP tablasgene
+ON PAD _73b0pw2of OF _MSYSMENU ACTIVATE POPUP configurac
+ON SELECTION PAD _73b0pw2og OF _MSYSMENU ;
+	DO _73b0pw2oh ;
 	IN LOCFILE("MENUS2\FUNVTAM00" ,"MPX;MPR|FXP;PRG" ,"WHERE is FUNVTAM00?")
 
 DEFINE POPUP maestros MARGIN RELATIVE SHADOW COLOR SCHEME 4
@@ -201,7 +201,7 @@ ON SELECTION BAR 2 OF configurac Do Form Vta_VtaConfg
 
 *       *********************************************************
 *       *                                                         
-*       * _6S60CISAJ  ON SELECTION PAD                            
+*       * _73B0PW2OH  ON SELECTION PAD                            
 *       *                                                         
 *       * Procedure Origin:                                       
 *       *                                                         
@@ -212,7 +212,7 @@ ON SELECTION BAR 2 OF configurac Do Form Vta_VtaConfg
 *       *                                                         
 *       *********************************************************
 *
-PROCEDURE _6s60cisaj
+PROCEDURE _73b0pw2oh
 IF MESSAGEBOX("¿Desea Salir de la Aplicación?",4+32+256,"Salir...")=6
    clear events
    set sysmenu to
