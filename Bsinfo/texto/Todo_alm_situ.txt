@@ -19,4 +19,4 @@ janesoft.prg
 	alm_almkarta.scx
 	cpi_resumenmovo_t.scx  
 	alm_control_de_situacion.scx
-	alm_control_de_situacion_browse.scx 
+	alm_control_de_situacion_browse.scx calc
