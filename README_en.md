@@ -1,5 +1,15 @@
 # o-Negocios Project
 
+## o-Negocios ERP
+
+O-Negocios is a modular ERP system whose development began in 1995, based on real-world business management requirements across different industries.
+
+It integrates business processes such as sales, invoicing, inventory, warehousing, procurement, logistics, production, accounting, accounts receivable, and financial management.
+
+The project aims to evolve into a modern, scalable platform accessible through the web, cloud, and mobile devices, bringing enterprise-level capabilities to micro, small, and medium-sized businesses (SMBs), while supporting their growth and changing needs.
+
+---
+
 ## Development Mode Testing
 
 To perform development mode testing, follow these steps:

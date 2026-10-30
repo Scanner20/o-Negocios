@@ -4,6 +4,14 @@
 - 🇪🇸 Español (actual)  
 - 🇬🇧 [Versión en inglés](README_en.md)
 
+## o-Negocios ERP
+
+O-Negocios es un sistema ERP modular cuyo desarrollo comenzó en 1995, basado en necesidades reales de gestión empresarial de distintos sectores económicos.
+
+Integra procesos de ventas, facturación, inventarios, almacenes, compras, logística, producción, contabilidad, cuentas por cobrar y administración financiera.
+
+El proyecto busca evolucionar hacia una plataforma moderna, escalable y accesible desde la web, la nube y dispositivos móviles, acercando funcionalidades propias de sistemas empresariales a micro, pequeñas y medianas empresas (MYPEs), con capacidad de crecer junto con sus necesidades.
+
 ---
 
 ## Pruebas en modo desarrollo
